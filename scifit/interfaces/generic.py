@@ -4,16 +4,13 @@ on which any other interfaces must inherit from. This class exposes generic abst
 all interfaces must implement.
 """
 
-import abc
-from typing import Any
-
 import numpy as np
 from scipy import optimize
 
 from scifit.errors.base import *
 
 
-class FitSolverInterface(abc.ABC):
+class FitSolverInterface:
 
     """
     Generic Interface (Abstract Base Class) for all object of the package.
@@ -83,11 +80,11 @@ class FitSolverInterface(abc.ABC):
         if hasattr(self, "_solution"):
             return self.model_score(xdata, ydata, *self._solution["parameters"])
         else:
-            raise NotSolvedError("Model must be fitted prior to compute errors")
+            raise NotSolvedError("Model must be fitted prior to compute score")
 
     def fit(self, xdata, ydata, **kwargs):
         """
-        Solve fitting problem and store data
+        Solve fitting problem and store data and results
         """
         self.store(xdata, ydata)
         self._solution = self.solve(self._xdata, self._ydata, **kwargs)
