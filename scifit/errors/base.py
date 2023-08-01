@@ -10,3 +10,7 @@ class MissingModel(GenericError):
 class InputDataError(GenericError):
     pass
 
+
+class NotSolvedError(GenericError):
+    pass
+
