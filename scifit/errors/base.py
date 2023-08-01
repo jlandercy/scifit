@@ -3,10 +3,10 @@ class GenericError(Exception):
     pass
 
 
-class MissingModel(GenericError, NotImplemented):
+class MissingModel(GenericError):
     pass
 
 
-class InputDataError(GenericError, TypeError):
+class InputDataError(GenericError):
     pass
 
