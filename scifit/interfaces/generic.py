@@ -7,6 +7,8 @@ all interfaces must implement.
 import numpy as np
 from scipy import optimize
 
+import matplotlib.pyplot as plt
+
 from scifit.errors.base import *
 
 
@@ -47,24 +49,19 @@ class FitSolverInterface:
         self._ydata = ydata
 
     @staticmethod
-    def model(x, *parameters):
+    def model(xdata, *parameters):
         """
         Model definition to fit with experimental data.
         This method must be overridden by subclassing
         """
         raise MissingModel("Model not defined")
 
-    @classmethod
-    def model_score(cls, x, y, *parameters):
-        return np.sum(np.power((cls.model(x, *parameters) - y), 2))/y.shape[0]
-
     def solve(self, xdata, ydata, **kwargs):
         """
         Solve fitting problem and return structured solution
         """
         solution = optimize.curve_fit(
-            self.model,
-            self._xdata, self._ydata,
+            self.model, xdata, ydata,
             full_output=True, check_finite=True,
             **self.configuration(**kwargs)
         )
@@ -76,11 +73,14 @@ class FitSolverInterface:
             "status": solution[4]
         }
 
-    def score(self, xdata, ydata):
+    def predict(self, xdata):
         if hasattr(self, "_solution"):
-            return self.model_score(xdata, ydata, *self._solution["parameters"])
+            return self.model(xdata, *self._solution["parameters"])
         else:
-            raise NotSolvedError("Model must be fitted prior to compute score")
+            raise NotSolvedError("Model must be fitted prior to this operation")
+
+    def score(self, xdata, ydata):
+        return np.sum(np.power((self.predict(xdata) - ydata), 2)) / ydata.shape[0]
 
     def fit(self, xdata, ydata, **kwargs):
         """
@@ -88,7 +88,16 @@ class FitSolverInterface:
         """
         self.store(xdata, ydata)
         self._solution = self.solve(self._xdata, self._ydata, **kwargs)
-        self._yhat = self.model(self._xdata, *self._solution["parameters"])
+        self._yhat = self.predict(self._xdata)
         self._score = self.score(self._xdata, self._ydata)
         return self._solution
+
+    def plot(self, resolution=100):
+        xlin = np.linspace(self._xdata.min(), self._xdata.max(), resolution)
+        fig, axe = plt.subplots()
+        axe.plot(self._xdata, self._ydata, linestyle="none", marker=".", label="Data")
+        axe.plot(xlin, self.predict(xlin), label="Fit")
+        axe.legend()
+        axe.grid()
+        return axe
 

@@ -1,6 +1,6 @@
 """
 Module :mod:`scifit.tests.test_interfaces` implements test suite for the
-class :class:`newproject.interfaces.generic.GenericInterface` and its children.
+class :class:`scifit.interfaces.generic.GenericInterface` and its children.
 """
 
 from unittest import TestCase
@@ -12,6 +12,7 @@ from scifit.solvers.linear import LinearFitSolver
 
 class GenericTestFitSolver:
 
+    seed = 1234567890
     factory = LinearFitSolver
     kwargs = {}
     p = np.array([2, 3])
@@ -19,6 +20,7 @@ class GenericTestFitSolver:
     s = 0.
 
     def setUp(self) -> None:
+        np.random.seed(self.seed)
         self.solver = self.factory(**self.kwargs)
         self.y = self.solver.model(self.x, *self.p) + self.s*np.random.rand(self.x.shape[0])
 
@@ -39,14 +41,19 @@ class GenericTestFitSolver:
             self.assertTrue(
                 np.allclose(
                     self.p[i],
-                    self.solver._solution["parameters"][i],
-                    atol=10*np.sqrt(self.solver._solution["covariance"][i][i])
+                    solution["parameters"][i],
+                    atol=10*np.sqrt(solution["covariance"][i][i])
                 )
             )
 
+    def test_plot(self):
+        self.solver.fit(self.x, self.y)
+        axe = self.solver.plot()
+        axe.figure.savefig("media/{}_data.png".format(self.__class__.__name__))
+
 
 class TestPerfectLinearRegression(GenericTestFitSolver, TestCase):
-    pass
+    s = 0.
 
 
 class TestSmallNoisyLinearRegression(GenericTestFitSolver, TestCase):
@@ -59,3 +66,11 @@ class TestMediumNoisyLinearRegression(GenericTestFitSolver, TestCase):
 
 class TestLargeNoisyLinearRegression(GenericTestFitSolver, TestCase):
     s = 1.
+
+
+class TestVeryLargeNoisyLinearRegression(GenericTestFitSolver, TestCase):
+    s = 25.
+
+
+class TestExtraLargeNoisyLinearRegression(GenericTestFitSolver, TestCase):
+    s = 1e3

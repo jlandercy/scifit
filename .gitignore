@@ -109,3 +109,4 @@ venv.bak/
 
 # nox
 .nox/
+/media/
