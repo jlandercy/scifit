@@ -1,0 +1,78 @@
+image: jlandercy/python-qc:3.8
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  key: "Cache_${CI_PROJECT_ID}"
+  paths:
+    - .cache/pip
+
+default:
+  before_script:
+    - python3 -m virtualenv --system-site-packages venv
+    - source venv/bin/activate
+    - python3 -m pip install --user -r requirements.txt
+  tags:
+    - docker
+
+stages:
+  - build
+  - tests
+  - docs
+
+package:
+  stage: build
+  #tags:
+  #  - build
+  script:
+    - nox --session package install
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - dist
+
+quality:
+  stage: tests
+  #tags:
+  #  - tests
+  script:
+    - nox
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - .cache/reports/*
+    reports:
+      junit:
+        - .cache/reports/tests.xml
+        - .cache/reports/syntax.xml
+
+notebooks:
+  stage: tests
+  #tags:
+  #  - tests
+  needs:
+    - package
+  allow_failure: true
+  script:
+    - nox --session package install
+    - nox --session notebooks
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - ./docs/source/notebooks/*
+      - .cache/reports/notebooks.log
+
+documentation:
+  stage: docs
+  #tags:
+  #  - docs
+  needs:
+    - quality
+    - notebooks
+  script:
+    - nox --session docs
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - .cache/docs/*

@@ -1,0 +1,34 @@
+<New Project> distributions bundle several libraries.
+
+Following dependencies are part of the <newproject> core:
+
+ - newproject as a template: BSD 3-Clause License (see https://github.com/jlandercy/newproject)
+
+Following dependencies are optional and can be relaxed:
+
+ - Requests: Apache License 2.0 with no alteration to the code (see https://github.com/psf/requests)
+ - PySerial: BSD 3-Clause License (see https://github.com/pyserial/pyserial)
+ - Redis: MIT License (see https://github.com/andymccurdy/redis-py)
+
+Following dependencies are part of the <newproject> quality suite (there are not required to use the package):
+
+ - CoveragePy: Apache License 2.0 (see https://github.com/nedbat/coveragepy/blob/master/LICENSE.txt)
+ - PyLint: GPLv2 (see https://github.com/PyCQA/pylint)
+ - MyPy: MIT License (see https://github.com/python/mypy/blob/master/LICENSE)
+ - Black: MIT License (see https://github.com/psf/black/blob/master/LICENSE)
+ - iSort: MIT License (see https://github.com/PyCQA/isort/blob/develop/LICENSE)
+ - Jupyter Notebook: BSD 3-Clause License (see https://github.com/jupyter/notebook/blob/master/LICENSE)
+ - Sphinx: BSD 3-Clause License (see https://github.com/sphinx-doc/sphinx/blob/3.x/LICENSE)
+ - AnyBadge: MIT License (see https://github.com/jongracecox/anybadge/blob/master/LICENSE)
+ - Nox: Apache License 2.0 (see https://github.com/theacodes/nox/blob/master/LICENSE)
+ - Bandit: Apache License 2.0 (see https://github.com/PyCQA/bandit/blob/master/LICENSE)
+ - Flake8: MIT License (see https://github.com/PyCQA/flake8/blob/master/LICENSE)
+ - Flake8-JUnit: BSD 3-Clause License (see https://github.com/initios/flake8-junit-report/blob/develop/LICENSE)
+ - Safety: MIT License (see https://github.com/pyupio/safety/blob/master/LICENSE)
+
+More details about licenses can be found here:
+
+ - BSD Licenses: https://en.wikipedia.org/wiki/BSD_licenses
+ - MIT Licenses: https://en.wikipedia.org/wiki/MIT_License
+ - Apache Licenses: https://en.wikipedia.org/wiki/Apache_License
+ - LGPL: https://en.wikipedia.org/wiki/GNU_Lesser_General_Public_License
