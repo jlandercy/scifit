@@ -5,4 +5,4 @@ class LinearFitSolver(FitSolverInterface):
 
     @staticmethod
     def model(x, a, b):
-        return a*x + b
+        return a*x[:,0] + b

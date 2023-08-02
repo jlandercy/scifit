@@ -16,13 +16,18 @@ class GenericTestFitSolver:
     factory = LinearFitSolver
     kwargs = {}
     p = np.array([2, 3])
-    x = np.linspace(0, 10, 21)
+    x = np.linspace(0, 10, 21).reshape(-1, 1)
     s = 0.
 
     def setUp(self) -> None:
         np.random.seed(self.seed)
         self.solver = self.factory(**self.kwargs)
         self.y = self.solver.model(self.x, *self.p) + self.s*np.random.rand(self.x.shape[0])
+
+    def test_signature(self):
+        s = self.solver.signature
+        n = self.solver.parameters_size
+        self.assertEqual(len(s.parameters) - 1, n)
 
     def test_model_implementation(self):
         yhat = self.solver.model(self.x, *self.p)

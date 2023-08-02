@@ -4,6 +4,8 @@ on which any other interfaces must inherit from. This class exposes generic abst
 all interfaces must implement.
 """
 
+import inspect
+
 import numpy as np
 from scipy import optimize
 
@@ -36,6 +38,9 @@ class FitSolverInterface:
         xdata = np.array(xdata)
         ydata = np.array(ydata)
 
+        if xdata.ndim != 2:
+            raise InputDataError("Variables must be a two dimensional array")
+
         if xdata.shape[0] != ydata.shape[0]:
             raise InputDataError("Incompatible shapes between x %s and y %s" % (xdata.shape, ydata.shape))
 
@@ -55,6 +60,18 @@ class FitSolverInterface:
         This method must be overridden by subclassing
         """
         raise MissingModel("Model not defined")
+
+    @property
+    def signature(self):
+        return inspect.signature(self.model)
+
+    @property
+    def variables_size(self):
+        return self._xdata.shape[1]
+
+    @property
+    def parameters_size(self):
+        return len(self.signature.parameters) - 1
 
     def solve(self, xdata, ydata, **kwargs):
         """
@@ -93,9 +110,10 @@ class FitSolverInterface:
         return self._solution
 
     def plot(self, resolution=100):
-        xlin = np.linspace(self._xdata.min(), self._xdata.max(), resolution)
+        x = self._xdata[:,0]
+        xlin = np.linspace(x.min(), x.max(), resolution).reshape(-1, 1)
         fig, axe = plt.subplots()
-        axe.plot(self._xdata, self._ydata, linestyle="none", marker=".", label="Data")
+        axe.plot(x, self._ydata, linestyle="none", marker=".", label="Data")
         axe.plot(xlin, self.predict(xlin), label="Fit")
         axe.legend()
         axe.grid()
