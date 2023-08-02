@@ -19,6 +19,16 @@ class FitSolverInterface:
     """
     Generic Interface (Abstract Base Class) for all object of the package.
     This class must be subclassed by any other interfaces.
+
+    n experimental points
+    m variables
+    k parameters
+
+    Min beta_k MSE = (1/n)*(f(x, b1, ..., bk) - y)^2
+
+    x(n,m)
+    y(n,1)
+
     """
 
     def __init__(self, **kwargs):
@@ -32,11 +42,14 @@ class FitSolverInterface:
 
     def store(self, xdata, ydata):
         """
-        Store experimental data for convenience
+        Validate and store experimental data
         """
 
         xdata = np.array(xdata)
         ydata = np.array(ydata)
+
+        if xdata.ndim == 1:
+            xdata = xdata.reshape(-1, 1)
 
         if xdata.ndim != 2:
             raise InputDataError("Variables must be a two dimensional array")
@@ -59,7 +72,7 @@ class FitSolverInterface:
         Model definition to fit with experimental data.
         This method must be overridden by subclassing
         """
-        raise MissingModel("Model not defined")
+        raise MissingModel("Model is not defined")
 
     @property
     def signature(self):
@@ -109,12 +122,15 @@ class FitSolverInterface:
         self._score = self.score(self._xdata, self._ydata)
         return self._solution
 
-    def plot(self, resolution=100):
-        x = self._xdata[:,0]
+    def plot(self, variable_index=0, title="", resolution=100):
+        x = self._xdata[:, variable_index]
         xlin = np.linspace(x.min(), x.max(), resolution).reshape(-1, 1)
         fig, axe = plt.subplots()
         axe.plot(x, self._ydata, linestyle="none", marker=".", label="Data")
         axe.plot(xlin, self.predict(xlin), label="Fit")
+        axe.set_title("Regression Plot: {}".format(title))
+        axe.set_xlabel(r"Independent Variable, $x_{{{}}}$".format(variable_index))
+        axe.set_ylabel(r"Dependent Variable, $y$")
         axe.legend()
         axe.grid()
         return axe
