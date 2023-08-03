@@ -14,3 +14,6 @@ class InputDataError(GenericError):
 class NotSolvedError(GenericError):
     pass
 
+
+class ConfigurationError(GenericError):
+    pass

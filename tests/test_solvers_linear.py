@@ -26,7 +26,7 @@ class GenericTestFitSolver:
 
     def test_signature(self):
         s = self.solver.signature
-        n = self.solver.parameters_size
+        n = self.solver.parameter_space_size
         self.assertEqual(len(s.parameters) - 1, n)
 
     def test_model_implementation(self):

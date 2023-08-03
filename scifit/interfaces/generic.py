@@ -24,7 +24,7 @@ class FitSolverInterface:
     m variables
     k parameters
 
-    Min beta_k MSE = (1/n)*(f(x, b1, ..., bk) - y)^2
+    Min wrt b1, ..., bk of MSE = (1/n)*SUM(f(x1, ..., xm, b1, ..., bk) - y)^2
 
     x(n,m)
     y(n,1)
@@ -47,9 +47,6 @@ class FitSolverInterface:
 
         xdata = np.array(xdata)
         ydata = np.array(ydata)
-
-        if xdata.ndim == 1:
-            xdata = xdata.reshape(-1, 1)
 
         if xdata.ndim != 2:
             raise InputDataError("Variables must be a two dimensional array")
@@ -75,16 +72,32 @@ class FitSolverInterface:
         raise MissingModel("Model is not defined")
 
     @property
+    def observation_space_size(self):
+        return self._xdata.shape[0]
+
+    @property
+    def n(self):
+        return self.observation_space_size
+
+    @property
+    def variable_space_size(self):
+        return self._xdata.shape[1]
+
+    @property
+    def m(self):
+        return self.variable_space_size
+
+    @property
     def signature(self):
         return inspect.signature(self.model)
 
     @property
-    def variables_size(self):
-        return self._xdata.shape[1]
+    def parameter_space_size(self):
+        return len(self.signature.parameters) - 1
 
     @property
-    def parameters_size(self):
-        return len(self.signature.parameters) - 1
+    def k(self):
+        return self.parameter_space_size
 
     def solve(self, xdata, ydata, **kwargs):
         """
@@ -121,6 +134,28 @@ class FitSolverInterface:
         self._yhat = self.predict(self._xdata)
         self._score = self.score(self._xdata, self._ydata)
         return self._solution
+
+    def variable_domains(self):
+        return
+
+    @staticmethod
+    def space(mode="lin", xmin=0., xmax=1., resolution=101):
+        """
+        Generate 1-dimensional space
+        """
+        if mode == "lin":
+            return np.linspace(xmin, xmax, resolution)
+        elif mode == "log":
+            return np.logspace(xmin, xmax, resolution, base=10)
+        else:
+            raise ConfigurationError("Domain mode must be in {lin, log} got '%s' instead" % mode)
+
+    def parameter_space(self, mode="lin", xmin=0., xmax=1., resolution=101):
+        """
+        Generate Parameter Space
+        """
+        xscale = self.space(mode=mode, xmin=xmin, xmax=xmax, resolution=resolution)
+        return np.meshgrid(*([xscale]*self.k))
 
     def plot(self, variable_index=0, title="", resolution=100):
         x = self._xdata[:, variable_index]
