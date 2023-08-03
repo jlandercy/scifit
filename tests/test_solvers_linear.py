@@ -73,19 +73,19 @@ class GenericTestFitSolver:
         domains = self.solver.parameter_domains(mode="log", xmax=100.)
 
     def test_plot_fit(self):
-        self.solver.fit(self.x, self.y)
         name = self.__class__.__name__
-        title = "\n{} (seed={})".format(name, self.seed)
+        title = "{} (seed={:d})".format(name, self.seed)
+        self.solver.fit(self.x, self.y)
         for i, axe in enumerate(self.solver.plot_fit(title=title)):
             axe.figure.savefig("media/{}_fit_x{}.png".format(name, i))
             plt.close(axe.figure)
 
-    def test_plot_mse(self):
-        self.solver.fit(self.x, self.y)
+    def test_plot_score(self):
         name = self.__class__.__name__
-        title = "\n{} (n={}, seed={})".format(name, self.solver.n, self.seed)
-        for i, axe in enumerate(self.solver.plot_mse(title=title)):
-            axe.figure.savefig("media/{}_mse_x{}_x{}.png".format(name, *axe._pair_indices))
+        title = "{} (seed={:d})".format(name, self.seed)
+        self.solver.fit(self.x, self.y)
+        for i, axe in enumerate(self.solver.plot_score(title=title)):
+            axe.figure.savefig("media/{}_score_b{}_b{}.png".format(name, *axe._pair_indices))
             plt.close(axe.figure)
 
 

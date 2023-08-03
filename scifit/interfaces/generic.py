@@ -147,6 +147,7 @@ class FitSolverInterface:
 
     def score(self, xdata, ydata, parameters=None):
         return np.sum(np.power((self.predict(xdata, parameters) - ydata), 2)) / ydata.shape[0]
+    score.name = "MSE"
 
     def landscape(self):
         """
@@ -280,14 +281,17 @@ class FitSolverInterface:
                 fig, axe = plt.subplots()
                 axe.plot(
                     x, self._ydata,
-                    linestyle="none", marker=".",
-                    label=r"Data: $(x_{{{}}},y)$".format(variable_index) + "\nn={}".format(self.n)
+                    linestyle="none", marker=".", label=r"Data: $(x_{{{}}},y)$".format(variable_index)
                 )
-                axe.plot(
-                    xs, self.predict(xs),
-                    label=r"Fit: $\hat{{y}} = f(\bar{x},\bar{\beta})$" + "\nMSE={:.3e}".format(self._score)
+                axe.plot(xs, self.predict(xs), label=r"Fit: $\hat{y} = f(\bar{x},\bar{\beta})$")
+                axe.set_title(
+                    "Regression Plot: {}\n{}={}, n={:d}, score={:.3e}".format(
+                        title,
+                        r"$\bar{\beta}$", np.array2string(self._solution["parameters"], precision=3, separator=', '),
+                        self.n, self._score
+                    ),
+                    fontdict={"fontsize": 11}
                 )
-                axe.set_title("Regression Plot: {}".format(title))
                 axe.set_xlabel(r"Independent Variable, $x_{{{}}}$".format(variable_index))
                 axe.set_ylabel(r"Dependent Variable, $y$")
                 axe.legend()
@@ -295,14 +299,16 @@ class FitSolverInterface:
 
                 yield axe
 
-    def plot_mse(self, mode="lin", ratio=0.1, xmin=None, xmax=None, title="", levels=None, resolution=200):
+    def plot_score(self, mode="lin", ratio=0.1, xmin=None, xmax=None, title="", levels=None, resolution=200):
         """
         Plot MSE for each parameter pairs
         """
 
         if self.fitted(error=True):
 
-            scales = self.parameter_scales(mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, resolution=resolution)
+            scales = self.parameter_scales(
+                mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, resolution=resolution
+            )
 
             if self.k > 1:
 
@@ -321,7 +327,16 @@ class FitSolverInterface:
                     axe.axvline(self._solution["parameters"][i], color="black", linestyle="-.")
                     axe.axhline(self._solution["parameters"][j], color="black", linestyle="-.")
 
-                    axe.set_title("Regression Log-MSE: {}".format(title))
+                    axe.set_title(
+                        "Regression Log-{}: {}\n{}={}, n={:d}, score={:.3e}".format(
+                            self.score.name, title,
+                            r"$\bar{\beta}$",
+                            np.array2string(self._solution["parameters"], precision=3, separator=', '),
+                            self.n, self._score
+                        ),
+                        fontdict={"fontsize": 11}
+                    )
+
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(i))
                     axe.set_ylabel(r"Parameter, $\beta_{{{}}}$".format(j))
                     axe.grid()
@@ -330,5 +345,14 @@ class FitSolverInterface:
                     yield axe
 
             else:
-                pass
+
+                fig, axe = plt.subplots()
+                axe.set_title("Regression Log-{}: {}".format(self.score.name, title))
+
+                axe.set_xlabel(r"Score, $s$")
+                axe.set_ylabel(r"Parameter, $\beta_0$")
+                axe.grid()
+
+                axe._pair_indices = (0, 0)
+                yield axe
 
