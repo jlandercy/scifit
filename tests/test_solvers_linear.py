@@ -56,12 +56,36 @@ class GenericTestFitSolver:
                 )
             )
 
+    def test_parameters_domain_linear_auto(self):
+        solution = self.solver.fit(self.x, self.y)
+        domains = self.solver.parameter_domains()
+
+    def test_parameters_domain_linear_fixed(self):
+        solution = self.solver.fit(self.x, self.y)
+        domains = self.solver.parameter_domains(xmax=100.)
+
+    def test_parameters_domain_logarithmic_auto(self):
+        solution = self.solver.fit(self.x, self.y)
+        domains = self.solver.parameter_domains(mode="log")
+
+    def test_parameters_domain_logarithmic_fixed(self):
+        solution = self.solver.fit(self.x, self.y)
+        domains = self.solver.parameter_domains(mode="log", xmax=100.)
+
     def test_plot_fit(self):
         name = self.__class__.__name__
         title = "{} (seed={})".format(name, self.seed)
         self.solver.fit(self.x, self.y)
         for i, axe in enumerate(self.solver.plot_fit(title=title)):
             axe.figure.savefig("media/{}_fit_x{}.png".format(name, i))
+            plt.close(axe.figure)
+
+    def test_plot_mse(self):
+        name = self.__class__.__name__
+        title = "{} (seed={})".format(name, self.seed)
+        self.solver.fit(self.x, self.y)
+        for i, axe in enumerate(self.solver.plot_mse(title=title)):
+            axe.figure.savefig("media/{}_mse_x{}_x{}.png".format(name, *axe._pair_indices))
             plt.close(axe.figure)
 
 

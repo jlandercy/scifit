@@ -6,6 +6,7 @@ all interfaces must implement.
 
 from collections.abc import Iterable
 import inspect
+import itertools
 
 import numpy as np
 import pandas as pd
@@ -211,27 +212,27 @@ class FitSolverInterface:
         if self.fitted():
             parameters = self._solution["parameters"]
             if mode == "lin":
-                xmin = xmin or (parameters - 3 * ratio * np.abs(parameters))
-                xmax = xmax or (parameters + 3 * ratio * np.abs(parameters))
+                xmin = xmin or list(parameters - 3 * ratio * np.abs(parameters))
+                xmax = xmax or list(parameters + 3 * ratio * np.abs(parameters))
             elif mode == "log":
-                xmin = xmin or (parameters * (ratio ** 3))
-                xmax = xmax or (parameters / (ratio ** 3))
+                xmin = xmin or list(parameters * (ratio ** 3))
+                xmax = xmax or list(parameters / (ratio ** 3))
             else:
                 raise ConfigurationError("Domain mode must be in {lin, log} got '%s' instead" % mode)
 
         xmin = xmin or 0.
         if not isinstance(xmin, Iterable):
-            xmin = [xmin] * self.m
+            xmin = [xmin] * self.k
 
-        if len(xmin) != self.m:
-            raise ConfigurationError("Domain lower boundaries must have the same dimension as variable space")
+        if len(xmin) != self.k:
+            raise ConfigurationError("Domain lower boundaries must have the same dimension as parameter space")
 
         xmax = xmax or 1.
         if not isinstance(xmax, Iterable):
-            xmax = [xmax] * self.m
+            xmax = [xmax] * self.k
 
-        if len(xmax) != self.m:
-            raise ConfigurationError("Domain upper boundaries must have the same dimension as variable space")
+        if len(xmax) != self.k:
+            raise ConfigurationError("Domain upper boundaries must have the same dimension as parameter space")
 
         return pd.DataFrame([xmin, xmax], index=["min", "max"])
 
@@ -256,40 +257,58 @@ class FitSolverInterface:
 
     def plot_fit(self, title="", resolution=200):
         """
-        Plot fit for each variable
+        Plot data and fitted function for each variable
         """
 
-        scales = self.variable_scales(resolution=resolution)
-        for variable_index, scale in enumerate(scales):
+        if self.fitted(error=True):
 
-            x = self._xdata[:, variable_index]
-            xs = scale.reshape(-1, 1)
+            scales = self.variable_scales(resolution=resolution)
+            for variable_index, scale in enumerate(scales):
 
-            fig, axe = plt.subplots()
-            axe.plot(
-                x, self._ydata,
-                linestyle="none", marker=".",
-                label=r"Data: $(x_{{{}}},y)$".format(variable_index) + "\nn={}".format(self.n)
-            )
-            axe.plot(
-                xs, self.predict(xs),
-                label=r"Fit: $\hat{{y}} = f(\bar{x},\bar{\beta})$" + "\nMSE={:.3e}".format(self._score)
-            )
-            axe.set_title("Regression Plot: {}".format(title))
-            axe.set_xlabel(r"Independent Variable, $x_{{{}}}$".format(variable_index))
-            axe.set_ylabel(r"Dependent Variable, $y$")
-            axe.legend()
-            axe.grid()
+                x = self._xdata[:, variable_index]
+                xs = scale.reshape(-1, 1)
 
-            yield axe
+                fig, axe = plt.subplots()
+                axe.plot(
+                    x, self._ydata,
+                    linestyle="none", marker=".",
+                    label=r"Data: $(x_{{{}}},y)$".format(variable_index) + "\nn={}".format(self.n)
+                )
+                axe.plot(
+                    xs, self.predict(xs),
+                    label=r"Fit: $\hat{{y}} = f(\bar{x},\bar{\beta})$" + "\nMSE={:.3e}".format(self._score)
+                )
+                axe.set_title("Regression Plot: {}".format(title))
+                axe.set_xlabel(r"Independent Variable, $x_{{{}}}$".format(variable_index))
+                axe.set_ylabel(r"Dependent Variable, $y$")
+                axe.legend()
+                axe.grid()
 
-    def plot_mse(self, title="", resolution=200):
+                yield axe
+
+    def plot_mse(self, mode="lin", ratio=0.1, xmin=None, xmax=None, title="", resolution=200):
         """
         Plot MSE for each parameter pairs
         """
-        if self.k > 1:
-            pass
 
-        else:
-            pass
+        if self.fitted(error=True):
+
+            scales = self.parameter_scales(mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, resolution=resolution)
+
+            if self.k > 1:
+                for i, j in itertools.combinations(range(self.k), 2):
+
+                    x, y = np.meshgrid(scales[i], scales[j])
+
+                    fig, axe = plt.subplots()
+                    axe.set_title("Regression MSE: {}".format(title))
+                    axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(i))
+                    axe.set_ylabel(r"Parameter, $\beta_{{{}}}$".format(j))
+                    axe.grid()
+
+                    axe._pair_indices = (i, j)
+                    yield axe
+
+            else:
+                pass
 

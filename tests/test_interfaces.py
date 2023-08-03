@@ -104,19 +104,19 @@ class GenericTestFitSolverInterface:
     def test_parameters_domains_auto_not_fitted(self):
         data = self.solver.parameter_domains()
         self.assertIsInstance(data, pd.DataFrame)
-        self.assertEqual(data.shape[1], self.solver.m)
+        self.assertEqual(data.shape[1], self.solver.k)
         self.assertEqual(set(data.index).intersection({"min", "max"}), {"min", "max"})
 
     def test_parameters_domains_simple_fixed_not_fitted(self):
         data = self.solver.parameter_domains(xmin=-1., xmax=2)
         self.assertIsInstance(data, pd.DataFrame)
-        self.assertEqual(data.shape[1], self.solver.m)
+        self.assertEqual(data.shape[1], self.solver.k)
         self.assertEqual(set(data.index).intersection({"min", "max"}), {"min", "max"})
 
     def test_parameters_domains_list_fixed_not_fitted(self):
-        data = self.solver.parameter_domains(xmin=list(range(self.solver.m)), xmax=self.solver.m)
+        data = self.solver.parameter_domains(xmin=list(range(self.solver.k)), xmax=self.solver.k)
         self.assertIsInstance(data, pd.DataFrame)
-        self.assertEqual(data.shape[1], self.solver.m)
+        self.assertEqual(data.shape[1], self.solver.k)
         self.assertEqual(set(data.index).intersection({"min", "max"}), {"min", "max"})
 
 
