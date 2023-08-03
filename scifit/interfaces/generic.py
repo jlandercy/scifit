@@ -119,11 +119,23 @@ class FitSolverInterface:
             "status": solution[4]
         }
 
+    def fitted(self, error=False):
+        is_fitted = hasattr(self, "_solution")
+        if not(is_fitted) and error:
+            NotFittedError("Model must be fitted prior to this operation")
+        return is_fitted
+
+    def solved(self, error=False):
+        has_converged = self.fitted(error=error) and self._solution["status"] in {1, 2, 3, 4}
+        if not(has_converged) and error:
+            NotSolvedError(
+                "Fitting procedure has not converged ({status:}): {message:}".format(**self._solution)
+            )
+        return has_converged
+
     def predict(self, xdata):
-        if hasattr(self, "_solution"):
+        if self.fitted(error=True):
             return self.model(xdata, *self._solution["parameters"])
-        else:
-            raise NotSolvedError("Model must be fitted prior to this operation")
 
     def score(self, xdata, ydata):
         return np.sum(np.power((self.predict(xdata) - ydata), 2)) / ydata.shape[0]
@@ -179,6 +191,20 @@ class FitSolverInterface:
         """
         return np.meshgrid(*self.variable_scales(mode=mode, xmin=xmin, xmax=xmax, resolution=resolution))
 
+    def parameter_domains(self, xmin=None, xmax=None):
+        """
+        Generate Parameter Domains
+        """
+        if hasattr(self, "_solution"):
+            pass
+        return
+
+    def parameter_scales(self, mode="lin", xmin=None, xmax=None, resolution=101):
+        """
+        Generate Parameter Scales
+        """
+        return self.scales(self.parameter_domains(), mode=mode, xmin=xmin, xmax=xmax, resolution=resolution)
+
     def parameter_space(self, mode="lin", xmin=0., xmax=1., resolution=10):
         """
         Generate Parameter Space
@@ -189,7 +215,10 @@ class FitSolverInterface:
         ]
         return np.meshgrid(scales)
 
-    def plot(self, title="", resolution=200):
+    def plot_fit(self, title="", resolution=200):
+        """
+        Plot fit for each variable
+        """
 
         scales = self.variable_scales(resolution=resolution)
         for variable_index, scale in enumerate(scales):
@@ -214,3 +243,14 @@ class FitSolverInterface:
             axe.grid()
 
             yield axe
+
+    def plot_mse(self, title="", resolution=200):
+        """
+        Plot MSE for each parameter pairs
+        """
+        if self.k > 1:
+            pass
+
+        else:
+            pass
+
