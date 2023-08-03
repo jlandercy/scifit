@@ -141,12 +141,21 @@ class FitSolverInterface:
             )
         return has_converged
 
-    def predict(self, xdata):
-        if self.fitted(error=True):
-            return self.model(xdata, *self._solution["parameters"])
+    def predict(self, xdata, parameters=None):
+        if parameters is not None or self.fitted(error=True):
+            return self.model(xdata, *(parameters or self._solution["parameters"]))
 
-    def score(self, xdata, ydata):
-        return np.sum(np.power((self.predict(xdata) - ydata), 2)) / ydata.shape[0]
+    def score(self, xdata, ydata, parameters=None):
+        return np.sum(np.power((self.predict(xdata, parameters) - ydata), 2)) / ydata.shape[0]
+
+    def landscape(self):
+        """
+        Vectorized score wrt to parameter space
+        """
+        @np.vectorize
+        def wrapper(*parameters):
+            return self.score(self._xdata, self._ydata, parameters=parameters)
+        return wrapper
 
     def fit(self, xdata, ydata, **kwargs):
         """
@@ -296,11 +305,17 @@ class FitSolverInterface:
             scales = self.parameter_scales(mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, resolution=resolution)
 
             if self.k > 1:
+
                 for i, j in itertools.combinations(range(self.k), 2):
 
                     x, y = np.meshgrid(scales[i], scales[j])
+                    parameters = list(self._solution["parameters"])
+                    parameters[i] = x
+                    parameters[j] = y
+                    score = self.landscape()(*parameters)
 
                     fig, axe = plt.subplots()
+                    axe.contour(x, y, score, 20)
                     axe.set_title("Regression MSE: {}".format(title))
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(i))
                     axe.set_ylabel(r"Parameter, $\beta_{{{}}}$".format(j))
