@@ -346,11 +346,25 @@ class FitSolverInterface:
 
             else:
 
-                fig, axe = plt.subplots()
-                axe.set_title("Regression Log-{}: {}".format(self.score.name, title))
+                scale = scales[0]
+                score = self.landscape()(scale)
 
-                axe.set_xlabel(r"Score, $s$")
-                axe.set_ylabel(r"Parameter, $\beta_0$")
+                fig, axe = plt.subplots()
+                axe.plot(scale, score)
+                axe.axvline(self._solution["parameters"][0], color="black", linestyle="-.")
+
+                axe.set_title(
+                    "Regression Log-{}: {}\n{}={}, n={:d}, score={:.3e}".format(
+                        self.score.name, title,
+                        r"$\bar{\beta}$",
+                        np.array2string(self._solution["parameters"], precision=3, separator=', '),
+                        self.n, self._score
+                    ),
+                    fontdict={"fontsize": 11}
+                )
+
+                axe.set_xlabel(r"Parameter, $\beta_0$")
+                axe.set_ylabel(r"Score, $s$")
                 axe.grid()
 
                 axe._pair_indices = (0, 0)
