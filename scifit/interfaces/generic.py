@@ -4,6 +4,7 @@ on which any other interfaces must inherit from. This class exposes generic abst
 all interfaces must implement.
 """
 
+from collections.abc import Iterable
 import inspect
 
 import numpy as np
@@ -120,12 +121,18 @@ class FitSolverInterface:
         }
 
     def fitted(self, error=False):
+        """
+        Fitted mean the fitting procedure has been executed successfully
+        """
         is_fitted = hasattr(self, "_solution")
         if not(is_fitted) and error:
             NotFittedError("Model must be fitted prior to this operation")
         return is_fitted
 
     def solved(self, error=False):
+        """
+        Solved mean the fitting procedure has been executed successfully and has converged to a potential solution
+        """
         has_converged = self.fitted(error=error) and self._solution["status"] in {1, 2, 3, 4}
         if not(has_converged) and error:
             NotSolvedError(
@@ -157,7 +164,7 @@ class FitSolverInterface:
     @staticmethod
     def scale(mode="lin", xmin=0., xmax=1., resolution=101):
         """
-        Generate 1-dimensional space
+        Generate 1-dimensional scale
         """
         if mode == "lin":
             return np.linspace(xmin, xmax, resolution)
@@ -168,6 +175,9 @@ class FitSolverInterface:
 
     @classmethod
     def scales(cls, domains, mode="lin", xmin=None, xmax=None, resolution=101):
+        """
+        Generate scales for each domain
+        """
         scales = [
             cls.scale(
                 mode=mode,
@@ -179,7 +189,7 @@ class FitSolverInterface:
         ]
         return scales
 
-    def variable_scales(self, mode="lin", xmin=None, xmax=None, resolution=101):
+    def variable_scales(self, mode="lin", xmin=None, xmax=None, resolution=100):
         """
         Generate Variables Scales
         """
@@ -189,31 +199,60 @@ class FitSolverInterface:
         """
         Generate Variable Space
         """
-        return np.meshgrid(*self.variable_scales(mode=mode, xmin=xmin, xmax=xmax, resolution=resolution))
+        return np.meshgrid(
+            *self.variable_scales(mode=mode, xmin=xmin, xmax=xmax, resolution=resolution)
+        )
 
-    def parameter_domains(self, xmin=None, xmax=None):
+    def parameter_domains(self, mode="lin", xmin=None, xmax=None, ratio=0.1):
         """
         Generate Parameter Domains
         """
-        if hasattr(self, "_solution"):
-            pass
-        return
 
-    def parameter_scales(self, mode="lin", xmin=None, xmax=None, resolution=101):
+        if self.fitted():
+            parameters = self._solution["parameters"]
+            if mode == "lin":
+                xmin = xmin or (parameters - 3 * ratio * np.abs(parameters))
+                xmax = xmax or (parameters + 3 * ratio * np.abs(parameters))
+            elif mode == "log":
+                xmin = xmin or (parameters * (ratio ** 3))
+                xmax = xmax or (parameters / (ratio ** 3))
+            else:
+                raise ConfigurationError("Domain mode must be in {lin, log} got '%s' instead" % mode)
+
+        xmin = xmin or 0.
+        if not isinstance(xmin, Iterable):
+            xmin = [xmin] * self.m
+
+        if len(xmin) != self.m:
+            raise ConfigurationError("Domain lower boundaries must have the same dimension as variable space")
+
+        xmax = xmax or 1.
+        if not isinstance(xmax, Iterable):
+            xmax = [xmax] * self.m
+
+        if len(xmax) != self.m:
+            raise ConfigurationError("Domain upper boundaries must have the same dimension as variable space")
+
+        return pd.DataFrame([xmin, xmax], index=["min", "max"])
+
+    def parameter_scales(self, mode="lin", xmin=None, xmax=None, ratio=0.1, resolution=100):
         """
         Generate Parameter Scales
         """
-        return self.scales(self.parameter_domains(), mode=mode, xmin=xmin, xmax=xmax, resolution=resolution)
+        return self.scales(
+            self.parameter_domains(mode=mode, xmin=xmin, xmax=xmax, ratio=ratio),
+            resolution=resolution
+        )
 
-    def parameter_space(self, mode="lin", xmin=0., xmax=1., resolution=10):
+    def parameter_space(self, mode="lin", ratio=0.1, xmin=None, xmax=None, resolution=10):
         """
         Generate Parameter Space
         """
-        scales = [
-            self.scale(mode=mode, xmin=xmin, xmax=xmax, resolution=resolution)
-            for i in range(self.k)
-        ]
-        return np.meshgrid(scales)
+        return np.meshgrid(
+            *self.parameter_scales(
+                mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, resolution=resolution
+            )
+        )
 
     def plot_fit(self, title="", resolution=200):
         """
