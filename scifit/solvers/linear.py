@@ -24,5 +24,10 @@ class LinearFitSolver(FitSolverInterface):
         return a * x[:, 0] + b
 
 
+class ParabolaFitSolver(FitSolverInterface):
+
+    @staticmethod
+    def model(x, a, b, c):
+        return a * np.power(x[:, 0], 2) + b * x[:, 0] + c
 
 

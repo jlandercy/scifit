@@ -186,3 +186,36 @@ class LinearRegressionNoiseL4(GenericLinearRegression, TestCase):
 
 class LinearRegressionNoiseL5(GenericLinearRegression, TestCase):
     s = 1e3
+
+
+class GenericParabolaRegression(GenericTestFitSolver):
+    seed = 1234567890
+    factory = ParabolaFitSolver
+    kwargs = {}
+    p = np.array([1, -2, 3])
+    x = np.linspace(-1, 1, 21).reshape(-1, 1)
+    s = 0.
+
+
+class ParabolaRegressionNoiseL0(GenericParabolaRegression, TestCase):
+    s = 0.
+
+
+class ParabolaRegressionNoiseL1(GenericParabolaRegression, TestCase):
+    s = 1e-3
+
+
+class ParabolaRegressionNoiseL2(GenericParabolaRegression, TestCase):
+    s = 0.25
+
+
+class ParabolaRegressionNoiseL3(GenericParabolaRegression, TestCase):
+    s = 1.
+
+
+class ParabolaRegressionNoiseL4(GenericParabolaRegression, TestCase):
+    s = 25.
+
+
+class ParabolaRegressionNoiseL5(GenericParabolaRegression, TestCase):
+    s = 1e3
