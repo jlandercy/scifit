@@ -12,7 +12,7 @@ matplotlib.use('agg')
 
 import matplotlib.pyplot as plt
 
-from scifit.solvers.linear import LinearFitSolver
+from scifit.solvers.linear import *
 
 
 class GenericTestFitSolver:
@@ -89,25 +89,100 @@ class GenericTestFitSolver:
             plt.close(axe.figure)
 
 
-class TestPerfectLinearRegression(GenericTestFitSolver, TestCase):
+class GenericConstantRegression(GenericTestFitSolver):
+    seed = 1234567890
+    factory = ConstantFitSolver
+    kwargs = {}
+    p = np.array([10])
+    x = np.linspace(0, 10, 21).reshape(-1, 1)
     s = 0.
 
 
-class TestSmallNoisyLinearRegression(GenericTestFitSolver, TestCase):
+class ConstantRegressionNoiseL0(GenericConstantRegression, TestCase):
+    s = 0.
+
+
+class ConstantRegressionNoiseL1(GenericConstantRegression, TestCase):
     s = 1e-3
 
 
-class TestMediumNoisyLinearRegression(GenericTestFitSolver, TestCase):
+class ConstantRegressionNoiseL2(GenericConstantRegression, TestCase):
     s = 0.25
 
 
-class TestLargeNoisyLinearRegression(GenericTestFitSolver, TestCase):
+class ConstantRegressionNoiseL3(GenericConstantRegression, TestCase):
     s = 1.
 
 
-class TestVeryLargeNoisyLinearRegression(GenericTestFitSolver, TestCase):
+class ConstantRegressionNoiseL4(GenericConstantRegression, TestCase):
     s = 25.
 
 
-class TestExtraLargeNoisyLinearRegression(GenericTestFitSolver, TestCase):
+class ConstantRegressionNoiseL5(GenericConstantRegression, TestCase):
+    s = 1e3
+
+
+class GenericProportionalRegression(GenericTestFitSolver):
+    seed = 1234567890
+    factory = ProportionalFitSolver
+    kwargs = {}
+    p = np.array([5])
+    x = np.linspace(1, 10, 21).reshape(-1, 1)
+    s = 0.
+
+
+class ProportionalRegressionNoiseL0(GenericProportionalRegression, TestCase):
+    s = 0.
+
+
+class ProportionalRegressionNoiseL1(GenericProportionalRegression, TestCase):
+    s = 1e-3
+
+
+class ProportionalRegressionNoiseL2(GenericProportionalRegression, TestCase):
+    s = 0.25
+
+
+class ProportionalRegressionNoiseL3(GenericProportionalRegression, TestCase):
+    s = 1.
+
+
+class ProportionalRegressionNoiseL4(GenericProportionalRegression, TestCase):
+    s = 25.
+
+
+class ProportionalRegressionNoiseL5(GenericProportionalRegression, TestCase):
+    s = 1e3
+
+
+class GenericLinearRegression(GenericTestFitSolver):
+    seed = 1234567890
+    factory = LinearFitSolver
+    kwargs = {}
+    p = np.array([2, 3])
+    x = np.linspace(0, 10, 21).reshape(-1, 1)
+    s = 0.
+
+
+class LinearRegressionNoiseL0(GenericLinearRegression, TestCase):
+    s = 0.
+
+
+class LinearRegressionNoiseL1(GenericLinearRegression, TestCase):
+    s = 1e-3
+
+
+class LinearRegressionNoiseL2(GenericLinearRegression, TestCase):
+    s = 0.25
+
+
+class LinearRegressionNoiseL3(GenericLinearRegression, TestCase):
+    s = 1.
+
+
+class LinearRegressionNoiseL4(GenericLinearRegression, TestCase):
+    s = 25.
+
+
+class LinearRegressionNoiseL5(GenericLinearRegression, TestCase):
     s = 1e3
