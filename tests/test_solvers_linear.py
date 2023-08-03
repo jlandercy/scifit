@@ -57,9 +57,11 @@ class GenericTestFitSolver:
             )
 
     def test_plot(self):
+        name = self.__class__.__name__
+        title = "{} (seed={})".format(name, self.seed)
         self.solver.fit(self.x, self.y)
-        for i, axe in enumerate(self.solver.plot()):
-            axe.figure.savefig("media/{}_fit_x{}.png".format(self.__class__.__name__, i))
+        for i, axe in enumerate(self.solver.plot(title=title)):
+            axe.figure.savefig("media/{}_fit_x{}.png".format(name, i))
             plt.close(axe.figure)
 
 

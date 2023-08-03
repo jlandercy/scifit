@@ -106,8 +106,9 @@ class FitSolverInterface:
         Solve fitting problem and return structured solution
         """
         solution = optimize.curve_fit(
-            self.model, xdata, ydata,
-            full_output=True, check_finite=True,
+            self.model,
+            xdata, ydata,
+            full_output=True, check_finite=True, nan_policy='raise',
             **self.configuration(**kwargs)
         )
         return {
@@ -197,8 +198,15 @@ class FitSolverInterface:
             xs = scale.reshape(-1, 1)
 
             fig, axe = plt.subplots()
-            axe.plot(x, self._ydata, linestyle="none", marker=".", label="Data")
-            axe.plot(xs, self.predict(xs), label="Fit")
+            axe.plot(
+                x, self._ydata,
+                linestyle="none", marker=".",
+                label=r"Data: $(x_{{{}}},y)$".format(variable_index) + "\nn={}".format(self.n)
+            )
+            axe.plot(
+                xs, self.predict(xs),
+                label=r"Fit: $\hat{{y}} = f(\bar{x},\bar{\beta})$" + "\nMSE={:.3e}".format(self._score)
+            )
             axe.set_title("Regression Plot: {}".format(title))
             axe.set_xlabel(r"Independent Variable, $x_{{{}}}$".format(variable_index))
             axe.set_ylabel(r"Dependent Variable, $y$")
