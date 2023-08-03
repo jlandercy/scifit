@@ -17,7 +17,7 @@ from scifit.solvers.linear import *
 
 class GenericTestFitSolver:
 
-    seed = 1234567890
+    seed = 789
     factory = LinearFitSolver
     kwargs = {}
     p = np.array([2., 3.])
@@ -28,7 +28,8 @@ class GenericTestFitSolver:
         np.random.seed(self.seed)
         self.solver = self.factory(**self.kwargs)
         self.y = self.solver.model(self.x, *self.p)
-        self.y += (self.s/10)*np.abs(self.y)*np.random.uniform(low=-.5, high=.5, size=self.x.shape[0])
+        self.e = self.s*np.abs(self.y)*np.random.uniform(low=-.5, high=.5, size=self.x.shape[0])
+        self.y += self.e
 
     def test_signature(self):
         s = self.solver.signature
@@ -91,11 +92,8 @@ class GenericTestFitSolver:
 
 
 class GenericConstantRegression(GenericTestFitSolver):
-    seed = 1234567890
     factory = ConstantFitSolver
-    kwargs = {}
-    p = np.array([10.])
-    s = 0.
+    p = np.array([5.])
 
 
 class ConstantRegressionNoiseL0(GenericConstantRegression, TestCase):
@@ -103,31 +101,28 @@ class ConstantRegressionNoiseL0(GenericConstantRegression, TestCase):
 
 
 class ConstantRegressionNoiseL1(GenericConstantRegression, TestCase):
-    s = 1.e-2
+    s = 1.e-3
 
 
 class ConstantRegressionNoiseL2(GenericConstantRegression, TestCase):
-    s = 1.e-1
+    s = 1.e-2
 
 
 class ConstantRegressionNoiseL3(GenericConstantRegression, TestCase):
-    s = 1.
+    s = 1.e-1
 
 
 class ConstantRegressionNoiseL4(GenericConstantRegression, TestCase):
-    s = 10.
+    s = 1.
 
 
 class ConstantRegressionNoiseL5(GenericConstantRegression, TestCase):
-    s = 100.
+    s = 10.
 
 
 class GenericProportionalRegression(GenericTestFitSolver):
-    seed = 1234567890
     factory = ProportionalFitSolver
-    kwargs = {}
     p = np.array([5.])
-    s = 0.
 
 
 class ProportionalRegressionNoiseL0(GenericProportionalRegression, TestCase):
@@ -135,31 +130,28 @@ class ProportionalRegressionNoiseL0(GenericProportionalRegression, TestCase):
 
 
 class ProportionalRegressionNoiseL1(GenericProportionalRegression, TestCase):
-    s = 1.e-2
+    s = 1.e-3
 
 
 class ProportionalRegressionNoiseL2(GenericProportionalRegression, TestCase):
-    s = 1.e-1
+    s = 1.e-2
 
 
 class ProportionalRegressionNoiseL3(GenericProportionalRegression, TestCase):
-    s = 1.
+    s = 1.e-1
 
 
 class ProportionalRegressionNoiseL4(GenericProportionalRegression, TestCase):
-    s = 10.
+    s = 1.
 
 
 class ProportionalRegressionNoiseL5(GenericProportionalRegression, TestCase):
-    s = 100.
+    s = 10.
 
 
 class GenericLinearRegression(GenericTestFitSolver):
-    seed = 1234567890
     factory = LinearFitSolver
-    kwargs = {}
     p = np.array([2., 3.])
-    s = 0.
 
 
 class LinearRegressionNoiseL0(GenericLinearRegression, TestCase):
@@ -167,52 +159,108 @@ class LinearRegressionNoiseL0(GenericLinearRegression, TestCase):
 
 
 class LinearRegressionNoiseL1(GenericLinearRegression, TestCase):
-    s = 1.e-2
+    s = 1.e-3
 
 
 class LinearRegressionNoiseL2(GenericLinearRegression, TestCase):
-    s = 1.e-1
-
-
-class LinearRegressionNoiseL3(GenericLinearRegression, TestCase):
-    s = 1.
-
-
-class LinearRegressionNoiseL4(GenericLinearRegression, TestCase):
-    s = 10.
-
-
-class LinearRegressionNoiseL5(GenericLinearRegression, TestCase):
-    s = 100.
-
-
-class GenericParabolaRegression(GenericTestFitSolver):
-    seed = 1234567890
-    factory = ParabolaFitSolver
-    kwargs = {}
-    p = np.array([1., -2., 3.])
-    s = 0.
-
-
-class ParabolaRegressionNoiseL0(GenericParabolaRegression, TestCase):
-    s = 0.
-
-
-class ParabolaRegressionNoiseL1(GenericParabolaRegression, TestCase):
     s = 1.e-2
 
 
-class ParabolaRegressionNoiseL2(GenericParabolaRegression, TestCase):
+class LinearRegressionNoiseL3(GenericLinearRegression, TestCase):
     s = 1.e-1
 
 
-class ParabolaRegressionNoiseL3(GenericParabolaRegression, TestCase):
+class LinearRegressionNoiseL4(GenericLinearRegression, TestCase):
     s = 1.
 
 
-class ParabolaRegressionNoiseL4(GenericParabolaRegression, TestCase):
+class LinearRegressionNoiseL5(GenericLinearRegression, TestCase):
     s = 10.
 
 
-class ParabolaRegressionNoiseL5(GenericParabolaRegression, TestCase):
-    s = 100.
+class GenericParabolicRegression(GenericTestFitSolver):
+    factory = ParabolicFitSolver
+    p = np.array([1., 2., 3.])
+
+
+class ParabolicRegressionNoiseL0(GenericParabolicRegression, TestCase):
+    s = 0.
+
+
+class ParabolicRegressionNoiseL1(GenericParabolicRegression, TestCase):
+    s = 1.e-3
+
+
+class ParabolicRegressionNoiseL2(GenericParabolicRegression, TestCase):
+    s = 1.e-2
+
+
+class ParabolicRegressionNoiseL3(GenericParabolicRegression, TestCase):
+    s = 1.e-1
+
+
+class ParabolicRegressionNoiseL4(GenericParabolicRegression, TestCase):
+    s = 1.
+
+
+class ParabolicRegressionNoiseL5(GenericParabolicRegression, TestCase):
+    s = 10.
+
+
+class GenericCubicRegression(GenericTestFitSolver):
+    factory = CubicFitSolver
+    p = np.array([1., 2., 3., 4.])
+
+
+class CubicRegressionNoiseL0(GenericCubicRegression, TestCase):
+    s = 0.
+
+
+class CubicRegressionNoiseL1(GenericCubicRegression, TestCase):
+    s = 1.e-3
+
+
+class CubicRegressionNoiseL2(GenericCubicRegression, TestCase):
+    s = 1.e-2
+
+
+class CubicRegressionNoiseL3(GenericCubicRegression, TestCase):
+    s = 1.e-1
+
+
+class CubicRegressionNoiseL4(GenericCubicRegression, TestCase):
+    s = 1.
+
+
+class CubicRegressionNoiseL5(GenericCubicRegression, TestCase):
+    s = 10.
+
+
+class GenericLinearRootRegression(GenericTestFitSolver):
+    factory = LinearRootFitSolver
+    p = np.array([1., 2., 3.])
+
+
+class LinearRootRegressionNoiseL0(GenericLinearRootRegression, TestCase):
+    s = 0.
+
+
+class LinearRootRegressionNoiseL1(GenericLinearRootRegression, TestCase):
+    s = 1.e-3
+
+
+class LinearRootRegressionNoiseL2(GenericLinearRootRegression, TestCase):
+    s = 1.e-2
+
+
+class LinearRootRegressionNoiseL3(GenericLinearRootRegression, TestCase):
+    s = 1.e-1
+
+
+class LinearRootRegressionNoiseL4(GenericLinearRootRegression, TestCase):
+    s = 1.
+
+
+class LinearRootRegressionNoiseL5(GenericLinearRootRegression, TestCase):
+    s = 10.
+

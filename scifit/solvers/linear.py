@@ -24,10 +24,23 @@ class LinearFitSolver(FitSolverInterface):
         return a * x[:, 0] + b
 
 
-class ParabolaFitSolver(FitSolverInterface):
+class ParabolicFitSolver(FitSolverInterface):
 
     @staticmethod
     def model(x, a, b, c):
         return a * np.power(x[:, 0], 2) + b * x[:, 0] + c
 
+
+class CubicFitSolver(FitSolverInterface):
+
+    @staticmethod
+    def model(x, a, b, c, d):
+        return a * np.power(x[:, 0], 3) + b * np.power(x[:, 0], 2) + c * x[:, 0] + d
+
+
+class LinearRootFitSolver(FitSolverInterface):
+
+    @staticmethod
+    def model(x, a, b, c):
+        return a * x[:, 0] + b * np.sqrt(np.abs(x[:, 0]) + 1.) + c
 

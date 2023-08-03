@@ -75,7 +75,7 @@ class GenericTestFitSolverInterface:
         self.assertEqual(xlin.min(), -10.)
         self.assertEqual(xlin.max(), +10.)
 
-    def test_logairthmic_space_generation(self):
+    def test_logarithmic_space_generation(self):
         xlog = self.solver.scale(mode="log", xmin=-10., xmax=+10., resolution=200)
         self.assertIsInstance(xlog, np.ndarray)
         self.assertEqual(xlog.ndim, 1)
