@@ -295,7 +295,7 @@ class FitSolverInterface:
 
                 yield axe
 
-    def plot_mse(self, mode="lin", ratio=0.1, xmin=None, xmax=None, title="", resolution=200):
+    def plot_mse(self, mode="lin", ratio=0.1, xmin=None, xmax=None, title="", levels=None, resolution=200):
         """
         Plot MSE for each parameter pairs
         """
@@ -315,8 +315,13 @@ class FitSolverInterface:
                     score = self.landscape()(*parameters)
 
                     fig, axe = plt.subplots()
-                    axe.contour(x, y, score, 20)
-                    axe.set_title("Regression MSE: {}".format(title))
+                    labels = axe.contour(x, y, np.log10(score), levels or 10, cmap="jet")
+                    axe.clabel(labels, labels.levels, inline=True, fontsize=7)
+
+                    axe.axvline(self._solution["parameters"][i], color="black", linestyle="-.")
+                    axe.axhline(self._solution["parameters"][j], color="black", linestyle="-.")
+
+                    axe.set_title("Regression Log-MSE: {}".format(title))
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(i))
                     axe.set_ylabel(r"Parameter, $\beta_{{{}}}$".format(j))
                     axe.grid()
