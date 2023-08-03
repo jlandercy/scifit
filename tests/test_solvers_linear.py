@@ -20,14 +20,15 @@ class GenericTestFitSolver:
     seed = 1234567890
     factory = LinearFitSolver
     kwargs = {}
-    p = np.array([2, 3])
-    x = np.linspace(0, 10, 21).reshape(-1, 1)
+    p = np.array([2., 3.])
+    x = np.linspace(-1., 1., 30).reshape(-1, 1)
     s = 0.
 
     def setUp(self) -> None:
         np.random.seed(self.seed)
         self.solver = self.factory(**self.kwargs)
-        self.y = self.solver.model(self.x, *self.p) + self.s*np.random.rand(self.x.shape[0])
+        self.y = self.solver.model(self.x, *self.p)
+        self.y += (self.s/10)*np.abs(self.y)*np.random.uniform(low=-.5, high=.5, size=self.x.shape[0])
 
     def test_signature(self):
         s = self.solver.signature
@@ -93,8 +94,7 @@ class GenericConstantRegression(GenericTestFitSolver):
     seed = 1234567890
     factory = ConstantFitSolver
     kwargs = {}
-    p = np.array([10])
-    x = np.linspace(0, 10, 21).reshape(-1, 1)
+    p = np.array([10.])
     s = 0.
 
 
@@ -103,11 +103,11 @@ class ConstantRegressionNoiseL0(GenericConstantRegression, TestCase):
 
 
 class ConstantRegressionNoiseL1(GenericConstantRegression, TestCase):
-    s = 1e-3
+    s = 1.e-2
 
 
 class ConstantRegressionNoiseL2(GenericConstantRegression, TestCase):
-    s = 0.25
+    s = 1.e-1
 
 
 class ConstantRegressionNoiseL3(GenericConstantRegression, TestCase):
@@ -115,19 +115,18 @@ class ConstantRegressionNoiseL3(GenericConstantRegression, TestCase):
 
 
 class ConstantRegressionNoiseL4(GenericConstantRegression, TestCase):
-    s = 25.
+    s = 10.
 
 
 class ConstantRegressionNoiseL5(GenericConstantRegression, TestCase):
-    s = 1e3
+    s = 100.
 
 
 class GenericProportionalRegression(GenericTestFitSolver):
     seed = 1234567890
     factory = ProportionalFitSolver
     kwargs = {}
-    p = np.array([5])
-    x = np.linspace(1, 10, 21).reshape(-1, 1)
+    p = np.array([5.])
     s = 0.
 
 
@@ -136,11 +135,11 @@ class ProportionalRegressionNoiseL0(GenericProportionalRegression, TestCase):
 
 
 class ProportionalRegressionNoiseL1(GenericProportionalRegression, TestCase):
-    s = 1e-3
+    s = 1.e-2
 
 
 class ProportionalRegressionNoiseL2(GenericProportionalRegression, TestCase):
-    s = 0.25
+    s = 1.e-1
 
 
 class ProportionalRegressionNoiseL3(GenericProportionalRegression, TestCase):
@@ -148,19 +147,18 @@ class ProportionalRegressionNoiseL3(GenericProportionalRegression, TestCase):
 
 
 class ProportionalRegressionNoiseL4(GenericProportionalRegression, TestCase):
-    s = 25.
+    s = 10.
 
 
 class ProportionalRegressionNoiseL5(GenericProportionalRegression, TestCase):
-    s = 1e3
+    s = 100.
 
 
 class GenericLinearRegression(GenericTestFitSolver):
     seed = 1234567890
     factory = LinearFitSolver
     kwargs = {}
-    p = np.array([2, 3])
-    x = np.linspace(0, 10, 21).reshape(-1, 1)
+    p = np.array([2., 3.])
     s = 0.
 
 
@@ -169,11 +167,11 @@ class LinearRegressionNoiseL0(GenericLinearRegression, TestCase):
 
 
 class LinearRegressionNoiseL1(GenericLinearRegression, TestCase):
-    s = 1e-3
+    s = 1.e-2
 
 
 class LinearRegressionNoiseL2(GenericLinearRegression, TestCase):
-    s = 0.25
+    s = 1.e-1
 
 
 class LinearRegressionNoiseL3(GenericLinearRegression, TestCase):
@@ -181,19 +179,18 @@ class LinearRegressionNoiseL3(GenericLinearRegression, TestCase):
 
 
 class LinearRegressionNoiseL4(GenericLinearRegression, TestCase):
-    s = 25.
+    s = 10.
 
 
 class LinearRegressionNoiseL5(GenericLinearRegression, TestCase):
-    s = 1e3
+    s = 100.
 
 
 class GenericParabolaRegression(GenericTestFitSolver):
     seed = 1234567890
     factory = ParabolaFitSolver
     kwargs = {}
-    p = np.array([1, -2, 3])
-    x = np.linspace(-1, 1, 21).reshape(-1, 1)
+    p = np.array([1., -2., 3.])
     s = 0.
 
 
@@ -202,11 +199,11 @@ class ParabolaRegressionNoiseL0(GenericParabolaRegression, TestCase):
 
 
 class ParabolaRegressionNoiseL1(GenericParabolaRegression, TestCase):
-    s = 1e-3
+    s = 1.e-2
 
 
 class ParabolaRegressionNoiseL2(GenericParabolaRegression, TestCase):
-    s = 0.25
+    s = 1.e-1
 
 
 class ParabolaRegressionNoiseL3(GenericParabolaRegression, TestCase):
@@ -214,8 +211,8 @@ class ParabolaRegressionNoiseL3(GenericParabolaRegression, TestCase):
 
 
 class ParabolaRegressionNoiseL4(GenericParabolaRegression, TestCase):
-    s = 25.
+    s = 10.
 
 
 class ParabolaRegressionNoiseL5(GenericParabolaRegression, TestCase):
-    s = 1e3
+    s = 100.
