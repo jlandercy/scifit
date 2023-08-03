@@ -6,6 +6,7 @@ class :class:`newproject.interfaces.generic.GenericInterface` and its children.
 from unittest import TestCase
 
 import numpy as np
+import pandas as pd
 
 from scifit.interfaces.generic import FitSolverInterface
 from scifit.errors.base import *
@@ -41,8 +42,8 @@ class TestFitSolverInterfaceErrors(TestCase):
 
 class GenericTestFitSolverInterface:
 
-    xdata = []
-    ydata = []
+    xdata = None
+    ydata = None
 
     def setUp(self) -> None:
         self.solver = FitSolverInterface()
@@ -60,13 +61,45 @@ class GenericTestFitSolverInterface:
         self.assertEqual(self.solver.m, self.solver._xdata.shape[1])
         self.assertEqual(self.solver.k, len(self.solver.signature.parameters) - 1)
 
+    def test_variable_domains(self):
+        data = self.solver.variable_domains()
+        self.assertIsInstance(data, pd.DataFrame)
+        self.assertEqual(data.shape[1], self.solver.m)
+        self.assertEqual(set(data.index).intersection({"min", "max"}), {"min", "max"})
+
     def test_linear_space_generation(self):
-        xlin = self.solver.space(mode="lin", xmin=-10., xmax=+10., resolution=200)
+        xlin = self.solver.scale(mode="lin", xmin=-10., xmax=+10., resolution=200)
         self.assertIsInstance(xlin, np.ndarray)
         self.assertEqual(xlin.ndim, 1)
         self.assertEqual(xlin.shape[0], 200)
         self.assertEqual(xlin.min(), -10.)
         self.assertEqual(xlin.max(), +10.)
+
+    def test_logairthmic_space_generation(self):
+        xlog = self.solver.scale(mode="log", xmin=-10., xmax=+10., resolution=200)
+        self.assertIsInstance(xlog, np.ndarray)
+        self.assertEqual(xlog.ndim, 1)
+        self.assertEqual(xlog.shape[0], 200)
+        self.assertEqual(xlog.min(), 1e-10)
+        self.assertEqual(xlog.max(), 1e+10)
+
+    def test_variable_scales(self):
+        scales = self.solver.variable_scales(resolution=200)
+        self.assertIsInstance(scales, list)
+        self.assertEqual(len(scales), self.solver.m)
+        for i in range(self.solver.m):
+            self.assertIsInstance(scales[i], np.ndarray)
+            self.assertEqual(scales[i].shape[0], 200)
+
+    def test_variable_space(self):
+        spaces = self.solver.variable_space(resolution=10)
+        self.assertIsInstance(spaces, list)
+        self.assertEqual(len(spaces), self.solver.m)
+        for i in range(self.solver.m):
+            self.assertIsInstance(spaces[i], np.ndarray)
+            self.assertEqual(spaces[i].ndim, self.solver.m)
+            for k in range(self.solver.m):
+                self.assertEqual(spaces[i].shape[k], 10)
 
 
 class TestFitSolverInterfaceWithListSingleton(GenericTestFitSolverInterface, TestCase):

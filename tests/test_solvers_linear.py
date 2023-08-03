@@ -7,6 +7,11 @@ from unittest import TestCase
 
 import numpy as np
 
+import matplotlib
+matplotlib.use('agg')
+
+import matplotlib.pyplot as plt
+
 from scifit.solvers.linear import LinearFitSolver
 
 
@@ -53,8 +58,9 @@ class GenericTestFitSolver:
 
     def test_plot(self):
         self.solver.fit(self.x, self.y)
-        axe = self.solver.plot()
-        axe.figure.savefig("media/{}_data.png".format(self.__class__.__name__))
+        for i, axe in enumerate(self.solver.plot()):
+            axe.figure.savefig("media/{}_fit_x{}.png".format(self.__class__.__name__, i))
+            plt.close(axe.figure)
 
 
 class TestPerfectLinearRegression(GenericTestFitSolver, TestCase):

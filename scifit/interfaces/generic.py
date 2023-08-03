@@ -7,6 +7,8 @@ all interfaces must implement.
 import inspect
 
 import numpy as np
+import pandas as pd
+
 from scipy import optimize
 
 import matplotlib.pyplot as plt
@@ -136,10 +138,11 @@ class FitSolverInterface:
         return self._solution
 
     def variable_domains(self):
-        return
+        data = pd.DataFrame(self._xdata)
+        return data.describe()
 
     @staticmethod
-    def space(mode="lin", xmin=0., xmax=1., resolution=101):
+    def scale(mode="lin", xmin=0., xmax=1., resolution=101):
         """
         Generate 1-dimensional space
         """
@@ -150,23 +153,56 @@ class FitSolverInterface:
         else:
             raise ConfigurationError("Domain mode must be in {lin, log} got '%s' instead" % mode)
 
-    def parameter_space(self, mode="lin", xmin=0., xmax=1., resolution=101):
+    @classmethod
+    def scales(cls, domains, mode="lin", xmin=None, xmax=None, resolution=101):
+        scales = [
+            cls.scale(
+                mode=mode,
+                xmin=xmin or domains.loc["min", i],
+                xmax=xmax or domains.loc["max", i],
+                resolution=resolution
+            )
+            for i in range(domains.shape[1])
+        ]
+        return scales
+
+    def variable_scales(self, mode="lin", xmin=None, xmax=None, resolution=101):
+        """
+        Generate Variables Scales
+        """
+        return self.scales(self.variable_domains(), mode=mode, xmin=xmin, xmax=xmax, resolution=resolution)
+
+    def variable_space(self, mode="lin", xmin=None, xmax=None, resolution=10):
+        """
+        Generate Variable Space
+        """
+        return np.meshgrid(*self.variable_scales(mode=mode, xmin=xmin, xmax=xmax, resolution=resolution))
+
+    def parameter_space(self, mode="lin", xmin=0., xmax=1., resolution=10):
         """
         Generate Parameter Space
         """
-        xscale = self.space(mode=mode, xmin=xmin, xmax=xmax, resolution=resolution)
-        return np.meshgrid(*([xscale]*self.k))
+        scales = [
+            self.scale(mode=mode, xmin=xmin, xmax=xmax, resolution=resolution)
+            for i in range(self.k)
+        ]
+        return np.meshgrid(scales)
 
-    def plot(self, variable_index=0, title="", resolution=100):
-        x = self._xdata[:, variable_index]
-        xlin = np.linspace(x.min(), x.max(), resolution).reshape(-1, 1)
-        fig, axe = plt.subplots()
-        axe.plot(x, self._ydata, linestyle="none", marker=".", label="Data")
-        axe.plot(xlin, self.predict(xlin), label="Fit")
-        axe.set_title("Regression Plot: {}".format(title))
-        axe.set_xlabel(r"Independent Variable, $x_{{{}}}$".format(variable_index))
-        axe.set_ylabel(r"Dependent Variable, $y$")
-        axe.legend()
-        axe.grid()
-        return axe
+    def plot(self, title="", resolution=200):
 
+        scales = self.variable_scales(resolution=resolution)
+        for variable_index, scale in enumerate(scales):
+
+            x = self._xdata[:, variable_index]
+            xs = scale.reshape(-1, 1)
+
+            fig, axe = plt.subplots()
+            axe.plot(x, self._ydata, linestyle="none", marker=".", label="Data")
+            axe.plot(xs, self.predict(xs), label="Fit")
+            axe.set_title("Regression Plot: {}".format(title))
+            axe.set_xlabel(r"Independent Variable, $x_{{{}}}$".format(variable_index))
+            axe.set_ylabel(r"Dependent Variable, $y$")
+            axe.legend()
+            axe.grid()
+
+            yield axe
