@@ -55,14 +55,14 @@ class GenericTestFitSolverInterface:
 
     def test_space_sizes(self):
         self.assertEqual(self.solver.observation_space_size, self.solver.n)
-        self.assertEqual(self.solver.variable_space_size, self.solver.m)
+        self.assertEqual(self.solver.feature_space_size, self.solver.m)
         self.assertEqual(self.solver.parameter_space_size, self.solver.k)
         self.assertEqual(self.solver.n, self.solver._xdata.shape[0])
         self.assertEqual(self.solver.m, self.solver._xdata.shape[1])
         self.assertEqual(self.solver.k, len(self.solver.signature.parameters) - 1)
 
-    def test_variable_domains(self):
-        data = self.solver.variable_domains()
+    def test_feature_domains(self):
+        data = self.solver.feature_domains()
         self.assertIsInstance(data, pd.DataFrame)
         self.assertEqual(data.shape[1], self.solver.m)
         self.assertEqual(set(data.index).intersection({"min", "max"}), {"min", "max"})
@@ -83,16 +83,16 @@ class GenericTestFitSolverInterface:
         self.assertEqual(xlog.min(), 1e-10)
         self.assertEqual(xlog.max(), 1e+10)
 
-    def test_variable_scales(self):
-        scales = self.solver.variable_scales(resolution=200)
+    def test_feature_scales(self):
+        scales = self.solver.feature_scales(resolution=200)
         self.assertIsInstance(scales, list)
         self.assertEqual(len(scales), self.solver.m)
         for i in range(self.solver.m):
             self.assertIsInstance(scales[i], np.ndarray)
             self.assertEqual(scales[i].shape[0], 200)
 
-    def test_variable_space(self):
-        spaces = self.solver.variable_space(resolution=10)
+    def test_feature_space(self):
+        spaces = self.solver.feature_space(resolution=10)
         self.assertIsInstance(spaces, list)
         self.assertEqual(len(spaces), self.solver.m)
         for i in range(self.solver.m):
@@ -101,22 +101,22 @@ class GenericTestFitSolverInterface:
             for k in range(self.solver.m):
                 self.assertEqual(spaces[i].shape[k], 10)
 
-    def test_variable_dataset_1D(self):
-        dataset = self.solver.variable_dataset(dimension=1, resolution=10)
+    def test_feature_dataset_1D(self):
+        dataset = self.solver.feature_dataset(dimension=1, resolution=10)
         self.assertIsInstance(dataset, np.ndarray)
         self.assertEqual(dataset.ndim, 2)
         self.assertEqual(dataset.shape[0], 10**1)
         self.assertEqual(dataset.shape[1], 1)
 
-    def test_variable_dataset_2D(self):
-        dataset = self.solver.variable_dataset(dimension=5, resolution=10)
+    def test_feature_dataset_2D(self):
+        dataset = self.solver.feature_dataset(dimension=5, resolution=10)
         self.assertIsInstance(dataset, np.ndarray)
         self.assertEqual(dataset.ndim, 2)
         self.assertEqual(dataset.shape[0], 10**5)
         self.assertEqual(dataset.shape[1], 5)
 
-    def test_variable_dataset_auto(self):
-        dataset = self.solver.variable_dataset(domains=self.solver.variable_domains(), resolution=10)
+    def test_feature_dataset_auto(self):
+        dataset = self.solver.feature_dataset(domains=self.solver.feature_domains(), resolution=10)
         self.assertIsInstance(dataset, np.ndarray)
         self.assertEqual(dataset.ndim, 2)
         self.assertEqual(dataset.shape[0], 10**self.solver.m)

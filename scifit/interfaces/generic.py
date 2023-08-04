@@ -25,8 +25,9 @@ class FitSolverInterface:
     This class must be subclassed by any other interfaces.
 
     n experimental points
-    m variables
+    m features
     k parameters
+    1 target
 
     Min wrt b1, ..., bk of MSE = (1/n)*SUM(f(x1, ..., xm, b1, ..., bk) - y)^2
 
@@ -53,7 +54,7 @@ class FitSolverInterface:
         ydata = np.array(ydata)
 
         if xdata.ndim != 2:
-            raise InputDataError("Variables must be a two dimensional array")
+            raise InputDataError("Features must be a two dimensional array")
 
         if xdata.shape[0] != ydata.shape[0]:
             raise InputDataError("Incompatible shapes between x %s and y %s" % (xdata.shape, ydata.shape))
@@ -84,12 +85,12 @@ class FitSolverInterface:
         return self.observation_space_size
 
     @property
-    def variable_space_size(self):
+    def feature_space_size(self):
         return self._xdata.shape[1]
 
     @property
     def m(self):
-        return self.variable_space_size
+        return self.feature_space_size
 
     @property
     def signature(self):
@@ -230,32 +231,32 @@ class FitSolverInterface:
         ]
         return scales
 
-    def variable_domains(self):
+    def feature_domains(self):
         data = pd.DataFrame(self._xdata)
         return data.describe()
 
-    def variable_scales(self, domains=None, mode="lin", xmin=None, xmax=None, dimension=None, resolution=100):
+    def feature_scales(self, domains=None, mode="lin", xmin=None, xmax=None, dimension=None, resolution=100):
         """
-        Generate Variables Scales
+        Generate Features Scales
         """
         if (dimension is None) and (domains is None):
-            domains = self.variable_domains()
+            domains = self.feature_domains()
         return self.scales(
             domains=domains, mode=mode, xmin=xmin, xmax=xmax, dimension=dimension, resolution=resolution
         )
 
-    def variable_space(self, domains=None, mode="lin", xmin=None, xmax=None, dimension=None, resolution=10):
+    def feature_space(self, domains=None, mode="lin", xmin=None, xmax=None, dimension=None, resolution=10):
         """
-        Generate Variable Space
+        Generate Feature Space
         """
         return np.meshgrid(
-            *self.variable_scales(
+            *self.feature_scales(
                 domains=domains, mode=mode, xmin=xmin, xmax=xmax, dimension=dimension, resolution=resolution
             )
         )
 
-    def variable_dataset(self, domains=None, mode="lin", xmin=None, xmax=None, dimension=None, resolution=10):
-        space = self.variable_space(
+    def feature_dataset(self, domains=None, mode="lin", xmin=None, xmax=None, dimension=None, resolution=10):
+        space = self.feature_space(
             domains=domains, mode=mode, xmin=xmin, xmax=xmax, dimension=dimension, resolution=resolution
         )
         dataset = np.vstack([
@@ -315,21 +316,21 @@ class FitSolverInterface:
 
     def plot_fit(self, title="", resolution=200):
         """
-        Plot data and fitted function for each variable
+        Plot data and fitted function for each feature
         """
 
         if self.fitted(error=True):
 
-            scales = self.variable_scales(resolution=resolution)
-            for variable_index, scale in enumerate(scales):
+            scales = self.feature_scales(resolution=resolution)
+            for feature_index, scale in enumerate(scales):
 
-                x = self._xdata[:, variable_index]
+                x = self._xdata[:, feature_index]
                 xs = scale.reshape(-1, 1)
 
                 fig, axe = plt.subplots()
                 axe.plot(
                     x, self._ydata,
-                    linestyle="none", marker=".", label=r"Data: $(x_{{{}}},y)$".format(variable_index)
+                    linestyle="none", marker=".", label=r"Data: $(x_{{{}}},y)$".format(feature_index)
                 )
                 axe.plot(xs, self.predict(xs), label=r"Fit: $\hat{y} = f(\bar{x},\bar{\beta})$")
                 axe.set_title(
@@ -340,8 +341,8 @@ class FitSolverInterface:
                     ),
                     fontdict={"fontsize": 11}
                 )
-                axe.set_xlabel(r"Independent Variable, $x_{{{}}}$".format(variable_index))
-                axe.set_ylabel(r"Dependent Variable, $y$")
+                axe.set_xlabel(r"Feature, $x_{{{}}}$".format(feature_index))
+                axe.set_ylabel(r"Target, $y$")
                 axe.legend()
                 axe.grid()
 
@@ -349,7 +350,7 @@ class FitSolverInterface:
 
     def plot_loss(self, mode="lin", ratio=0.1, xmin=None, xmax=None, title="", levels=None, resolution=200):
         """
-        Plot MSE for each parameter pairs
+        Plot loss function for each parameter pairs
         """
 
         if self.fitted(error=True):

@@ -26,7 +26,7 @@ class GenericTestFitSolver:
 
     def setUp(self) -> None:
         self.solver = self.factory(**self.configuration)
-        self.y = self.solver.target_dataset(
+        self.ydata = self.solver.target_dataset(
             self.xdata, *self.parameters, sigma=self.sigma,
             proportional=True, generator=np.random.uniform, low=-.5, high=.5,
             seed=self.seed
@@ -43,10 +43,10 @@ class GenericTestFitSolver:
         Very unlikely to fail but tight enough to detect bad regression
         """
         yhat = self.solver.model(self.xdata, *self.parameters)
-        self.assertTrue(np.allclose(self.y, yhat, rtol=10 * self.sigma * np.abs(self.y)))
+        self.assertTrue(np.allclose(self.ydata, yhat, rtol=10 * self.sigma * np.abs(self.ydata)))
 
     def test_model_fit_signature(self):
-        solution = self.solver.fit(self.xdata, self.y)
+        solution = self.solver.fit(self.xdata, self.ydata)
         self.assertIsInstance(solution, dict)
         self.assertSetEqual({"parameters", "covariance", "info", "message", "status"}, set(solution.keys()))
         for key in ["_xdata", "_ydata", "_solution", "_yhat", "_score"]:
@@ -57,7 +57,7 @@ class GenericTestFitSolver:
         Check regressed parameters are equals up to 10 StdDev of fit precision
         Very unlikely to fail but tight enough to detect bad regression
         """
-        solution = self.solver.fit(self.xdata, self.y)
+        solution = self.solver.fit(self.xdata, self.ydata)
         for i in range(self.parameters.shape[0]):
             self.assertTrue(
                 np.allclose(
@@ -67,34 +67,34 @@ class GenericTestFitSolver:
                 )
             )
 
-    def test_variable_dataset_auto(self):
-        self.solver.store(self.xdata, self.y)
-        dataset = self.solver.variable_dataset(domains=self.solver.variable_domains(), resolution=10)
+    def test_feature_dataset_auto(self):
+        self.solver.store(self.xdata, self.ydata)
+        dataset = self.solver.feature_dataset(domains=self.solver.feature_domains(), resolution=10)
         self.assertIsInstance(dataset, np.ndarray)
         self.assertEqual(dataset.ndim, 2)
         self.assertEqual(dataset.shape[0], 10**self.solver.m)
         self.assertEqual(dataset.shape[1], self.solver.m)
 
     def test_parameters_domain_linear_auto(self):
-        solution = self.solver.fit(self.xdata, self.y)
+        solution = self.solver.fit(self.xdata, self.ydata)
         domains = self.solver.parameter_domains()
 
     def test_parameters_domain_linear_fixed(self):
-        solution = self.solver.fit(self.xdata, self.y)
+        solution = self.solver.fit(self.xdata, self.ydata)
         domains = self.solver.parameter_domains(xmax=100.)
 
     def test_parameters_domain_logarithmic_auto(self):
-        solution = self.solver.fit(self.xdata, self.y)
+        solution = self.solver.fit(self.xdata, self.ydata)
         domains = self.solver.parameter_domains(mode="log")
 
     def test_parameters_domain_logarithmic_fixed(self):
-        solution = self.solver.fit(self.xdata, self.y)
+        solution = self.solver.fit(self.xdata, self.ydata)
         domains = self.solver.parameter_domains(mode="log", xmax=100.)
 
     def test_plot_fit(self):
         name = self.__class__.__name__
         title = "{} (seed={:d})".format(name, self.seed)
-        self.solver.fit(self.xdata, self.y)
+        self.solver.fit(self.xdata, self.ydata)
         for i, axe in enumerate(self.solver.plot_fit(title=title)):
             axe.figure.savefig("media/{}_fit_x{}.png".format(name, i))
             plt.close(axe.figure)
@@ -102,7 +102,7 @@ class GenericTestFitSolver:
     def test_plot_loss(self):
         name = self.__class__.__name__
         title = "{} (seed={:d})".format(name, self.seed)
-        self.solver.fit(self.xdata, self.y)
+        self.solver.fit(self.xdata, self.ydata)
         for i, axe in enumerate(self.solver.plot_loss(title=title)):
             axe.figure.savefig("media/{}_score_b{}_b{}.png".format(name, *axe._pair_indices))
             plt.close(axe.figure)
