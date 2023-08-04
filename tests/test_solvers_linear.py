@@ -66,13 +66,12 @@ class GenericTestFitSolver:
                 )
             )
 
-    def test_variable_dataset(self):
+    def test_variable_dataset_auto(self):
         self.solver.store(self.x, self.y)
         dataset = self.solver.variable_dataset(domains=self.solver.variable_domains(), resolution=10)
-        print(dataset)
         self.assertIsInstance(dataset, np.ndarray)
         self.assertEqual(dataset.ndim, 2)
-        #self.assertEqual(dataset.shape[0], self.)
+        self.assertEqual(dataset.shape[0], 10**self.solver.m)
         self.assertEqual(dataset.shape[1], self.solver.m)
 
     def test_parameters_domain_linear_auto(self):

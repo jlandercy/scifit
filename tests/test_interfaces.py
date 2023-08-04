@@ -101,6 +101,27 @@ class GenericTestFitSolverInterface:
             for k in range(self.solver.m):
                 self.assertEqual(spaces[i].shape[k], 10)
 
+    def test_variable_dataset_1D(self):
+        dataset = self.solver.variable_dataset(dimension=1, resolution=10)
+        self.assertIsInstance(dataset, np.ndarray)
+        self.assertEqual(dataset.ndim, 2)
+        self.assertEqual(dataset.shape[0], 10**1)
+        self.assertEqual(dataset.shape[1], 1)
+
+    def test_variable_dataset_2D(self):
+        dataset = self.solver.variable_dataset(dimension=5, resolution=10)
+        self.assertIsInstance(dataset, np.ndarray)
+        self.assertEqual(dataset.ndim, 2)
+        self.assertEqual(dataset.shape[0], 10**5)
+        self.assertEqual(dataset.shape[1], 5)
+
+    def test_variable_dataset_auto(self):
+        dataset = self.solver.variable_dataset(domains=self.solver.variable_domains(), resolution=10)
+        self.assertIsInstance(dataset, np.ndarray)
+        self.assertEqual(dataset.ndim, 2)
+        self.assertEqual(dataset.shape[0], 10**self.solver.m)
+        self.assertEqual(dataset.shape[1], self.solver.m)
+
     def test_parameters_domains_auto_not_fitted(self):
         data = self.solver.parameter_domains()
         self.assertIsInstance(data, pd.DataFrame)

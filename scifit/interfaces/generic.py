@@ -176,30 +176,32 @@ class FitSolverInterface:
         return self._solution
 
     @staticmethod
-    def scale(mode="lin", xmin=0., xmax=1., resolution=101):
+    def scale(mode="lin", xmin=0., xmax=1., resolution=100, base=10):
         """
         Generate 1-dimensional scale
         """
         if mode == "lin":
             return np.linspace(xmin, xmax, resolution)
         elif mode == "log":
-            return np.logspace(xmin, xmax, resolution, base=10)
+            return np.logspace(xmin, xmax, resolution, base=base)
         else:
             raise ConfigurationError("Domain mode must be in {lin, log} got '%s' instead" % mode)
 
     @classmethod
-    def scales(cls, domains, mode="lin", xmin=None, xmax=None, resolution=101):
+    def scales(cls, domains=None, mode="lin", xmin=None, xmax=None, dimension=None, resolution=100):
         """
-        Generate scales for each domain
+        Generate scales for each domain or synthetic if no domains defined
         """
+
+        if domains is None:
+            xmin, xmax = [0.]*dimension, [1.]*dimension
+        else:
+            xmin = domains.loc["min", :]
+            xmax = domains.loc["max", :]
+
         scales = [
-            cls.scale(
-                mode=mode,
-                xmin=xmin or domains.loc["min", i],
-                xmax=xmax or domains.loc["max", i],
-                resolution=resolution
-            )
-            for i in range(domains.shape[1])
+            cls.scale(mode=mode, xmin=xmin[i], xmax=xmax[i], resolution=resolution)
+            for i in range(dimension or domains.shape[1])
         ]
         return scales
 
@@ -207,24 +209,30 @@ class FitSolverInterface:
         data = pd.DataFrame(self._xdata)
         return data.describe()
 
-    def variable_scales(self, domains=None, mode="lin", xmin=None, xmax=None, resolution=100):
+    def variable_scales(self, domains=None, mode="lin", xmin=None, xmax=None, dimension=None, resolution=100):
         """
         Generate Variables Scales
         """
-        if domains is None:
+        if (dimension is None) and (domains is None):
             domains = self.variable_domains()
-        return self.scales(domains=domains, mode=mode, xmin=xmin, xmax=xmax, resolution=resolution)
+        return self.scales(
+            domains=domains, mode=mode, xmin=xmin, xmax=xmax, dimension=dimension, resolution=resolution
+        )
 
-    def variable_space(self, domains=None, mode="lin", xmin=None, xmax=None, resolution=10):
+    def variable_space(self, domains=None, mode="lin", xmin=None, xmax=None, dimension=None, resolution=10):
         """
         Generate Variable Space
         """
         return np.meshgrid(
-            *self.variable_scales(domains=domains, mode=mode, xmin=xmin, xmax=xmax, resolution=resolution)
+            *self.variable_scales(
+                domains=domains, mode=mode, xmin=xmin, xmax=xmax, dimension=dimension, resolution=resolution
+            )
         )
 
-    def variable_dataset(self, domains=None, mode="lin", xmin=None, xmax=None, resolution=10):
-        space = self.variable_space(domains=domains, mode=mode, xmin=xmin, xmax=xmax, resolution=resolution)
+    def variable_dataset(self, domains=None, mode="lin", xmin=None, xmax=None, dimension=None, resolution=10):
+        space = self.variable_space(
+            domains=domains, mode=mode, xmin=xmin, xmax=xmax, dimension=dimension, resolution=resolution
+        )
         dataset = np.vstack([
             scale.ravel() for scale in space
         ])
