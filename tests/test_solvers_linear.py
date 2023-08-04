@@ -113,7 +113,7 @@ class GenericTestFitSolver:
         name = self.__class__.__name__
         title = "{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata)
-        for i, axe in enumerate(self.solver.plot_fit(title=title)):
+        for i, axe in enumerate(self.solver.plot_fit(title=title, errors=True, squared_errors=True)):
             axe.figure.savefig("media/{}_fit_x{}.png".format(name, i))
             plt.close(axe.figure)
 

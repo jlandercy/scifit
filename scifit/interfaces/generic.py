@@ -14,6 +14,7 @@ import pandas as pd
 from scipy import optimize
 
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 from scifit.errors.base import *
 
@@ -184,9 +185,9 @@ class FitSolverInterface:
         Vectorized loss wrt to parameter space
         """
         @np.vectorize
-        def wrapper(*parameters):
+        def wrapped(*parameters):
             return self.loss(self._xdata, self._ydata, parameters=parameters)
-        return wrapper
+        return wrapped
 
     def fit(self, xdata, ydata, **kwargs):
         """
@@ -314,7 +315,7 @@ class FitSolverInterface:
             )
         )
 
-    def plot_fit(self, title="", resolution=200):
+    def plot_fit(self, title="", errors=False, squared_errors=False, aspect="auto", resolution=200):
         """
         Plot data and fitted function for each feature
         """
@@ -324,15 +325,29 @@ class FitSolverInterface:
             scales = self.feature_scales(resolution=resolution)
             for feature_index, scale in enumerate(scales):
 
-                x = self._xdata[:, feature_index]
-                xs = scale.reshape(-1, 1)
+                xdata = self._xdata[:, feature_index]
+                error = self._ydata - self._yhat
+                xscale = scale.reshape(-1, 1)
 
                 fig, axe = plt.subplots()
+
                 axe.plot(
-                    x, self._ydata,
+                    xdata, self._ydata,
                     linestyle="none", marker=".", label=r"Data: $(x_{{{}}},y)$".format(feature_index)
                 )
-                axe.plot(xs, self.predict(xs), label=r"Fit: $\hat{y} = f(\bar{x},\bar{\beta})$")
+                axe.plot(xscale, self.predict(xscale), label=r"Fit: $\hat{y} = f(\bar{x},\bar{\beta})$")
+
+                if errors:
+                    for x, y, e in zip(xdata, self._ydata, error):
+                        axe.plot([x, x], [y, y-e], color="blue", linewidth=0.25)
+
+                if squared_errors:
+                    for x, y, e in zip(xdata, self._ydata, error):
+                        square = patches.Rectangle(
+                            (x, y), -e, -e, linewidth=0., edgecolor='black', facecolor='lightblue', alpha=0.5
+                        )
+                        axe.add_patch(square)
+
                 axe.set_title(
                     "Regression Plot: {}\n{}={}, n={:d}, {}={:.3f}, {}={:.3e}".format(
                         title,
@@ -343,6 +358,7 @@ class FitSolverInterface:
                 )
                 axe.set_xlabel(r"Feature, $x_{{{}}}$".format(feature_index))
                 axe.set_ylabel(r"Target, $y$")
+                axe.set_aspect(aspect)
                 axe.legend()
                 axe.grid()
 
