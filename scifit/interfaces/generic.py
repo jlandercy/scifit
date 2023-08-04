@@ -103,6 +103,20 @@ class FitSolverInterface:
     def k(self):
         return self.parameter_space_size
 
+    def target_dataset(
+            self, xdata, *parameters, sigma=0., proportional=True, generator=np.random.uniform, seed=None, **kwargs
+    ):
+        """
+        Generate synthetic dataset with additional noise
+        """
+        if seed is not None:
+            np.random.seed(seed)
+        ydata = self.model(xdata, *parameters)
+        noise = sigma*generator(size=ydata.shape[0], **kwargs)
+        if proportional:
+            noise *= np.abs(ydata)
+        return ydata + noise
+
     def solve(self, xdata, ydata, **kwargs):
         """
         Solve fitting problem and return structured solution
@@ -121,18 +135,27 @@ class FitSolverInterface:
             "status": solution[4]
         }
 
+    def stored(self, error=False):
+        """
+        Stored means the solver object has stored input data successfully
+        """
+        is_stored = hasattr(self, "_xdata") and hasattr(self, "_ydata")
+        if not(is_stored) and error:
+            NotFittedError("Input data must be stored prior to this operation")
+        return is_stored
+
     def fitted(self, error=False):
         """
-        Fitted mean the fitting procedure has been executed successfully
+        Fitted means the fitting procedure has been executed successfully
         """
         is_fitted = hasattr(self, "_solution")
-        if not(is_fitted) and error:
+        if not(self.stored(error=error)) or not(is_fitted) and error:
             NotFittedError("Model must be fitted prior to this operation")
         return is_fitted
 
     def solved(self, error=False):
         """
-        Solved mean the fitting procedure has been executed successfully and has converged to a potential solution
+        Solved means the fitting procedure has been executed successfully and has converged to a potential solution
         """
         has_converged = self.fitted(error=error) and self._solution["status"] in {1, 2, 3, 4}
         if not(has_converged) and error:
@@ -190,8 +213,10 @@ class FitSolverInterface:
     @classmethod
     def scales(cls, domains=None, mode="lin", xmin=None, xmax=None, dimension=None, resolution=100):
         """
-        Generate scales for each domain or synthetic if no domains defined
+        Generate scales for each domain or synthetic scales if no domains defined
         """
+        if (domains is None) and ((xmin is None) or (xmax is None)):
+            ConfigurationError("Scales requires at least domains or xmin and xmax to be defined")
 
         if domains is None:
             xmin, xmax = [0.]*dimension, [1.]*dimension
