@@ -3,6 +3,7 @@ Module :mod:`scifit.tests.test_interfaces` implements test suite for the
 class :class:`scifit.interfaces.generic.GenericInterface` and its children.
 """
 
+import pathlib
 from unittest import TestCase
 
 import numpy as np
@@ -37,6 +38,9 @@ class GenericTestFitSolver:
     target_kwargs = {}
 
     def setUp(self) -> None:
+
+        self.media_path = pathlib.Path("media/{}".format(self.factory.__module__.split(".")[-1]))
+        self.media_path.mkdir(parents=True, exist_ok=True)
 
         self.solver = self.factory(**self.configuration)
 
@@ -113,8 +117,8 @@ class GenericTestFitSolver:
         name = self.__class__.__name__
         title = "{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata)
-        for i, axe in enumerate(self.solver.plot_fit(title=title, errors=True, squared_errors=True)):
-            axe.figure.savefig("media/{}_fit_x{}.png".format(name, i))
+        for i, axe in enumerate(self.solver.plot_fit(title=title, errors=True, squared_errors=False)):
+            axe.figure.savefig("{}/{}_fit_x{}.png".format(self.media_path, name, i))
             plt.close(axe.figure)
 
     def test_plot_loss(self):
@@ -122,7 +126,7 @@ class GenericTestFitSolver:
         title = "{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata)
         for i, axe in enumerate(self.solver.plot_loss(title=title)):
-            axe.figure.savefig("media/{}_score_b{}_b{}.png".format(name, *axe._pair_indices))
+            axe.figure.savefig("{}/{}_score_b{}_b{}.png".format(self.media_path, name, *axe._pair_indices))
             plt.close(axe.figure)
 
 
@@ -299,3 +303,36 @@ class LinearRootRegressionNoiseL4(GenericLinearRootRegression, TestCase):
 class LinearRootRegressionNoiseL5(GenericLinearRootRegression, TestCase):
     sigma = 10.
 
+#
+# class Generic2DFeatureRegression(GenericTestFitSolver):
+#     factory = PlaneFitSolver
+#     dimension = 2
+#     parameters = np.array([1., 1., 1.])
+#
+#     def test_print(self):
+#         print(self.xdata)
+#         print(self.factory.__module__)
+#
+#
+# class PlaneRegressionNoiseL0(Generic2DFeatureRegression, TestCase):
+#     sigma = 0.
+#
+#
+# class PlaneRegressionNoiseL1(Generic2DFeatureRegression, TestCase):
+#     sigma = 1.e-3
+#
+#
+# class PlaneRegressionNoiseL2(Generic2DFeatureRegression, TestCase):
+#     sigma = 1.e-2
+#
+#
+# class PlaneRegressionNoiseL3(Generic2DFeatureRegression, TestCase):
+#     sigma = 1.e-1
+#
+#
+# class PlaneRegressionNoiseL4(Generic2DFeatureRegression, TestCase):
+#     sigma = 1.
+#
+#
+# class PlaneRegressionNoiseL5(Generic2DFeatureRegression, TestCase):
+#     sigma = 10.

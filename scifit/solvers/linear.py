@@ -44,3 +44,9 @@ class LinearRootFitSolver(FitSolverInterface):
     def model(x, a, b, c):
         return a * x[:, 0] + b * np.sqrt(np.abs(x[:, 0]) + 1.) + c
 
+
+class PlaneFitSolver(FitSolverInterface):
+
+    @staticmethod
+    def model(x, a, b, c):
+        return a * x[:, 0] + b * x[:, 1] + c
