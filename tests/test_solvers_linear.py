@@ -121,7 +121,7 @@ class GenericTestFitSolver:
             axe.figure.savefig("{}/{}_fit_x{}.png".format(self.media_path, name, i))
             plt.close(axe.figure)
 
-    def _test_plot_loss(self):
+    def test_plot_loss(self):
         name = self.__class__.__name__
         title = "{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata)
@@ -333,4 +333,33 @@ class PlaneRegressionNoiseL4(Generic2DFeatureRegression, TestCase):
 
 
 class PlaneRegressionNoiseL5(Generic2DFeatureRegression, TestCase):
+    sigma = 10.
+
+
+class QuadricRegression(Generic2DFeatureRegression):
+    factory = QuadricFitSolver
+    parameters = np.array([1., 1., -1., 1.])
+
+
+class SaddleRegressionNoiseL0(QuadricRegression, TestCase):
+    sigma = 0.
+
+
+class SaddleRegressionNoiseL1(QuadricRegression, TestCase):
+    sigma = 1.e-3
+
+
+class SaddleRegressionNoiseL2(QuadricRegression, TestCase):
+    sigma = 1.e-2
+
+
+class SaddleRegressionNoiseL3(QuadricRegression, TestCase):
+    sigma = 1.e-1
+
+
+class SaddleRegressionNoiseL4(QuadricRegression, TestCase):
+    sigma = 1.
+
+
+class SaddleRegressionNoiseL5(QuadricRegression, TestCase):
     sigma = 10.

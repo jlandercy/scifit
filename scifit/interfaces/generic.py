@@ -221,7 +221,7 @@ class FitSolverInterface:
             ConfigurationError("Scales requires at least domains or xmin and xmax to be defined")
 
         if domains is None:
-            xmin, xmax = [0.]*dimension, [1.]*dimension
+            xmin, xmax = [xmin or 0.]*dimension, [xmax or 1.]*dimension
         else:
             xmin = domains.loc["min", :]
             xmax = domains.loc["max", :]
@@ -322,6 +322,12 @@ class FitSolverInterface:
 
         if self.fitted(error=True):
 
+            full_title = "Regression Plot: {}\n{}={}, n={:d}, {}={:.3f}, {}={:.3e}".format(
+                title,
+                r"$\bar{\beta}$", np.array2string(self._solution["parameters"], precision=3, separator=', '),
+                self.n, self.score.name, self._score, self.loss.name, self._loss
+            )
+
             if self.m == 1:
 
                 scales = self.feature_scales(resolution=resolution)
@@ -350,14 +356,7 @@ class FitSolverInterface:
                             )
                             axe.add_patch(square)
 
-                    axe.set_title(
-                        "Regression Plot: {}\n{}={}, n={:d}, {}={:.3f}, {}={:.3e}".format(
-                            title,
-                            r"$\bar{\beta}$", np.array2string(self._solution["parameters"], precision=3, separator=', '),
-                            self.n, self.score.name, self._score, self.loss.name, self._loss
-                        ),
-                        fontdict={"fontsize": 11}
-                    )
+                    axe.set_title(full_title, fontdict={"fontsize": 11})
                     axe.set_xlabel(r"Feature, $x_{{{}}}$".format(feature_index))
                     axe.set_ylabel(r"Target, $y$")
                     axe.set_aspect(aspect)
@@ -381,6 +380,12 @@ class FitSolverInterface:
 
                 axe.plot_surface(X0, X1, Y, cmap="jet", linewidth=0., alpha=0.5, antialiased=True)
 
+                axe.set_title(full_title, fontdict={"fontsize": 11})
+                axe.set_xlabel(r"Feature, $x_0$")
+                axe.set_ylabel(r"Feature, $x_1$")
+                axe.set_zlabel(r"Target, $y$")
+                axe.grid()
+
                 yield axe
 
             else:
@@ -392,6 +397,13 @@ class FitSolverInterface:
         """
 
         if self.fitted(error=True):
+
+            full_title = "Regression Log-{}: {}\n{}={}, n={:d}, score={:.3e}".format(
+                self.loss.name, title,
+                r"$\bar{\beta}$",
+                np.array2string(self._solution["parameters"], precision=3, separator=', '),
+                self.n, self._loss
+            )
 
             scales = self.parameter_scales(
                 mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, resolution=resolution
@@ -414,16 +426,7 @@ class FitSolverInterface:
                     axe.axvline(self._solution["parameters"][i], color="black", linestyle="-.")
                     axe.axhline(self._solution["parameters"][j], color="black", linestyle="-.")
 
-                    axe.set_title(
-                        "Regression Log-{}: {}\n{}={}, n={:d}, score={:.3e}".format(
-                            self.loss.name, title,
-                            r"$\bar{\beta}$",
-                            np.array2string(self._solution["parameters"], precision=3, separator=', '),
-                            self.n, self._loss
-                        ),
-                        fontdict={"fontsize": 11}
-                    )
-
+                    axe.set_title(full_title, fontdict={"fontsize": 11})
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(i))
                     axe.set_ylabel(r"Parameter, $\beta_{{{}}}$".format(j))
                     axe.grid()
