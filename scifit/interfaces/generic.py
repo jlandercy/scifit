@@ -145,17 +145,23 @@ class FitSolverInterface:
         if parameters is not None or self.fitted(error=True):
             return self.model(xdata, *(parameters or self._solution["parameters"]))
 
-    def score(self, xdata, ydata, parameters=None):
-        return np.sum(np.power((self.predict(xdata, parameters) - ydata), 2)) / ydata.shape[0]
-    score.name = "MSE"
+    def loss(self, xdata, ydata, parameters=None):
+        return np.sum(np.power(ydata - self.predict(xdata, parameters=parameters), 2)) / ydata.shape[0]
+    loss.name = "MSE"
 
-    def landscape(self):
+    def score(self, xdata, ydata, parameters=None):
+        RSS = np.sum(np.power(ydata - self.predict(xdata, parameters=parameters), 2))
+        TSS = np.sum(np.power(ydata - self._ydata.mean(), 2))
+        return 1 - RSS/TSS
+    score.name = "$R^2$"
+
+    def parametrized_loss(self):
         """
         Vectorized score wrt to parameter space
         """
         @np.vectorize
         def wrapper(*parameters):
-            return self.score(self._xdata, self._ydata, parameters=parameters)
+            return self.loss(self._xdata, self._ydata, parameters=parameters)
         return wrapper
 
     def fit(self, xdata, ydata, **kwargs):
@@ -165,6 +171,7 @@ class FitSolverInterface:
         self.store(xdata, ydata)
         self._solution = self.solve(self._xdata, self._ydata, **kwargs)
         self._yhat = self.predict(self._xdata)
+        self._loss = self.loss(self._xdata, self._ydata)
         self._score = self.score(self._xdata, self._ydata)
         return self._solution
 
@@ -285,10 +292,10 @@ class FitSolverInterface:
                 )
                 axe.plot(xs, self.predict(xs), label=r"Fit: $\hat{y} = f(\bar{x},\bar{\beta})$")
                 axe.set_title(
-                    "Regression Plot: {}\n{}={}, n={:d}, score={:.3e}".format(
+                    "Regression Plot: {}\n{}={}, n={:d}, {}={:.3f}, {}={:.3e}".format(
                         title,
                         r"$\bar{\beta}$", np.array2string(self._solution["parameters"], precision=3, separator=', '),
-                        self.n, self._score
+                        self.n, self.score.name, self._score, self.loss.name, self._loss
                     ),
                     fontdict={"fontsize": 11}
                 )
@@ -299,7 +306,7 @@ class FitSolverInterface:
 
                 yield axe
 
-    def plot_score(self, mode="lin", ratio=0.1, xmin=None, xmax=None, title="", levels=None, resolution=200):
+    def plot_loss(self, mode="lin", ratio=0.1, xmin=None, xmax=None, title="", levels=None, resolution=200):
         """
         Plot MSE for each parameter pairs
         """
@@ -318,7 +325,7 @@ class FitSolverInterface:
                     parameters = list(self._solution["parameters"])
                     parameters[i] = x
                     parameters[j] = y
-                    score = self.landscape()(*parameters)
+                    score = self.parametrized_loss()(*parameters)
 
                     fig, axe = plt.subplots()
                     labels = axe.contour(x, y, np.log10(score), levels or 10, cmap="jet")
@@ -329,10 +336,10 @@ class FitSolverInterface:
 
                     axe.set_title(
                         "Regression Log-{}: {}\n{}={}, n={:d}, score={:.3e}".format(
-                            self.score.name, title,
+                            self.loss.name, title,
                             r"$\bar{\beta}$",
                             np.array2string(self._solution["parameters"], precision=3, separator=', '),
-                            self.n, self._score
+                            self.n, self._loss
                         ),
                         fontdict={"fontsize": 11}
                     )
@@ -347,18 +354,18 @@ class FitSolverInterface:
             else:
 
                 scale = scales[0]
-                score = self.landscape()(scale)
+                score = self.parametrized_loss()(scale)
 
                 fig, axe = plt.subplots()
                 axe.plot(scale, score)
                 axe.axvline(self._solution["parameters"][0], color="black", linestyle="-.")
 
                 axe.set_title(
-                    "Regression Log-{}: {}\n{}={}, n={:d}, score={:.3e}".format(
-                        self.score.name, title,
+                    "Regression Log-{}: {}\n{}={}, n={:d}, {}={:.3f}, {}={:.3e}".format(
+                        self.loss.name, title,
                         r"$\bar{\beta}$",
                         np.array2string(self._solution["parameters"], precision=3, separator=', '),
-                        self.n, self._score
+                        self.n, self.score.name, self._score, self.loss.name, self._loss
                     ),
                     fontdict={"fontsize": 11}
                 )

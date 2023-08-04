@@ -86,7 +86,7 @@ class GenericTestFitSolver:
         name = self.__class__.__name__
         title = "{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.x, self.y)
-        for i, axe in enumerate(self.solver.plot_score(title=title)):
+        for i, axe in enumerate(self.solver.plot_loss(title=title)):
             axe.figure.savefig("media/{}_score_b{}_b{}.png".format(name, *axe._pair_indices))
             plt.close(axe.figure)
 
