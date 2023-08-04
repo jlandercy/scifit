@@ -37,8 +37,12 @@ class GenericTestFitSolver:
         self.assertEqual(len(s.parameters) - 1, n)
 
     def test_model_implementation(self):
+        """
+        Check noisy data is close enough to regressed data up to 10 StdDev of applied noise
+        Very unlikely to fail but tight enough to detect bad regression
+        """
         yhat = self.solver.model(self.x, *self.p)
-        self.assertTrue(np.allclose(self.y, yhat, rtol=10*self.s))
+        self.assertTrue(np.allclose(self.y, yhat, rtol=10*self.s*np.abs(self.y)))
 
     def test_model_fit_signature(self):
         solution = self.solver.fit(self.x, self.y)
@@ -48,6 +52,10 @@ class GenericTestFitSolver:
             self.assertTrue(hasattr(self.solver, key))
 
     def test_model_fit_parameters(self):
+        """
+        Check regressed parameters are equals up to 10 StdDev of fit precision
+        Very unlikely to fail but tight enough to detect bad regression
+        """
         solution = self.solver.fit(self.x, self.y)
         for i in range(self.p.shape[0]):
             self.assertTrue(
@@ -57,6 +65,15 @@ class GenericTestFitSolver:
                     atol=10*np.sqrt(solution["covariance"][i][i])
                 )
             )
+
+    def test_variable_dataset(self):
+        self.solver.store(self.x, self.y)
+        dataset = self.solver.variable_dataset(domains=self.solver.variable_domains(), resolution=10)
+        print(dataset)
+        self.assertIsInstance(dataset, np.ndarray)
+        self.assertEqual(dataset.ndim, 2)
+        #self.assertEqual(dataset.shape[0], self.)
+        self.assertEqual(dataset.shape[1], self.solver.m)
 
     def test_parameters_domain_linear_auto(self):
         solution = self.solver.fit(self.x, self.y)
@@ -82,7 +99,7 @@ class GenericTestFitSolver:
             axe.figure.savefig("media/{}_fit_x{}.png".format(name, i))
             plt.close(axe.figure)
 
-    def test_plot_score(self):
+    def test_plot_loss(self):
         name = self.__class__.__name__
         title = "{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.x, self.y)

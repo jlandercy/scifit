@@ -157,7 +157,7 @@ class FitSolverInterface:
 
     def parametrized_loss(self):
         """
-        Vectorized score wrt to parameter space
+        Vectorized loss wrt to parameter space
         """
         @np.vectorize
         def wrapper(*parameters):
@@ -174,10 +174,6 @@ class FitSolverInterface:
         self._loss = self.loss(self._xdata, self._ydata)
         self._score = self.score(self._xdata, self._ydata)
         return self._solution
-
-    def variable_domains(self):
-        data = pd.DataFrame(self._xdata)
-        return data.describe()
 
     @staticmethod
     def scale(mode="lin", xmin=0., xmax=1., resolution=101):
@@ -207,19 +203,32 @@ class FitSolverInterface:
         ]
         return scales
 
-    def variable_scales(self, mode="lin", xmin=None, xmax=None, resolution=100):
+    def variable_domains(self):
+        data = pd.DataFrame(self._xdata)
+        return data.describe()
+
+    def variable_scales(self, domains=None, mode="lin", xmin=None, xmax=None, resolution=100):
         """
         Generate Variables Scales
         """
-        return self.scales(self.variable_domains(), mode=mode, xmin=xmin, xmax=xmax, resolution=resolution)
+        if domains is None:
+            domains = self.variable_domains()
+        return self.scales(domains=domains, mode=mode, xmin=xmin, xmax=xmax, resolution=resolution)
 
-    def variable_space(self, mode="lin", xmin=None, xmax=None, resolution=10):
+    def variable_space(self, domains=None, mode="lin", xmin=None, xmax=None, resolution=10):
         """
         Generate Variable Space
         """
         return np.meshgrid(
-            *self.variable_scales(mode=mode, xmin=xmin, xmax=xmax, resolution=resolution)
+            *self.variable_scales(domains=domains, mode=mode, xmin=xmin, xmax=xmax, resolution=resolution)
         )
+
+    def variable_dataset(self, domains=None, mode="lin", xmin=None, xmax=None, resolution=10):
+        space = self.variable_space(domains=domains, mode=mode, xmin=xmin, xmax=xmax, resolution=resolution)
+        dataset = np.vstack([
+            scale.ravel() for scale in space
+        ])
+        return dataset.T
 
     def parameter_domains(self, mode="lin", xmin=None, xmax=None, ratio=0.1):
         """
@@ -253,22 +262,21 @@ class FitSolverInterface:
 
         return pd.DataFrame([xmin, xmax], index=["min", "max"])
 
-    def parameter_scales(self, mode="lin", xmin=None, xmax=None, ratio=0.1, resolution=100):
+    def parameter_scales(self, domains=None, mode="lin", xmin=None, xmax=None, ratio=0.1, resolution=100):
         """
         Generate Parameter Scales
         """
-        return self.scales(
-            self.parameter_domains(mode=mode, xmin=xmin, xmax=xmax, ratio=ratio),
-            resolution=resolution
-        )
+        if domains is None:
+            domains = self.parameter_domains(mode=mode, xmin=xmin, xmax=xmax, ratio=ratio)
+        return self.scales(domains=domains, resolution=resolution)
 
-    def parameter_space(self, mode="lin", ratio=0.1, xmin=None, xmax=None, resolution=10):
+    def parameter_space(self, domains=None, mode="lin", ratio=0.1, xmin=None, xmax=None, resolution=10):
         """
         Generate Parameter Space
         """
         return np.meshgrid(
             *self.parameter_scales(
-                mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, resolution=resolution
+                domains=domains, mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, resolution=resolution
             )
         )
 
