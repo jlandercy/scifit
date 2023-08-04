@@ -17,19 +17,37 @@ from scifit.solvers.linear import *
 
 class GenericTestFitSolver:
 
-    seed = 789
     factory = LinearFitSolver
     configuration = {}
     parameters = np.array([2., 3.])
-    xdata = np.linspace(-1., 1., 30).reshape(-1, 1)
+
+    xmin = -1.
+    xmax = +1.
+    resolution = 30
+    dimension = 1
+    xdata = None
+
+    seed = 789
     sigma = 0.
+    #scale = 10.
+    #generator = np.random.uniform
+    #target_kwargs = {"low": -.5, "high": .5}
+    scale = 100.
+    generator = np.random.normal
+    target_kwargs = {}
 
     def setUp(self) -> None:
+
         self.solver = self.factory(**self.configuration)
+
+        if self.xdata is None:
+            self.xdata = self.solver.feature_dataset(
+                xmin=self.xmin, xmax=self.xmax, dimension=self.dimension, resolution=self.resolution
+            )
+
         self.ydata = self.solver.target_dataset(
             self.xdata, *self.parameters, sigma=self.sigma,
-            proportional=True, generator=np.random.uniform, low=-.5, high=.5,
-            seed=self.seed
+            proportional=True, generator=self.generator, seed=self.seed, **self.target_kwargs
         )
 
     def test_signature(self):
@@ -43,7 +61,7 @@ class GenericTestFitSolver:
         Very unlikely to fail but tight enough to detect bad regression
         """
         yhat = self.solver.model(self.xdata, *self.parameters)
-        self.assertTrue(np.allclose(self.ydata, yhat, rtol=10 * self.sigma * np.abs(self.ydata)))
+        self.assertTrue(np.allclose(self.ydata, yhat, rtol=self.scale * self.sigma * np.abs(self.ydata)))
 
     def test_model_fit_signature(self):
         solution = self.solver.fit(self.xdata, self.ydata)
@@ -63,7 +81,7 @@ class GenericTestFitSolver:
                 np.allclose(
                     self.parameters[i],
                     solution["parameters"][i],
-                    atol=10*np.sqrt(solution["covariance"][i][i])
+                    atol=self.scale * np.sqrt(solution["covariance"][i][i])
                 )
             )
 
