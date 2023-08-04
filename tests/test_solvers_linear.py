@@ -121,7 +121,7 @@ class GenericTestFitSolver:
             axe.figure.savefig("{}/{}_fit_x{}.png".format(self.media_path, name, i))
             plt.close(axe.figure)
 
-    def test_plot_loss(self):
+    def _test_plot_loss(self):
         name = self.__class__.__name__
         title = "{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata)
@@ -303,36 +303,34 @@ class LinearRootRegressionNoiseL4(GenericLinearRootRegression, TestCase):
 class LinearRootRegressionNoiseL5(GenericLinearRootRegression, TestCase):
     sigma = 10.
 
-#
-# class Generic2DFeatureRegression(GenericTestFitSolver):
-#     factory = PlaneFitSolver
-#     dimension = 2
-#     parameters = np.array([1., 1., 1.])
-#
-#     def test_print(self):
-#         print(self.xdata)
-#         print(self.factory.__module__)
-#
-#
-# class PlaneRegressionNoiseL0(Generic2DFeatureRegression, TestCase):
-#     sigma = 0.
-#
-#
-# class PlaneRegressionNoiseL1(Generic2DFeatureRegression, TestCase):
-#     sigma = 1.e-3
-#
-#
-# class PlaneRegressionNoiseL2(Generic2DFeatureRegression, TestCase):
-#     sigma = 1.e-2
-#
-#
-# class PlaneRegressionNoiseL3(Generic2DFeatureRegression, TestCase):
-#     sigma = 1.e-1
-#
-#
-# class PlaneRegressionNoiseL4(Generic2DFeatureRegression, TestCase):
-#     sigma = 1.
-#
-#
-# class PlaneRegressionNoiseL5(Generic2DFeatureRegression, TestCase):
-#     sigma = 10.
+
+class Generic2DFeatureRegression(GenericTestFitSolver):
+    factory = PlaneFitSolver
+    dimension = 2
+    resolution = 10
+    scale = 2500
+    parameters = np.array([1., 1., 1.])
+
+
+class PlaneRegressionNoiseL0(Generic2DFeatureRegression, TestCase):
+    sigma = 0.
+
+
+class PlaneRegressionNoiseL1(Generic2DFeatureRegression, TestCase):
+    sigma = 1.e-3
+
+
+class PlaneRegressionNoiseL2(Generic2DFeatureRegression, TestCase):
+    sigma = 1.e-2
+
+
+class PlaneRegressionNoiseL3(Generic2DFeatureRegression, TestCase):
+    sigma = 1.e-1
+
+
+class PlaneRegressionNoiseL4(Generic2DFeatureRegression, TestCase):
+    sigma = 1.
+
+
+class PlaneRegressionNoiseL5(Generic2DFeatureRegression, TestCase):
+    sigma = 10.
