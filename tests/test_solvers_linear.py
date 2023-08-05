@@ -348,7 +348,7 @@ class PlaneRegressionNoiseL5(Generic2DFeatureRegression, TestCase):
 
 class QuadricRegression(Generic2DFeatureRegression):
     factory = QuadricFitSolver
-    parameters = np.array([1., -1., 1., 1., 1., 1.])
+    parameters = np.array([1., -1., 1., 1., 0.1, 0.1])
 
 
 class SaddleRegressionNoiseL0(QuadricRegression, TestCase):
