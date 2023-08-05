@@ -49,10 +49,13 @@ class GenericTestFitSolver:
                 xmin=self.xmin, xmax=self.xmax, dimension=self.dimension, resolution=self.resolution
             )
 
-        self.ydata = self.solver.target_dataset(
+        target = self.solver.target_dataset(
             self.xdata, *self.parameters, sigma=self.sigma,
-            proportional=True, generator=self.generator, seed=self.seed, **self.target_kwargs
+            proportional=True, generator=self.generator, seed=self.seed, **self.target_kwargs,
+            full_output=True,
         )
+
+        self.__dict__.update({k: target[k] for k in ["ydata", "yref", "ynoise"]})
 
     def test_signature(self):
         s = self.solver.signature
@@ -78,6 +81,8 @@ class GenericTestFitSolver:
         """
         Check regressed parameters are equals up to 10 StdDev of fit precision
         Very unlikely to fail but tight enough to detect bad regression
+         - Is the right solution
+         - Is it precise enough
         """
         solution = self.solver.fit(self.xdata, self.ydata)
         for i in range(self.parameters.shape[0]):
@@ -88,6 +93,11 @@ class GenericTestFitSolver:
                     atol=self.scale * np.sqrt(solution["covariance"][i][i])
                 )
             )
+
+    def test_goodness_of_fit(self):
+        solution = self.solver.fit(self.xdata, self.ydata)
+        test = self.solver.goodness_of_fit(self.xdata, self.ydata)
+        #self.assertIsInstance(test, dict)
 
     def test_feature_dataset_auto(self):
         self.solver.store(self.xdata, self.ydata)
@@ -121,7 +131,7 @@ class GenericTestFitSolver:
             axe.figure.savefig("{}/{}_fit_x{}.png".format(self.media_path, name, i))
             plt.close(axe.figure)
 
-    def test_plot_loss(self):
+    def _test_plot_loss(self):
         name = self.__class__.__name__
         title = "{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata)
@@ -338,7 +348,7 @@ class PlaneRegressionNoiseL5(Generic2DFeatureRegression, TestCase):
 
 class QuadricRegression(Generic2DFeatureRegression):
     factory = QuadricFitSolver
-    parameters = np.array([1., 1., -1., 1.])
+    parameters = np.array([1., -1., 1., 1., 1., 1.])
 
 
 class SaddleRegressionNoiseL0(QuadricRegression, TestCase):

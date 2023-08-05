@@ -190,3 +190,8 @@ contents (see [`noxfile.py`][210] for details).
 [210]: ./noxfile.py
 
 [300]: https://hub.docker.com/r/jlandercy/python-qc/tags?page=1&ordering=last_updated
+
+
+## References
+
+ - https://www.itl.nist.gov/div898/handbook/eda/section3/eda35f.htm

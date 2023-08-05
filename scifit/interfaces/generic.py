@@ -106,18 +106,30 @@ class FitSolverInterface:
         return self.parameter_space_size
 
     def target_dataset(
-            self, xdata, *parameters, sigma=0., proportional=True, generator=np.random.uniform, seed=None, **kwargs
+            self, xdata, *parameters, sigma=0.,
+            proportional=True, generator=np.random.uniform, seed=None,
+            full_output=False,
+            **kwargs
     ):
         """
         Generate synthetic dataset with additional noise
         """
         if seed is not None:
             np.random.seed(seed)
-        ydata = self.model(xdata, *parameters)
-        noise = sigma*generator(size=ydata.shape[0], **kwargs)
+        yref = self.model(xdata, *parameters)
+        ynoise = sigma*generator(size=yref.shape[0], **kwargs)
         if proportional:
-            noise *= np.abs(ydata)
-        return ydata + noise
+            ynoise *= np.abs(yref)
+        ydata = yref + ynoise
+        if full_output:
+            return {
+                "xdata": xdata,
+                "parameters": np.array(parameters),
+                "yref": yref,
+                "ynoise": ynoise,
+                "ydata": ydata,
+            }
+        return ydata
 
     def solve(self, xdata, ydata, **kwargs):
         """
@@ -171,14 +183,26 @@ class FitSolverInterface:
             return self.model(xdata, *(parameters or self._solution["parameters"]))
 
     def loss(self, xdata, ydata, parameters=None):
+        """
+        Compute Mean Squared Error
+        """
         return np.sum(np.power(ydata - self.predict(xdata, parameters=parameters), 2)) / ydata.shape[0]
     loss.name = "MSE"
 
     def score(self, xdata, ydata, parameters=None):
+        """
+        Compute Coefficient of Determination R2
+        """
         RSS = np.sum(np.power(ydata - self.predict(xdata, parameters=parameters), 2))
         TSS = np.sum(np.power(ydata - self._ydata.mean(), 2))
         return 1 - RSS/TSS
     score.name = "$R^2$"
+
+    def goodness_of_fit(self, xdata, ydata, parameters=None):
+        """
+        Compute Standardized Chi Square to assess Goodness of Fit
+        """
+        pass
 
     def parametrized_loss(self):
         """
