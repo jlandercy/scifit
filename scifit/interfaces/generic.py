@@ -370,13 +370,13 @@ class FitSolverInterface:
                     axe.plot(xscale, self.predict(xscale), label=r"Fit: $\hat{y} = f(\bar{x},\bar{\beta})$")
 
                     if errors:
-                        for x, y, e in zip(xdata, self._ydata, error):
-                            axe.plot([x, x], [y, y-e], color="blue", linewidth=0.25)
+                        for xs, y, e in zip(xdata, self._ydata, error):
+                            axe.plot([xs, xs], [y, y-e], color="blue", linewidth=0.25)
 
                     if squared_errors:
-                        for x, y, e in zip(xdata, self._ydata, error):
+                        for xs, y, e in zip(xdata, self._ydata, error):
                             square = patches.Rectangle(
-                                (x, y), -e, -e, linewidth=0., edgecolor='black', facecolor='lightblue', alpha=0.5
+                                (xs, y), -e, -e, linewidth=0., edgecolor='black', facecolor='lightblue', alpha=0.5
                             )
                             axe.add_patch(square)
 
@@ -398,11 +398,15 @@ class FitSolverInterface:
 
                 domains = self.feature_domains()
                 X0, X1 = self.feature_space(domains=domains, resolution=200)
-                x = self.feature_dataset(domains=domains, resolution=200)
-                yhat = self.predict(x)
-                Y = yhat.reshape(X0.shape)
+                xs = self.feature_dataset(domains=domains, resolution=200)
+                ys = self.predict(xs)
+                Ys = ys.reshape(X0.shape)
 
-                axe.plot_surface(X0, X1, Y, cmap="jet", linewidth=0., alpha=0.5, antialiased=True)
+                axe.plot_surface(X0, X1, Ys, cmap="jet", linewidth=0., alpha=0.5, antialiased=True)
+
+                if errors:
+                    for x0, x1, y, e in zip(*self._xdata.T, self._ydata, self._ydata - self._yhat):
+                        axe.plot([x0, x0], [x1, x1], [y, y-e], color="blue", linewidth=0.5)
 
                 axe.set_title(full_title, fontdict={"fontsize": 11})
                 axe.set_xlabel(r"Feature, $x_0$")
