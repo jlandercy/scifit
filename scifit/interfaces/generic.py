@@ -11,6 +11,7 @@ import itertools
 import numpy as np
 import pandas as pd
 
+from scipy import stats
 from scipy import optimize
 
 import matplotlib.pyplot as plt
@@ -198,11 +199,27 @@ class FitSolverInterface:
         return 1 - RSS/TSS
     score.name = "$R^2$"
 
-    def goodness_of_fit(self, xdata, ydata, parameters=None):
+    def goodness_of_fit(self, xdata, ydata, sigma=1.0, parameters=None):
         """
         Compute Standardized Chi Square to assess Goodness of Fit
         """
-        pass
+        yhat = self.predict(xdata, parameters=parameters)
+        terms = np.power(yhat - ydata, 2)/sigma
+        value = np.sum(terms)
+        valuen = value/self.n
+        chi2 = stats.chi2(df=self.n - self.k - 1)
+        return {
+            "xdata": xdata,
+            "ydata": ydata,
+            "sigma": sigma,
+            "yhat": yhat,
+            "terms": terms,
+            "value": value,
+            "normalized_value": valuen,
+            "chi2": chi2,
+            "pvalue": 1. - chi2.cdf(value)
+            #"test": stats.chisquare(ydata, yhat, ddof=self.k)
+        }
 
     def parametrized_loss(self):
         """
