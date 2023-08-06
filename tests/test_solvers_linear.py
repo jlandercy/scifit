@@ -97,14 +97,16 @@ class GenericTestFitSolver:
             )
 
     def test_goodness_of_fit(self):
+        """
+        Perform Chi 2 Test for Goodness of fit and check proper fits get their pvalue acceptable
+        """
         solution = self.solver.fit(self.xdata, self.ydata)
         test = self.solver.goodness_of_fit(self.xdata, self.ydata, sigma=self.sigmas)
         self.assertIsInstance(test, dict)
         self.assertEqual(set(test.keys()).intersection({"statistic", "pvalue"}), {"statistic", "pvalue"})
-        print()
-        print(test)
-        if 0. < self.sigma <= 0.0025:
-            self.assertTrue(test["pvalue"] >= 0.90)
+        # Ensure proper fits get its test valid:
+        if 0. < self.sigma <= 0.25:
+            self.assertTrue(test["pvalue"] >= 0.95)
 
     def test_feature_dataset_auto(self):
         self.solver.store(self.xdata, self.ydata)
