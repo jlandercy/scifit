@@ -96,8 +96,8 @@ class GenericTestFitSolver:
 
     def test_goodness_of_fit(self):
         solution = self.solver.fit(self.xdata, self.ydata)
-        test = self.solver.goodness_of_fit(self.xdata, self.ydata, sigma=self.sigma*(np.abs(self.yref) + 1e-6))
-        print(test["value"], test["pvalue"])
+        test = self.solver.goodness_of_fit(self.xdata, self.ydata, sigma=self.sigma*(np.abs(self.yref) + 1e-18))
+        print(test)
         self.assertIsInstance(test, dict)
 
     def test_feature_dataset_auto(self):

@@ -107,7 +107,7 @@ class FitSolverInterface:
         return self.parameter_space_size
 
     def target_dataset(
-            self, xdata, *parameters, sigma=0.,
+            self, xdata, *parameters, sigma=0., precision=1e-18,
             proportional=True, generator=np.random.uniform, seed=None,
             full_output=False,
             **kwargs
@@ -120,7 +120,7 @@ class FitSolverInterface:
         yref = self.model(xdata, *parameters)
         ynoise = sigma*generator(size=yref.shape[0], **kwargs)
         if proportional:
-            ynoise *= np.abs(yref)
+            ynoise *= np.abs(yref) + precision
         ydata = yref + ynoise
         if full_output:
             return {
@@ -199,27 +199,37 @@ class FitSolverInterface:
         return 1 - RSS/TSS
     score.name = "$R^2$"
 
-    def goodness_of_fit(self, xdata, ydata, sigma=1.0, parameters=None):
+    def goodness_of_fit(self, xdata, ydata, sigma=1.0, parameters=None, full_output=False):
         """
-        Compute Standardized Chi Square to assess Goodness of Fit
+        Compute Chi Square adapted test to assess Goodness of Fit
         """
         yhat = self.predict(xdata, parameters=parameters)
         terms = np.power(yhat - ydata, 2)/sigma
         value = np.sum(terms)
-        valuen = value/self.n
-        chi2 = stats.chi2(df=self.n - self.k - 1)
-        return {
-            "xdata": xdata,
-            "ydata": ydata,
-            "sigma": sigma,
-            "yhat": yhat,
-            "terms": terms,
-            "value": value,
-            "normalized_value": valuen,
+        nvalue = value/self.n
+        dof = self.n - self.k - 1
+        chi2 = stats.chi2(df=dof)
+        result = {
+            "n": self.n,
+            "k": self.k,
+            "dof": dof,
+            "statistic": value,
+            "normalized": nvalue,
+            "pvalue": chi2.sf(value),
+            "P95": chi2.ppf(0.95),
+            "P99": chi2.ppf(0.99),
+            "P999": chi2.ppf(0.999),
             "chi2": chi2,
-            "pvalue": 1. - chi2.cdf(value)
-            #"test": stats.chisquare(ydata, yhat, ddof=self.k)
         }
+        if full_output:
+            result.update({
+                "xdata": xdata,
+                "ydata": ydata,
+                "sigma": sigma,
+                "yhat": yhat,
+                "terms": terms,
+            })
+        return result
 
     def parametrized_loss(self):
         """
