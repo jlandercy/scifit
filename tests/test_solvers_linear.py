@@ -142,7 +142,7 @@ class GenericTestFitSolver:
             axe.figure.savefig("{}/{}_fit_x{}.png".format(self.media_path, name, i))
             plt.close(axe.figure)
 
-    def _test_plot_loss(self):
+    def test_plot_loss(self):
         name = self.__class__.__name__
         title = "{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata)
@@ -356,11 +356,11 @@ class PlaneRegressionNoiseL4(Generic2DFeatureRegression, TestCase):
 class PlaneRegressionNoiseL5(Generic2DFeatureRegression, TestCase):
     sigma = 10.
 
-#
-# class QuadricRegression(Generic2DFeatureRegression):
-#     factory = QuadricFitSolver
-#     parameters = np.array([1., -1., 1., 1., 0.1, 0.1])
-#
+
+class QuadricRegression(Generic2DFeatureRegression):
+    factory = QuadricFitSolver
+    parameters = np.array([1., -1., 1., 1., 0.1, 0.1])
+
 #
 # class SaddleRegressionNoiseL0(QuadricRegression, TestCase):
 #     sigma = 0.
@@ -384,18 +384,18 @@ class PlaneRegressionNoiseL5(Generic2DFeatureRegression, TestCase):
 #
 # class SaddleRegressionNoiseL5(QuadricRegression, TestCase):
 #     sigma = 10.
-#
-#
-# class ParaboloidRegressionNoiseL0(QuadricRegression, TestCase):
-#     parameters = np.array([1., 1., 1., 1., 0.1, 0.1])
-#     sigma = 0.
-#
-#
-# class Paraboloid2RegressionNoiseL0(QuadricRegression, TestCase):
-#     parameters = np.array([1., 1., -1., 1., 0.1, 0.1])
-#     sigma = 0.
-#
-#
-# class Paraboloid3RegressionNoiseL0(QuadricRegression, TestCase):
-#     parameters = np.array([1., 0.5, -0.3, .5, 0.1, 0.1])
-#     sigma = 0.
+
+
+class ParaboloidRegressionNoiseL0(QuadricRegression, TestCase):
+    parameters = np.array([1., 1., 1., 1., 0.1, 0.1])
+    sigma = 0.
+
+
+class Paraboloid2RegressionNoiseL0(QuadricRegression, TestCase):
+    parameters = np.array([1., 1., -1., 1., 0.1, 0.1])
+    sigma = 0.
+
+
+class Paraboloid3RegressionNoiseL0(QuadricRegression, TestCase):
+    parameters = np.array([1., 0.5, -0.3, .5, 0.1, 0.1])
+    sigma = 0.

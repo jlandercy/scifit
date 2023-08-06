@@ -107,7 +107,7 @@ class FitSolverInterface:
         return self.parameter_space_size
 
     def target_dataset(
-            self, xdata, *parameters, sigma=0., precision=1e-16,
+            self, xdata, *parameters, sigma=0., precision=1e-9,
             proportional=True, generator=np.random.normal, seed=None,
             full_output=False,
             **kwargs
@@ -397,6 +397,9 @@ class FitSolverInterface:
                 self.n, self.score.name, self._score, self.loss.name, self._loss
             )
 
+            if hasattr(self, "_gof"):
+                full_title += "\n$\chi^2_{{{dof:}}} = {normalized:.3f}, p = {pvalue:.4f}$".format(**self._gof)
+
             if self.m == 1:
 
                 scales = self.feature_scales(resolution=resolution)
@@ -432,6 +435,9 @@ class FitSolverInterface:
                     axe.legend()
                     axe.grid()
 
+                    fig.subplots_adjust(top=0.8)
+                    #fig.tight_layout()
+
                     yield axe
 
             elif self.m == 2:
@@ -459,6 +465,8 @@ class FitSolverInterface:
                 axe.set_zlabel(r"Target, $y$")
                 axe.grid()
 
+                fig.subplots_adjust(top=0.8)
+
                 yield axe
 
             else:
@@ -477,6 +485,9 @@ class FitSolverInterface:
                 np.array2string(self._solution["parameters"], precision=3, separator=', '),
                 self.n, self._loss
             )
+
+            if hasattr(self, "_gof"):
+                full_title += "\n$\chi^2_{{{dof:}}} = {normalized:.3f}, p = {pvalue:.4f}$".format(**self._gof)
 
             scales = self.parameter_scales(
                 mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, resolution=resolution
@@ -529,6 +540,8 @@ class FitSolverInterface:
                 axe.set_xlabel(r"Parameter, $\beta_0$")
                 axe.set_ylabel(r"Score, $s$")
                 axe.grid()
+
+                fig.subplots_adjust(top=0.8)
 
                 axe._pair_indices = (0, 0)
                 yield axe
