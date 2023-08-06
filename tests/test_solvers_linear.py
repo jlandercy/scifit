@@ -105,7 +105,7 @@ class GenericTestFitSolver:
         test = self.solver.goodness_of_fit(self.xdata, self.ydata, sigma=self.sigmas)
         self.assertIsInstance(test, dict)
         self.assertEqual(set(test.keys()).intersection({"statistic", "pvalue"}), {"statistic", "pvalue"})
-        pprint.pprint(test)
+        #pprint.pprint(test)
         # Ensure proper fits get its test valid:
         if 0. < self.sigma <= 250.:
             self.assertTrue(test["pvalue"] >= 0.10)
@@ -145,7 +145,7 @@ class GenericTestFitSolver:
     def test_plot_loss(self):
         name = self.__class__.__name__
         title = "{} (seed={:d})".format(name, self.seed)
-        self.solver.fit(self.xdata, self.ydata)
+        self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         for i, axe in enumerate(self.solver.plot_loss(title=title)):
             axe.figure.savefig("{}/{}_score_b{}_b{}.png".format(self.media_path, name, *axe._pair_indices))
             plt.close(axe.figure)

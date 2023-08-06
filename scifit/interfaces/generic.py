@@ -47,13 +47,16 @@ class FitSolverInterface:
     def configuration(self, **kwargs):
         return self._configuration | kwargs
 
-    def store(self, xdata, ydata):
+    def store(self, xdata, ydata, sigma=None):
         """
         Validate and store experimental data
         """
 
         xdata = np.array(xdata)
         ydata = np.array(ydata)
+
+        if isinstance(sigma, Iterable):
+            sigma = np.array(sigma)
 
         if xdata.ndim != 2:
             raise InputDataError("Features must be a two dimensional array")
@@ -69,6 +72,7 @@ class FitSolverInterface:
 
         self._xdata = xdata
         self._ydata = ydata
+        self._sigma = sigma
 
     @staticmethod
     def model(xdata, *parameters):
@@ -196,11 +200,13 @@ class FitSolverInterface:
         if parameters is not None or self.fitted(error=True):
             return self.model(xdata, *(parameters or self._solution["parameters"]))
 
-    def loss(self, xdata, ydata, parameters=None):
+    def loss(self, xdata, ydata, sigma=None, parameters=None):
         """
         Compute Mean Squared Error
         """
-        return np.sum(np.power(ydata - self.predict(xdata, parameters=parameters), 2)) / ydata.shape[0]
+        if sigma is None:
+            sigma = 1.
+        return np.sum(np.power((ydata - self.predict(xdata, parameters=parameters))/sigma, 2)) / ydata.shape[0]
     loss.name = "MSE"
 
     def score(self, xdata, ydata, parameters=None):
@@ -247,26 +253,25 @@ class FitSolverInterface:
             })
         return result
 
-    def parametrized_loss(self):
+    def parametrized_loss(self, sigma=None):
         """
         Vectorized loss wrt to parameter space
         """
         @np.vectorize
         def wrapped(*parameters):
-            return self.loss(self._xdata, self._ydata, parameters=parameters)
+            return self.loss(self._xdata, self._ydata, sigma=sigma, parameters=parameters)
         return wrapped
 
     def fit(self, xdata, ydata, sigma=None, **kwargs):
         """
         Solve fitting problem and store data and results
         """
-        self.store(xdata, ydata)
-        self._solution = self.solve(self._xdata, self._ydata, sigma=sigma, **kwargs)
+        self.store(xdata, ydata, sigma=sigma)
+        self._solution = self.solve(self._xdata, self._ydata, sigma=self._sigma, **kwargs)
         self._yhat = self.predict(self._xdata)
         self._loss = self.loss(self._xdata, self._ydata)
         self._score = self.score(self._xdata, self._ydata)
-        if sigma is not None:
-            self._gof = self.goodness_of_fit(self._xdata, self._ydata, sigma=sigma)
+        self._gof = self.goodness_of_fit(self._xdata, self._ydata, sigma=self._sigma)
         return self._solution
 
     @staticmethod
@@ -384,6 +389,20 @@ class FitSolverInterface:
             )
         )
 
+    def get_title(self):
+
+        if self.fitted(error=True):
+
+            full_title = "{}={}, n={:d}, {}={:.3f}, {}={:.3e}".format(
+                r"$\bar{\beta}$", np.array2string(self._solution["parameters"], precision=2, separator=', '),
+                self.n, self.score.name, self._score, self.loss.name, self._loss
+            )
+
+            if hasattr(self, "_gof"):
+                full_title += "\n" + r"$\chi^2_{{{dof:}}} = {normalized:.3f}, p = {pvalue:.4f}$".format(**self._gof)
+
+        return full_title
+
     def plot_fit(self, title="", errors=False, squared_errors=False, aspect="auto", resolution=200):
         """
         Plot data and fitted function for each feature
@@ -391,15 +410,7 @@ class FitSolverInterface:
 
         if self.fitted(error=True):
 
-            full_title = "Regression Plot: {}\n{}={}, n={:d}, {}={:.3f}, {}={:.3e}".format(
-                title,
-                r"$\bar{\beta}$", np.array2string(self._solution["parameters"], precision=3, separator=', '),
-                self.n, self.score.name, self._score, self.loss.name, self._loss
-            )
-
-            if hasattr(self, "_gof"):
-                full_title += "\n$\chi^2_{{{dof:}}} = {normalized:.3f}, p = {pvalue:.4f}$".format(**self._gof)
-
+            full_title = "Fit Plot: {}\n{}".format(title, self.get_title())
             if self.m == 1:
 
                 scales = self.feature_scales(resolution=resolution)
@@ -479,15 +490,7 @@ class FitSolverInterface:
 
         if self.fitted(error=True):
 
-            full_title = "Regression Log-{}: {}\n{}={}, n={:d}, score={:.3e}".format(
-                self.loss.name, title,
-                r"$\bar{\beta}$",
-                np.array2string(self._solution["parameters"], precision=3, separator=', '),
-                self.n, self._loss
-            )
-
-            if hasattr(self, "_gof"):
-                full_title += "\n$\chi^2_{{{dof:}}} = {normalized:.3f}, p = {pvalue:.4f}$".format(**self._gof)
+            full_title = "Fit Loss Plot: {}\n{}".format(title, self.get_title())
 
             scales = self.parameter_scales(
                 mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, resolution=resolution
@@ -501,7 +504,7 @@ class FitSolverInterface:
                     parameters = list(self._solution["parameters"])
                     parameters[i] = x
                     parameters[j] = y
-                    score = self.parametrized_loss()(*parameters)
+                    score = self.parametrized_loss(sigma=self._sigma)(*parameters)
 
                     fig, axe = plt.subplots()
                     labels = axe.contour(x, y, np.log10(score), levels or 10, cmap="jet")
@@ -515,27 +518,21 @@ class FitSolverInterface:
                     axe.set_ylabel(r"Parameter, $\beta_{{{}}}$".format(j))
                     axe.grid()
 
+                    fig.subplots_adjust(top=0.8)
+
                     axe._pair_indices = (i, j)
                     yield axe
 
             else:
 
                 scale = scales[0]
-                score = self.parametrized_loss()(scale)
+                score = self.parametrized_loss(sigma=self._sigma)(scale)
 
                 fig, axe = plt.subplots()
                 axe.plot(scale, score)
                 axe.axvline(self._solution["parameters"][0], color="black", linestyle="-.")
 
-                axe.set_title(
-                    "Regression Log-{}: {}\n{}={}, n={:d}, {}={:.3f}, {}={:.3e}".format(
-                        self.loss.name, title,
-                        r"$\bar{\beta}$",
-                        np.array2string(self._solution["parameters"], precision=3, separator=', '),
-                        self.n, self.score.name, self._score, self.loss.name, self._loss
-                    ),
-                    fontdict={"fontsize": 11}
-                )
+                axe.set_title(full_title, fontdict={"fontsize": 11})
 
                 axe.set_xlabel(r"Parameter, $\beta_0$")
                 axe.set_ylabel(r"Score, $s$")
@@ -545,4 +542,3 @@ class FitSolverInterface:
 
                 axe._pair_indices = (0, 0)
                 yield axe
-
