@@ -108,28 +108,40 @@ class FitSolverInterface:
 
     def target_dataset(
             self, xdata, *parameters, sigma=0., precision=1e-18,
-            proportional=True, generator=np.random.uniform, seed=None,
+            proportional=True, generator=np.random.normal, seed=None,
             full_output=False,
             **kwargs
     ):
         """
         Generate synthetic dataset with additional noise
         """
+
         if seed is not None:
             np.random.seed(seed)
+
         yref = self.model(xdata, *parameters)
-        ynoise = sigma*generator(size=yref.shape[0], **kwargs)
+
+        if isinstance(sigma, Iterable):
+            sigma = np.array(sigma)
+        else:
+            sigma = np.full(yref.shape, sigma)
+
         if proportional:
-            ynoise *= np.abs(yref) + precision
+            sigma *= np.abs(yref) + precision
+
+        ynoise = sigma*generator(size=yref.shape[0], **kwargs)
         ydata = yref + ynoise
+
         if full_output:
             return {
                 "xdata": xdata,
                 "parameters": np.array(parameters),
                 "yref": yref,
+                "sigmas": sigma,
                 "ynoise": ynoise,
                 "ydata": ydata,
             }
+
         return ydata
 
     def solve(self, xdata, ydata, **kwargs):
@@ -205,17 +217,18 @@ class FitSolverInterface:
         """
         yhat = self.predict(xdata, parameters=parameters)
         terms = np.power(yhat - ydata, 2)/sigma
-        value = np.sum(terms)
-        nvalue = value/self.n
+        statistic = np.sum(terms)
+        normalized = statistic/self.n
         dof = self.n - self.k - 1
         chi2 = stats.chi2(df=dof)
         result = {
             "n": self.n,
             "k": self.k,
             "dof": dof,
-            "statistic": value,
-            "normalized": nvalue,
-            "pvalue": chi2.sf(value),
+            "statistic": statistic,
+            "normalized": normalized,
+            "pvalue": chi2.sf(statistic),
+            "quantile": chi2.cdf(statistic),
             "P95": chi2.ppf(0.95),
             "P99": chi2.ppf(0.99),
             "P999": chi2.ppf(0.999),

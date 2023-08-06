@@ -55,7 +55,7 @@ class GenericTestFitSolver:
             full_output=True,
         )
 
-        self.__dict__.update({k: target[k] for k in ["ydata", "yref", "ynoise"]})
+        self.__dict__.update({k: target[k] for k in ["ydata", "yref", "sigmas", "ynoise"]})
 
     def test_signature(self):
         s = self.solver.signature
@@ -96,7 +96,7 @@ class GenericTestFitSolver:
 
     def test_goodness_of_fit(self):
         solution = self.solver.fit(self.xdata, self.ydata)
-        test = self.solver.goodness_of_fit(self.xdata, self.ydata, sigma=self.sigma*(np.abs(self.yref) + 1e-18))
+        test = self.solver.goodness_of_fit(self.xdata, self.ydata, sigma=self.sigmas)
         self.assertIsInstance(test, dict)
         self.assertEqual(set(test.keys()).intersection({"statistic", "pvalue"}), {"statistic", "pvalue"})
 
