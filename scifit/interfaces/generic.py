@@ -107,7 +107,7 @@ class FitSolverInterface:
         return self.parameter_space_size
 
     def target_dataset(
-            self, xdata, *parameters, sigma=0., precision=1e-18,
+            self, xdata, *parameters, sigma=0., precision=1e-16,
             proportional=True, generator=np.random.normal, seed=None,
             full_output=False,
             **kwargs
@@ -126,6 +126,7 @@ class FitSolverInterface:
         else:
             sigma = np.full(yref.shape, sigma)
 
+        sigma += precision
         if proportional:
             sigma *= np.abs(yref) + precision
 
@@ -144,13 +145,13 @@ class FitSolverInterface:
 
         return ydata
 
-    def solve(self, xdata, ydata, **kwargs):
+    def solve(self, xdata, ydata, sigma=None, **kwargs):
         """
         Solve fitting problem and return structured solution
         """
         solution = optimize.curve_fit(
             self.model,
-            xdata, ydata,
+            xdata, ydata, sigma=sigma,
             full_output=True, check_finite=True, nan_policy='raise',
             **self.configuration(**kwargs)
         )
@@ -211,28 +212,30 @@ class FitSolverInterface:
         return 1 - RSS/TSS
     score.name = "$R^2$"
 
-    def goodness_of_fit(self, xdata, ydata, sigma=1.0, parameters=None, full_output=False):
+    def goodness_of_fit(self, xdata, ydata, sigma=None, parameters=None, full_output=False):
         """
-        Compute Chi Square adapted test to assess Goodness of Fit
+        Compute Chi Square for Goodness of Fit
         """
         yhat = self.predict(xdata, parameters=parameters)
-        terms = np.power(yhat - ydata, 2)/sigma
+        if sigma is None:
+            sigma = 1.
+        terms = np.power(yhat - ydata, 2)/np.power(sigma, 2)
         statistic = np.sum(terms)
         normalized = statistic/self.n
-        dof = self.n - self.k    # -1 for Chi or not ?
-        chi2 = stats.chi2(df=dof)
+        dof = self.n - self.k
+        law = stats.chi2(df=dof)
         result = {
             "n": self.n,
             "k": self.k,
             "dof": dof,
             "statistic": statistic,
             "normalized": normalized,
-            "pvalue": chi2.sf(statistic),
-            "quantile": chi2.cdf(statistic),
-            "P95": chi2.ppf(0.95),
-            "P99": chi2.ppf(0.99),
-            "P999": chi2.ppf(0.999),
-            "chi2": chi2,
+            "pvalue": law.sf(statistic),
+            "quantile": law.cdf(statistic),
+            "P95": law.ppf(0.95),
+            "P99": law.ppf(0.99),
+            "P999": law.ppf(0.999),
+            "law": law,
         }
         if full_output:
             result.update({
@@ -253,15 +256,17 @@ class FitSolverInterface:
             return self.loss(self._xdata, self._ydata, parameters=parameters)
         return wrapped
 
-    def fit(self, xdata, ydata, **kwargs):
+    def fit(self, xdata, ydata, sigma=None, **kwargs):
         """
         Solve fitting problem and store data and results
         """
         self.store(xdata, ydata)
-        self._solution = self.solve(self._xdata, self._ydata, **kwargs)
+        self._solution = self.solve(self._xdata, self._ydata, sigma=sigma, **kwargs)
         self._yhat = self.predict(self._xdata)
         self._loss = self.loss(self._xdata, self._ydata)
         self._score = self.score(self._xdata, self._ydata)
+        if sigma is not None:
+            self._gof = self.goodness_of_fit(self._xdata, self._ydata, sigma=sigma)
         return self._solution
 
     @staticmethod
