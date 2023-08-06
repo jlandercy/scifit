@@ -67,7 +67,7 @@ class GenericTestFitSolver:
 
     def test_model_implementation(self):
         """
-        Check noisy data is close enough to regressed data up to 10 StdDev of applied noise
+        Check noisy data is close enough to regressed data up to `scale` StdDev of applied noise
         Very unlikely to fail but tight enough to detect bad regression
         """
         sigma = self.sigma or 1e-16
@@ -83,7 +83,7 @@ class GenericTestFitSolver:
 
     def test_model_fit_parameters(self):
         """
-        Check regressed parameters are equals up to 10 StdDev of fit precision
+        Check regressed parameters are equals up to `scale` Standard Deviation of fit precision
         Very unlikely to fail but tight enough to detect bad regression
          - Is the right solution
          - Is it precise enough
@@ -362,41 +362,42 @@ class QuadricRegression(Generic2DFeatureRegression):
     factory = QuadricFitSolver
     parameters = np.array([1., -1., 1., 1., 0.1, 0.1])
 
-#
-# class SaddleRegressionNoiseL0(QuadricRegression, TestCase):
-#     sigma = None
-#
-#
-# class SaddleRegressionNoiseL1(QuadricRegression, TestCase):
-#     sigma = 1.e-3
-#
-#
-# class SaddleRegressionNoiseL2(QuadricRegression, TestCase):
-#     sigma = 1.e-2
-#
-#
-# class SaddleRegressionNoiseL3(QuadricRegression, TestCase):
-#     sigma = 1.e-1
-#
-#
-# class SaddleRegressionNoiseL4(QuadricRegression, TestCase):
-#     sigma = 1.
-#
-#
-# class SaddleRegressionNoiseL5(QuadricRegression, TestCase):
-#     sigma = 10.
 
-#
-# class ParaboloidRegressionNoiseL0(QuadricRegression, TestCase):
-#     parameters = np.array([1., 1., 1., 1., 0.1, 0.1])
-#     sigma = None
-#
-#
-# class Paraboloid2RegressionNoiseL0(QuadricRegression, TestCase):
-#     parameters = np.array([1., 1., -1., 1., 0.1, 0.1])
-#     sigma = None
-#
-#
-# class Paraboloid3RegressionNoiseL0(QuadricRegression, TestCase):
-#     parameters = np.array([1., 0.5, -0.3, .5, 0.1, 0.1])
-#     sigma = None
+class SaddleRegressionNoiseL0(QuadricRegression, TestCase):
+    sigma = None
+
+
+class SaddleRegressionNoiseL1(QuadricRegression, TestCase):
+    sigma = 1.e-3
+
+
+class SaddleRegressionNoiseL2(QuadricRegression, TestCase):
+    sigma = 1.e-2
+
+
+class SaddleRegressionNoiseL3(QuadricRegression, TestCase):
+    sigma = 1.e-1
+
+
+class SaddleRegressionNoiseL4(QuadricRegression, TestCase):
+    sigma = 1.
+
+
+class SaddleRegressionNoiseL5(QuadricRegression, TestCase):
+    sigma = 10.
+    scale = 5000
+
+
+class ParaboloidRegressionNoiseL0(QuadricRegression, TestCase):
+    parameters = np.array([1., 1., 1., 1., 0.1, 0.1])
+    sigma = None
+
+
+class Paraboloid2RegressionNoiseL0(QuadricRegression, TestCase):
+    parameters = np.array([1., 1., -1., 1., 0.1, 0.1])
+    sigma = None
+
+
+class Paraboloid3RegressionNoiseL0(QuadricRegression, TestCase):
+    parameters = np.array([1., 0.5, -0.3, .5, 0.1, 0.1])
+    sigma = None
