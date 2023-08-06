@@ -374,3 +374,18 @@ class SaddleRegressionNoiseL4(QuadricRegression, TestCase):
 
 class SaddleRegressionNoiseL5(QuadricRegression, TestCase):
     sigma = 10.
+
+
+class ParaboloidRegressionNoiseL0(QuadricRegression, TestCase):
+    parameters = np.array([1., 1., 1., 1., 0.1, 0.1])
+    sigma = 0.
+
+
+class Paraboloid2RegressionNoiseL0(QuadricRegression, TestCase):
+    parameters = np.array([1., 1., -1., 1., 0.1, 0.1])
+    sigma = 0.
+
+
+class Paraboloid3RegressionNoiseL0(QuadricRegression, TestCase):
+    parameters = np.array([1., 0.5, -0.3, .5, 0.1, 0.1])
+    sigma = 0.
