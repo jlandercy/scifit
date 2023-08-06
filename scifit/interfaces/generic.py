@@ -219,7 +219,7 @@ class FitSolverInterface:
         terms = np.power(yhat - ydata, 2)/sigma
         statistic = np.sum(terms)
         normalized = statistic/self.n
-        dof = self.n - self.k - 1
+        dof = self.n - self.k    # -1 for Chi or not ?
         chi2 = stats.chi2(df=dof)
         result = {
             "n": self.n,

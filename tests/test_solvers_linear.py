@@ -30,12 +30,14 @@ class GenericTestFitSolver:
 
     seed = 789
     sigma = 0.
-    #scale = 10.
-    #generator = np.random.uniform
-    #target_kwargs = {"low": -.5, "high": .5}
+
     scale = 100.
     generator = np.random.normal
     target_kwargs = {}
+
+    #scale = 10.
+    #generator = np.random.uniform
+    #target_kwargs = {"low": -.5, "high": .5}
 
     def setUp(self) -> None:
 
@@ -99,6 +101,10 @@ class GenericTestFitSolver:
         test = self.solver.goodness_of_fit(self.xdata, self.ydata, sigma=self.sigmas)
         self.assertIsInstance(test, dict)
         self.assertEqual(set(test.keys()).intersection({"statistic", "pvalue"}), {"statistic", "pvalue"})
+        print()
+        print(test)
+        if 0. < self.sigma <= 0.0025:
+            self.assertTrue(test["pvalue"] >= 0.90)
 
     def test_feature_dataset_auto(self):
         self.solver.store(self.xdata, self.ydata)
