@@ -111,7 +111,7 @@ class FitSolverInterface:
         return self.parameter_space_size
 
     def target_dataset(
-            self, xdata, *parameters, sigma=0., precision=1e-9,
+            self, xdata, *parameters, sigma=None, precision=1e-9,
             proportional=True, generator=np.random.normal, seed=None,
             full_output=False,
             **kwargs
@@ -125,16 +125,22 @@ class FitSolverInterface:
 
         yref = self.model(xdata, *parameters)
 
-        if isinstance(sigma, Iterable):
-            sigma = np.array(sigma)
+        if sigma is not None:
+
+            if isinstance(sigma, Iterable):
+                sigma = np.array(sigma)
+            else:
+                sigma = np.full(yref.shape, sigma)
+
+            if proportional:
+                sigma *= np.abs(yref) + precision
+
+            ynoise = sigma*generator(size=yref.shape[0], **kwargs)
+
         else:
-            sigma = np.full(yref.shape, sigma)
 
-        sigma += precision
-        if proportional:
-            sigma *= np.abs(yref) + precision
+            ynoise = np.full(yref.shape, 0.)
 
-        ynoise = sigma*generator(size=yref.shape[0], **kwargs)
         ydata = yref + ynoise
 
         if full_output:

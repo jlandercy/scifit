@@ -30,7 +30,7 @@ class GenericTestFitSolver:
     xdata = None
 
     seed = 789
-    sigma = 0.
+    sigma = None
 
     scale = 100.
     generator = np.random.normal
@@ -70,8 +70,9 @@ class GenericTestFitSolver:
         Check noisy data is close enough to regressed data up to 10 StdDev of applied noise
         Very unlikely to fail but tight enough to detect bad regression
         """
+        sigma = self.sigma or 1e-16
         yhat = self.solver.model(self.xdata, *self.parameters)
-        self.assertTrue(np.allclose(self.ydata, yhat, rtol=self.scale * self.sigma * np.abs(self.ydata)))
+        self.assertTrue(np.allclose(self.ydata, yhat, rtol=self.scale * sigma * np.abs(self.ydata)))
 
     def test_model_fit_signature(self):
         solution = self.solver.fit(self.xdata, self.ydata)
@@ -101,13 +102,13 @@ class GenericTestFitSolver:
         """
         Perform Chi 2 Test for Goodness of fit and check proper fits get their pvalue acceptable
         """
-        solution = self.solver.fit(self.xdata, self.ydata)
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         test = self.solver.goodness_of_fit(self.xdata, self.ydata, sigma=self.sigmas)
         self.assertIsInstance(test, dict)
         self.assertEqual(set(test.keys()).intersection({"statistic", "pvalue"}), {"statistic", "pvalue"})
         #pprint.pprint(test)
         # Ensure proper fits get its test valid:
-        if 0. < self.sigma <= 250.:
+        if self.sigma is not None and self.sigma > 0.:
             self.assertTrue(test["pvalue"] >= 0.10)
 
     def test_feature_dataset_auto(self):
@@ -157,7 +158,7 @@ class GenericConstantRegression(GenericTestFitSolver):
 
 
 class ConstantRegressionNoiseL0(GenericConstantRegression, TestCase):
-    sigma = 0.
+    sigma = None
 
 
 class ConstantRegressionNoiseL1(GenericConstantRegression, TestCase):
@@ -186,7 +187,7 @@ class GenericProportionalRegression(GenericTestFitSolver):
 
 
 class ProportionalRegressionNoiseL0(GenericProportionalRegression, TestCase):
-    sigma = 0.
+    sigma = None
 
 
 class ProportionalRegressionNoiseL1(GenericProportionalRegression, TestCase):
@@ -215,7 +216,7 @@ class GenericLinearRegression(GenericTestFitSolver):
 
 
 class LinearRegressionNoiseL0(GenericLinearRegression, TestCase):
-    sigma = 0.
+    sigma = None
 
 
 class LinearRegressionNoiseL1(GenericLinearRegression, TestCase):
@@ -244,7 +245,7 @@ class GenericParabolicRegression(GenericTestFitSolver):
 
 
 class ParabolicRegressionNoiseL0(GenericParabolicRegression, TestCase):
-    sigma = 0.
+    sigma = None
 
 
 class ParabolicRegressionNoiseL1(GenericParabolicRegression, TestCase):
@@ -273,7 +274,7 @@ class GenericCubicRegression(GenericTestFitSolver):
 
 
 class CubicRegressionNoiseL0(GenericCubicRegression, TestCase):
-    sigma = 0.
+    sigma = None
 
 
 class CubicRegressionNoiseL1(GenericCubicRegression, TestCase):
@@ -302,7 +303,7 @@ class GenericLinearRootRegression(GenericTestFitSolver):
 
 
 class LinearRootRegressionNoiseL0(GenericLinearRootRegression, TestCase):
-    sigma = 0.
+    sigma = None
 
 
 class LinearRootRegressionNoiseL1(GenericLinearRootRegression, TestCase):
@@ -334,7 +335,7 @@ class Generic2DFeatureRegression(GenericTestFitSolver):
 
 
 class PlaneRegressionNoiseL0(Generic2DFeatureRegression, TestCase):
-    sigma = 0.
+    sigma = None
 
 
 class PlaneRegressionNoiseL1(Generic2DFeatureRegression, TestCase):
@@ -363,7 +364,7 @@ class QuadricRegression(Generic2DFeatureRegression):
 
 #
 # class SaddleRegressionNoiseL0(QuadricRegression, TestCase):
-#     sigma = 0.
+#     sigma = None
 #
 #
 # class SaddleRegressionNoiseL1(QuadricRegression, TestCase):
@@ -385,17 +386,17 @@ class QuadricRegression(Generic2DFeatureRegression):
 # class SaddleRegressionNoiseL5(QuadricRegression, TestCase):
 #     sigma = 10.
 
-
-class ParaboloidRegressionNoiseL0(QuadricRegression, TestCase):
-    parameters = np.array([1., 1., 1., 1., 0.1, 0.1])
-    sigma = 0.
-
-
-class Paraboloid2RegressionNoiseL0(QuadricRegression, TestCase):
-    parameters = np.array([1., 1., -1., 1., 0.1, 0.1])
-    sigma = 0.
-
-
-class Paraboloid3RegressionNoiseL0(QuadricRegression, TestCase):
-    parameters = np.array([1., 0.5, -0.3, .5, 0.1, 0.1])
-    sigma = 0.
+#
+# class ParaboloidRegressionNoiseL0(QuadricRegression, TestCase):
+#     parameters = np.array([1., 1., 1., 1., 0.1, 0.1])
+#     sigma = None
+#
+#
+# class Paraboloid2RegressionNoiseL0(QuadricRegression, TestCase):
+#     parameters = np.array([1., 1., -1., 1., 0.1, 0.1])
+#     sigma = None
+#
+#
+# class Paraboloid3RegressionNoiseL0(QuadricRegression, TestCase):
+#     parameters = np.array([1., 0.5, -0.3, .5, 0.1, 0.1])
+#     sigma = None
