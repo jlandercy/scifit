@@ -503,7 +503,7 @@ class FitSolverInterface:
 
         if self.fitted(error=True):
 
-            full_title = "Fit Loss Plot: {}\n{}".format(title, self.get_title())
+            full_title = "Fit Log-Loss Plot: {}\n{}".format(title, self.get_title())
 
             scales = self.parameter_scales(
                 mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, resolution=resolution
@@ -542,16 +542,16 @@ class FitSolverInterface:
                 score = self.parametrized_loss(sigma=self._sigma)(scale)
 
                 fig, axe = plt.subplots()
-                axe.plot(scale, score)
+                axe.semilogy(scale, score)
                 axe.axvline(self._solution["parameters"][0], color="black", linestyle="-.")
 
                 axe.set_title(full_title, fontdict={"fontsize": 11})
 
                 axe.set_xlabel(r"Parameter, $\beta_0$")
-                axe.set_ylabel(r"Score, $s$")
+                axe.set_ylabel(r"Log-Loss, $\log_{10}[L(\beta_0)]$")
                 axe.grid()
 
-                fig.subplots_adjust(top=0.8)
+                fig.subplots_adjust(top=0.8, left=0.2)
 
                 axe._pair_indices = (0, 0)
                 yield axe
