@@ -201,9 +201,9 @@ class FitSolverInterface:
                 sigma = np.full(yref.shape, sigma)
 
             if scale_mode == "abs":
-                sigma *= 1.
+                sigma *= 1.0
             elif scale_mode == "auto":
-                sigma *= (yref.max() - yref.min()) / 2. + precision
+                sigma *= (yref.max() - yref.min()) / 2.0 + precision
             elif scale_mode == "rel":
                 sigma *= np.abs(yref) + precision
             else:
@@ -215,7 +215,7 @@ class FitSolverInterface:
             ynoise = sigma * generator(size=yref.shape[0], **kwargs)
 
         else:
-            ynoise = np.full(yref.shape, 0.)
+            ynoise = np.full(yref.shape, 0.0)
 
         ydata = yref + ynoise
 
@@ -312,12 +312,8 @@ class FitSolverInterface:
         if sigma is None:
             sigma = 1.0
 
-        return (
-            np.sum(
-                np.power(
-                    (ydata - self.predict(xdata, parameters=parameters)) / sigma, 2
-                )
-            )
+        return np.sum(
+            np.power((ydata - self.predict(xdata, parameters=parameters)) / sigma, 2)
         )
 
     loss.name = "$\chi^2$"
@@ -340,8 +336,8 @@ class FitSolverInterface:
         """
         yhat = self.predict(xdata, parameters=parameters)
         if sigma is None:
-            sigma = 1.
-        terms = np.power((ydata - yhat)/sigma, 2)
+            sigma = 1.0
+        terms = np.power((ydata - yhat) / sigma, 2)
         statistic = np.sum(terms)
         normalized = statistic / self.n
         law = stats.chi2(df=self.dof)
@@ -582,9 +578,13 @@ class FitSolverInterface:
         if self.fitted(error=True):
             terms = []
             for i, parameter in enumerate(self._solution["parameters"]):
-                term = (r"$\beta_{{{:d}}}=${:.%d%s}" % (precision, mode)).format(i, parameter)
+                term = (r"$\beta_{{{:d}}}=${:.%d%s}" % (precision, mode)).format(
+                    i, parameter
+                )
                 if show_sigma:
-                    term += (r" $\pm$ {:.%d%s}" % (precision, mode)).format(np.sqrt(self._solution["covariance"][i][i]))
+                    term += (r" $\pm$ {:.%d%s}" % (precision, mode)).format(
+                        np.sqrt(self._solution["covariance"][i][i])
+                    )
                 # if i % 4 == 0:
                 #     term += "\n"
                 terms.append(term)
@@ -592,7 +592,6 @@ class FitSolverInterface:
 
     def get_title(self):
         if self.fitted(error=True):
-
             full_title = "n={:d}, {}={:.3f}, {}={:.3f}".format(
                 self.n,
                 self.score.name,
@@ -602,7 +601,9 @@ class FitSolverInterface:
             )
 
             if hasattr(self, "_gof"):
-                full_title += r", $P(\chi^2_{{{dof:d}}} > {normalized:.3f}) = {pvalue:.4f}$".format(**self._gof)
+                full_title += r", $P(\chi^2_{{{dof:d}}} > {normalized:.3f}) = {pvalue:.4f}$".format(
+                    **self._gof
+                )
 
             full_title += "\n" + self.get_latex_parameters()
 

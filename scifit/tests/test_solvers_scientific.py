@@ -84,7 +84,9 @@ class MichaelisMentenKineticRegressionNoiseL4(
     sigma = 1.0
 
 
-class MichaelisMentenKineticRegressionNoiseL5(MichaelisMentenKineticRegression, TestCase):
+class MichaelisMentenKineticRegressionNoiseL5(
+    MichaelisMentenKineticRegression, TestCase
+):
     sigma = 2.5
 
 

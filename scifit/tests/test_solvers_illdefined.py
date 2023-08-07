@@ -7,8 +7,6 @@ from unittest import TestCase
 
 import numpy as np
 
-from scifit.solvers import linear
-from scifit.solvers import scientific
-from scifit.solvers import illdefined
+from scifit.solvers import illdefined, linear, scientific
 from scifit.tests.helpers import GenericTestFitSolver
 from scifit.tests.test_solvers_linear import GenericLinearRegression
