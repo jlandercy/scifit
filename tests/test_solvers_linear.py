@@ -140,7 +140,7 @@ class GenericTestFitSolver:
 
     def test_plot_fit(self):
         name = self.__class__.__name__
-        title = "{} (seed={:d})".format(name, self.seed)
+        title = r"{} ($\sigma={:.1e}$, seed={:d})".format(name, self.sigma or 0., self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         for i, axe in enumerate(self.solver.plot_fit(title=title, errors=True, squared_errors=False)):
             axe.figure.savefig("{}/{}_fit_x{}.png".format(self.media_path, name, i))
@@ -148,7 +148,7 @@ class GenericTestFitSolver:
 
     def test_plot_loss(self):
         name = self.__class__.__name__
-        title = "{} (seed={:d})".format(name, self.seed)
+        title = r"{} ($\sigma={:.1e}$, seed={:d})".format(name, self.sigma or 0., self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         for i, axe in enumerate(self.solver.plot_loss(title=title)):
             axe.figure.savefig("{}/{}_score_b{}_b{}.png".format(self.media_path, name, *axe._pair_indices))
