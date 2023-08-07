@@ -30,7 +30,7 @@ class FitSolverInterface:
 
     Main goal of :class:`FitSolverInterface` is to regress :math:`k` parameters :math:`(\\beta)` of the model
     to :math:`n` experimental points :math:`(\\textbf{x})` with :math:`m` features (also called variables)
-    and :math:`1` target :math:`(\\textbf{y})` by minimizing a loss function :math:`L(\\textbf{x},\\textbf{y},\\beta)`
+    and :math:`1` target :math:`(y)` by minimizing a loss function :math:`L(\\textbf{x},y,\\beta)`
     which is either the Sum of Squared Errors :math:`(SSE)` if no target uncertainties are given:
 
     .. math::

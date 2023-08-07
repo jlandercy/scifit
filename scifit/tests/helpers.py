@@ -182,6 +182,7 @@ class GenericTestFitSolver:
 
     def test_model_fit_signature(self):
         solution = self.solver.fit(self.xdata, self.ydata)
+        print(solution)
         self.assertIsInstance(solution, dict)
         self.assertSetEqual(
             {"parameters", "covariance", "info", "message", "status"},
