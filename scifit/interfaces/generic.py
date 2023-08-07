@@ -143,7 +143,7 @@ class FitSolverInterface:
         :return: Model function evaluated at experimental features for the given parameters as (n,1) matrix
         :raise: Exception :class:`scifit.errors.base.MissingModel`
         """
-        raise MissingModel("Model is not defined")
+        raise MissingModel("Model must be defined before regression")
 
     @property
     def observation_space_size(self):
