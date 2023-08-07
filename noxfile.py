@@ -67,7 +67,7 @@ def tests(session):
     report = reports_path / "tests.log"
     with report.open("w") as handler:
         session.run("python", "-m", "xmlrunner", "--output-file", str(reports_path / "tests.xml"),
-                    "discover", "-v", "tests", stdout=handler)
+                    "discover", "-v", "scifit.tests", stdout=handler)
     pattern = re.compile(r"Ran (?P<count>[\d]+) tests in (?P<elapsed>[.\d]+)s")
     count, elapsed = pattern.findall(report.read_text())[0]
     badge = reports_path / 'tests.svg'
