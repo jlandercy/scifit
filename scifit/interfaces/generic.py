@@ -151,9 +151,9 @@ class FitSolverInterface:
                 sigma = np.full(yref.shape, sigma)
 
             if scale_mode == "abs":
-                sigma *= 1
+                sigma *= 1.
             elif scale_mode == "auto":
-                sigma *= (yref.max() - yref.min()) / 2.0 + precision
+                sigma *= (yref.max() - yref.min()) / 2. + precision
             elif scale_mode == "rel":
                 sigma *= np.abs(yref) + precision
             else:
@@ -165,7 +165,7 @@ class FitSolverInterface:
             ynoise = sigma * generator(size=yref.shape[0], **kwargs)
 
         else:
-            ynoise = np.full(yref.shape, 0.0)
+            ynoise = np.full(yref.shape, 0.)
 
         ydata = yref + ynoise
 
@@ -290,8 +290,8 @@ class FitSolverInterface:
         """
         yhat = self.predict(xdata, parameters=parameters)
         if sigma is None:
-            sigma = 1.0
-        terms = np.power(yhat - ydata, 2) / np.power(sigma, 2)
+            sigma = 1.
+        terms = np.power((ydata - yhat)/sigma, 2)
         statistic = np.sum(terms)
         normalized = statistic / self.n
         law = stats.chi2(df=self.dof)
@@ -528,13 +528,22 @@ class FitSolverInterface:
             )
         )
 
+    def get_latex_parameters(self, show_sigma=True, precision=2, mode="f"):
+        if self.fitted(error=True):
+            terms = []
+            for i, parameter in enumerate(self._solution["parameters"]):
+                term = (r"$\beta_{{{:d}}}=${:.%d%s}" % (precision, mode)).format(i, parameter)
+                if show_sigma:
+                    term += (r" $\pm$ {:.%d%s}" % (precision, mode)).format(np.sqrt(self._solution["covariance"][i][i]))
+                # if i % 4 == 0:
+                #     term += "\n"
+                terms.append(term)
+            return ", ".join(terms)
+
     def get_title(self):
         if self.fitted(error=True):
-            full_title = "{}={}, n={:d}, {}={:.3f}, {}={:.3e}".format(
-                r"$\bar{\beta}$",
-                np.array2string(
-                    self._solution["parameters"], precision=2, separator=", "
-                ),
+
+            full_title = "n={:d}, {}={:.3f}, {}={:.3f}".format(
                 self.n,
                 self.score.name,
                 self._score,
@@ -543,12 +552,9 @@ class FitSolverInterface:
             )
 
             if hasattr(self, "_gof"):
-                full_title += (
-                    "\n"
-                    + r"$\chi^2_{{{dof:d}}} = {normalized:.3f}, p = {pvalue:.4f}$".format(
-                        **self._gof
-                    )
-                )
+                full_title += r", $P(\chi^2_{{{dof:d}}} > {normalized:.3f}) = {pvalue:.4f}$".format(**self._gof)
+
+            full_title += "\n" + self.get_latex_parameters()
 
         return full_title
 
@@ -618,7 +624,7 @@ class FitSolverInterface:
                             )
                             axe.add_patch(square)
 
-                    axe.set_title(full_title, fontdict={"fontsize": 11})
+                    axe.set_title(full_title, fontdict={"fontsize": 10})
                     axe.set_xlabel(r"Feature, $x_{{{}}}$".format(feature_index))
                     axe.set_ylabel(r"Target, $y$")
                     axe.set_aspect(aspect)
@@ -654,7 +660,7 @@ class FitSolverInterface:
                             [x0, x0], [x1, x1], [y, y - e], color="blue", linewidth=0.5
                         )
 
-                axe.set_title(full_title, fontdict={"fontsize": 11})
+                axe.set_title(full_title, fontdict={"fontsize": 10})
                 axe.set_xlabel(r"Feature, $x_0$")
                 axe.set_ylabel(r"Feature, $x_1$")
                 axe.set_zlabel(r"Target, $y$")
@@ -707,7 +713,7 @@ class FitSolverInterface:
                         self._solution["parameters"][j], color="black", linestyle="-."
                     )
 
-                    axe.set_title(full_title, fontdict={"fontsize": 11})
+                    axe.set_title(full_title, fontdict={"fontsize": 10})
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(i))
                     axe.set_ylabel(r"Parameter, $\beta_{{{}}}$".format(j))
                     axe.grid()
@@ -727,7 +733,7 @@ class FitSolverInterface:
                     self._solution["parameters"][0], color="black", linestyle="-."
                 )
 
-                axe.set_title(full_title, fontdict={"fontsize": 11})
+                axe.set_title(full_title, fontdict={"fontsize": 10})
 
                 axe.set_xlabel(r"Parameter, $\beta_0$")
                 axe.set_ylabel(r"Loss, $L(\beta_0)$")

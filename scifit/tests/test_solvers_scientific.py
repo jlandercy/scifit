@@ -19,7 +19,7 @@ class GompertzRegression(GenericLinearRegression):
 
 
 class GompertzRegressionNoiseL0(GompertzRegression, TestCase):
-    sigma = None
+    sigma = 1e-6
 
 
 class GompertzRegressionNoiseL1(GompertzRegression, TestCase):
@@ -46,7 +46,7 @@ class GenericKineticRegression(GenericTestFitSolver):
     xmin = 1e-6
     xmax = 1e-3
     mode = "lin"
-    sigma = None
+    sigma = 1e-16
 
 
 class MichaelisMentenKineticRegression(GenericKineticRegression):
@@ -57,7 +57,7 @@ class MichaelisMentenKineticRegression(GenericKineticRegression):
 class MichaelisMentenKineticRegressionNoiseL0(
     MichaelisMentenKineticRegression, TestCase
 ):
-    sigma = None
+    sigma = 1e-6
 
 
 class MichaelisMentenKineticRegressionNoiseL1(
@@ -96,7 +96,7 @@ class CooperativeHillKineticRegression(GenericKineticRegression):
 class CooperativeHillKineticRegressionNoiseL0(
     CooperativeHillKineticRegression, TestCase
 ):
-    sigma = None
+    sigma = 1e-6
 
 
 class CooperativeHillKineticRegressionNoiseL1(
@@ -137,7 +137,7 @@ class CompetitiveHillKineticRegression(GenericKineticRegression):
 class CompetitiveHillKineticRegressionNoiseL0(
     CompetitiveHillKineticRegression, TestCase
 ):
-    sigma = None
+    sigma = 1e-6
 
 
 class CompetitiveHillKineticRegressionNoiseL1(

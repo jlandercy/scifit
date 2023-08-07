@@ -23,7 +23,7 @@ class GenericConstantRegression(GenericTestFitSolver):
 
 
 class ConstantRegressionNoiseL0(GenericConstantRegression, TestCase):
-    sigma = None
+    sigma = 1e-6
 
 
 class ConstantRegressionNoiseL1(GenericConstantRegression, TestCase):
@@ -52,7 +52,7 @@ class GenericProportionalRegression(GenericTestFitSolver):
 
 
 class ProportionalRegressionNoiseL0(GenericProportionalRegression, TestCase):
-    sigma = None
+    sigma = 1e-6
 
 
 class ProportionalRegressionNoiseL1(GenericProportionalRegression, TestCase):
@@ -81,7 +81,7 @@ class GenericLinearRegression(GenericTestFitSolver):
 
 
 class LinearRegressionNoiseL0(GenericLinearRegression, TestCase):
-    sigma = None
+    sigma = 1e-6
 
 
 class LinearRegressionNoiseL1(GenericLinearRegression, TestCase):
@@ -110,7 +110,7 @@ class GenericParabolicRegression(GenericTestFitSolver):
 
 
 class ParabolicRegressionNoiseL0(GenericParabolicRegression, TestCase):
-    sigma = None
+    sigma = 1e-6
 
 
 class ParabolicRegressionNoiseL1(GenericParabolicRegression, TestCase):
@@ -139,7 +139,7 @@ class GenericCubicRegression(GenericTestFitSolver):
 
 
 class CubicRegressionNoiseL0(GenericCubicRegression, TestCase):
-    sigma = None
+    sigma = 1e-6
 
 
 class CubicRegressionNoiseL1(GenericCubicRegression, TestCase):
@@ -168,7 +168,7 @@ class GenericLinearRootRegression(GenericTestFitSolver):
 
 
 class LinearRootRegressionNoiseL0(GenericLinearRootRegression, TestCase):
-    sigma = None
+    sigma = 1e-6
 
 
 class LinearRootRegressionNoiseL1(GenericLinearRootRegression, TestCase):
@@ -199,7 +199,7 @@ class Generic2DFeatureRegression(GenericTestFitSolver):
 
 
 class PlaneRegressionNoiseL0(Generic2DFeatureRegression, TestCase):
-    sigma = None
+    sigma = 1e-6
 
 
 class PlaneRegressionNoiseL1(Generic2DFeatureRegression, TestCase):
@@ -228,7 +228,7 @@ class QuadricRegression(Generic2DFeatureRegression):
 
 
 class SaddleRegressionNoiseL0(QuadricRegression, TestCase):
-    sigma = None
+    sigma = 1e-6
 
 
 class SaddleRegressionNoiseL1(QuadricRegression, TestCase):
@@ -253,12 +253,12 @@ class SaddleRegressionNoiseL5(QuadricRegression, TestCase):
 
 class ParaboloidRegressionNoiseL0(QuadricRegression, TestCase):
     parameters = np.array([1.0, 1.0, 1.0])
-    sigma = None
+    sigma = 1e-6
 
 
 class Paraboloid3RegressionNoiseL0(QuadricRegression, TestCase):
     parameters = np.array([1.0, 0.5, -0.3])
-    sigma = None
+    sigma = 1e-6
 
 
 class FullQuadricRegression(Generic2DFeatureRegression):
@@ -267,7 +267,7 @@ class FullQuadricRegression(Generic2DFeatureRegression):
 
 
 class FullSaddleRegressionNoiseL0(FullQuadricRegression, TestCase):
-    sigma = None
+    sigma = 1e-6
 
 
 class FullSaddleRegressionNoiseL1(FullQuadricRegression, TestCase):
