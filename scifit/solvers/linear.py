@@ -45,16 +45,14 @@ class PlaneFitSolver(FitSolverInterface):
         return a * x[:, 0] + b * x[:, 1] + c
 
 
-#
-# class QuadricFitSolver(FitSolverInterface):
-#
-#     @staticmethod
-#     def model(x, a, b, c, d, e, f):
-#         return a * x[:, 0] * x[:, 0] + b * x[:, 1] * x[:, 1] + c * x[:, 0] * x[:, 1] + d * x[:, 0] + e * x[:, 1] + f
-#
-
-
 class QuadricFitSolver(FitSolverInterface):
     @staticmethod
     def model(x, a, b, c):
         return a * x[:, 0] * x[:, 0] + b * x[:, 1] * x[:, 1] + c
+
+
+class FullQuadricFitSolver(FitSolverInterface):
+
+    @staticmethod
+    def model(x, a, b, c, d, e, f):
+        return a * x[:, 0] * x[:, 0] + b * x[:, 1] * x[:, 1] + c * x[:, 0] * x[:, 1] + d * x[:, 0] + e * x[:, 1] + f

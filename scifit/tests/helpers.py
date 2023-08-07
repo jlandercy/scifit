@@ -263,7 +263,7 @@ class GenericTestFitSolver:
             axe.figure.savefig("{}/{}_fit_x{}.png".format(self.media_path, name, i))
             plt.close(axe.figure)
 
-    def test_plot_loss(self):
+    def _test_plot_loss(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)

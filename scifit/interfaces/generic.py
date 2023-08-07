@@ -257,7 +257,7 @@ class FitSolverInterface:
 
     def loss(self, xdata, ydata, sigma=None, parameters=None):
         """
-        Compute Mean Squared Error
+        Compute Chi Square Statistic reduced to Sum of Squared Error if no sigma provided
         """
         if sigma is None:
             sigma = 1.0
@@ -268,7 +268,6 @@ class FitSolverInterface:
                     (ydata - self.predict(xdata, parameters=parameters)) / sigma, 2
                 )
             )
-            / self.dof
         )
 
     loss.name = "$\chi^2$"

@@ -259,3 +259,33 @@ class ParaboloidRegressionNoiseL0(QuadricRegression, TestCase):
 class Paraboloid3RegressionNoiseL0(QuadricRegression, TestCase):
     parameters = np.array([1.0, 0.5, -0.3])
     sigma = None
+
+
+class FullQuadricRegression(Generic2DFeatureRegression):
+    factory = linear.FullQuadricFitSolver
+    parameters = np.array([1.0, -1.0, 3.0, 0.2, 0.2, 1.])
+
+
+class FullSaddleRegressionNoiseL0(FullQuadricRegression, TestCase):
+    sigma = None
+
+
+class FullSaddleRegressionNoiseL1(FullQuadricRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class FullSaddleRegressionNoiseL2(FullQuadricRegression, TestCase):
+    sigma = 1.0e-1
+
+
+class FullSaddleRegressionNoiseL3(FullQuadricRegression, TestCase):
+    sigma = 2.5e-1
+
+
+class FullSaddleRegressionNoiseL4(FullQuadricRegression, TestCase):
+    sigma = 1.0
+
+
+class FullSaddleRegressionNoiseL5(FullQuadricRegression, TestCase):
+    sigma = 2.5
+    sigma_factor = 25.
