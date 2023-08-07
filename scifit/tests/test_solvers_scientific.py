@@ -74,7 +74,6 @@ class GenericKineticRegression(GenericTestFitSolver):
     xmin = 1e-6
     xmax = 1e-3
     mode = "lin"
-    proportional = True
     sigma = None
 
 
@@ -107,7 +106,7 @@ class MichaelisMentenKineticRegressionNoiseL5(MichaelisMentenKineticRegression, 
     sigma = 10.
 
 
-class CooperativeHillKineticRegression(GenericKineticRegression, TestCase):
+class CooperativeHillKineticRegression(GenericKineticRegression):
     factory = scientific.HillKineticFitSolver
     parameters = np.array([1.12, 2.5e-1])
 
@@ -136,7 +135,7 @@ class CooperativeHillKineticRegressionNoiseL5(CooperativeHillKineticRegression, 
     sigma = 10.
 
 
-class CompetitiveHillKineticRegression(GenericKineticRegression, TestCase):
+class CompetitiveHillKineticRegression(GenericKineticRegression):
     factory = scientific.HillKineticFitSolver
     parameters = np.array([0.72, 2.5e-1])
 

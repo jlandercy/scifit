@@ -55,9 +55,6 @@ class FitSolverInterface:
         xdata = np.array(xdata)
         ydata = np.array(ydata)
 
-        if isinstance(sigma, Iterable):
-            sigma = np.array(sigma)
-
         if xdata.ndim != 2:
             raise InputDataError("Features must be a two dimensional array")
 
@@ -69,6 +66,20 @@ class FitSolverInterface:
 
         if np.any(np.isnan(xdata)) or np.any(np.isnan(ydata)):
             raise InputDataError("Input values cannot contain missing data (NaN)")
+
+        if isinstance(sigma, Iterable):
+            sigma = np.array(sigma)
+            if sigma.shape != ydata.shape:
+                raise InputDataError("Sigma as array must have the same shape as ydata")
+            if not np.all(sigma > 0.):
+                raise InputDataError("All sigma must be strictly positive")
+        elif isinstance(sigma, np.number):
+            if sigma <= 0.:
+                raise InputDataError("Sigma must be strictly positive")
+        elif sigma is None:
+            pass
+        else:
+            raise InputDataError("Sigma must be a number or an array of number")
 
         self._xdata = xdata
         self._ydata = ydata
@@ -112,7 +123,7 @@ class FitSolverInterface:
 
     def target_dataset(
             self, xdata, *parameters, sigma=None, precision=1e-9,
-            proportional=True, generator=np.random.normal, seed=None,
+            scale_mode="abs", generator=np.random.normal, seed=None,
             full_output=False,
             **kwargs
     ):
@@ -132,8 +143,14 @@ class FitSolverInterface:
             else:
                 sigma = np.full(yref.shape, sigma)
 
-            if proportional:
+            if scale_mode == "abs":
+                sigma *= 1
+            elif scale_mode == "auto":
+                sigma *= (yref.max() - yref.min())/2. + precision
+            elif scale_mode == "rel":
                 sigma *= np.abs(yref) + precision
+            else:
+                raise ConfigurationError("Scale must be in {'abs', 'rel', 'auto'}, got '%s' instead" % scale_mode)
 
             ynoise = sigma*generator(size=yref.shape[0], **kwargs)
 
