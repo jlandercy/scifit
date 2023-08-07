@@ -43,13 +43,13 @@ class FitSolverInterface:
 
        \\hat{y} = f\\left(x_1, \\dots, x_m, \\beta_0, \\dots, \\beta_k\\right)
 
-    Or a Chi Square Score :math:`\\chi^2` if target uncertainties are given :math:`(\\sigma_i)`:
+    Or more specifically the Chi Square Score :math:`\\chi^2` if target uncertainties are given :math:`(\\sigma_i)`:
 
     .. math::
 
        \\arg \\min_{\\beta} \\chi^2 = \\sum\\limits_{i=1}^{n}\\left(\\frac{y_i - \\hat{y}_i}{\\sigma_i}\\right)^2
 
-    Practically, when uncertainties are omitted they are assumed to be equal to unity, leading to :math:`SSE = \\chi^2`.
+    Practically, when uncertainties are omitted they are assumed to be unitary, leading to :math:`SSE = \\chi^2`.
 
     To create a new solver for a specific model, it suffices to subclass the :class:`FitSolverInterface` and
     implement the static method :meth:`scifit.interfaces.generic.FitSolverInterface.model` such in the follwing
@@ -147,30 +147,51 @@ class FitSolverInterface:
 
     @property
     def observation_space_size(self):
+        """
+        Number of experimental data (points, observations)
+        """
         return self._xdata.shape[0]
 
     @property
     def n(self):
+        """
+        Number of experimental data (points, observations)
+        """
         return self.observation_space_size
 
     @property
     def feature_space_size(self):
+        """
+        Number of features (variables) inferred from experimental data shape
+        """
         return self._xdata.shape[1]
 
     @property
     def m(self):
+        """
+        Number of features (variables) inferred from experimental data shape
+        """
         return self.feature_space_size
 
     @property
     def signature(self):
+        """
+        Signature of model function
+        """
         return inspect.signature(self.model)
 
     @property
     def parameter_space_size(self):
+        """
+        Number of model parameters inferred from model function signature
+        """
         return len(self.signature.parameters) - 1
 
     @property
     def k(self):
+        """
+        Number of model parameters inferred from model function signature
+        """
         return self.parameter_space_size
 
     def target_dataset(
@@ -186,7 +207,18 @@ class FitSolverInterface:
         **kwargs
     ):
         """
-        Generate synthetic dataset with additional noise
+        Generate synthetic dataset with ad hoc noise for the model using features and sigma
+
+        :param xdata:
+        :param parameters:
+        :param sigma:
+        :param precision:
+        :param scale_mode:
+        :param generator:
+        :param seed:
+        :param full_output:
+        :param kwargs:
+        :return:
         """
 
         if seed is not None:
@@ -233,7 +265,14 @@ class FitSolverInterface:
 
     def solve(self, xdata, ydata, sigma=None, **kwargs):
         """
-        Solve fitting problem and return structured solution
+        Solve the fitting problem by minimizing the loss function wrt expermiental features, target and sigma.
+        Return structured solution and update solver object in order to expose analysis convenience (fit, loss).
+
+        :param xdata:
+        :param ydata:
+        :param sigma:
+        :param kwargs:
+        :return:
         """
         solution = optimize.curve_fit(
             self.model,
