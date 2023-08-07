@@ -1,5 +1,5 @@
 """
-Module :py:mod:`scifit.interfaces.generic` defines the class :class:`GenericInterface`
+Module :py:mod:`scifit.interfaces.generic` defines generic interfaces :class:`GenericInterface`
 on which any other interfaces must inherit from. This class exposes generic abstract methods
 all interfaces must implement.
 """
@@ -20,35 +20,80 @@ from scifit.errors.base import *
 class FitSolverInterface:
 
     """
-    Generic Interface (Abstract Base Class) for all object of the package.
-    This class must be subclassed by any other interfaces.
+    This class is an interface exposing clean way to fit a defined model to experimental data
+    and commodities to analyse regressed parameters and loss function behaviour wrt parameter space.
 
-    n experimental points
-    m features
-    k parameters
-    1 target
+    This class essentially wraps :module:`scipy` classical optimization procedures to make it easy to use.
+    Additionally, the interface is compliant with the
+    `SciKit Learn interface <https://scikit-learn.org/stable/modules/classes.html#module-sklearn.base>`_
+    in terms of methods and signatures.
 
-    Min wrt b1, ..., bk of MSE = (1/n)*SUM(f(x1, ..., xm, b1, ..., bk) - y)^2
+    Main goal of :class:`FitSolverInterface` is to regress :math:`k` parameters :math:`(\\beta)` of the model
+    to :math:`n` experimental points :math:`(\\textbf{x})` with :math:`m` features (also called variables)
+    and :math:`1` target :math:`(\\textbf{y})` by minimizing a loss function :math:`L(\\textbf{x},\\textbf{y},\\beta)`
+    which is either the Sum of Squared Errors :math:`(SSE)` if no target uncertainties are given:
 
-    x(n,m)
-    y(n,1)
+    .. math::
 
+       \\arg \\min_{\\beta} SSE = \\sum\\limits_{i=1}^{n}\\left(y_i - \\hat{y}_i\\right)^2 = \\sum\\limits_{i=1}^{n}e_i^2
+
+    Where:
+
+    .. math::
+
+       \\hat{y} = f\\left(x_1, \\dots, x_m, \\beta_0, \\dots, \\beta_k\\right)
+
+    Or a Chi Square Score :math:`\\chi^2` if target uncertainties are given :math:`(\\sigma_i)`:
+
+    .. math::
+
+       \\arg \\min_{\\beta} \\chi^2 = \\sum\\limits_{i=1}^{n}\\left(\\frac{y_i - \\hat{y}_i}{\\sigma_i}\\right)^2
+
+    Practically, when uncertainties are omitted they are assumed to be equal to unity, leading to :math:`SSE = \\chi^2`.
+
+    To create a new solver for a specific model, it suffices to subclass the :class:`FitSolverInterface` and
+    implement the static method :meth:`scifit.interfaces.generic.FitSolverInterface.model` such in the follwing
+    example:
+
+    .. code-block:: python
+
+        from scifit.interfaces.generic import FitSolverInterface
+
+        class LinearFitSolver(FitSolverInterface):
+            @staticmethod
+            def model(x, a, b):
+                return a * x[:, 0] + b
+
+    Which defines a simple linear regression that can be fitted to experimental data.
     """
 
     def __init__(self, **kwargs):
         """
-        Add configurations switch to instance
+        Create a new instance of :class:`FitSolverInterface` and store passed parameters to pass them
+        afterwards when fitting experimental data.
+
+        :param kwargs: Dictionary of parameters to pass to :meth:`scipy.optimize.curve_fit`
         """
         self._configuration = kwargs
 
     def configuration(self, **kwargs):
+        """
+        Return stored configuration updated by parameters passed to the method.
+
+        :param kwargs: extra parameters to updated initially stored configuration
+        :return: Dictionary of parameters
+        """
         return self._configuration | kwargs
 
     def store(self, xdata, ydata, sigma=None):
         """
-        Validate and store experimental data
-        """
+        Validate and store experimental data.
 
+        :param xdata: Experimental features (variables) as a (n,m) matrix
+        :param ydata: Experimental target as a (n,1) matrix
+        :param sigma: Experimental target uncertainties as (n,1) matrix
+        :raise: Exception :class:`scifit.errors.base.InputDataError` if validation fails
+        """
         xdata = np.array(xdata)
         ydata = np.array(ydata)
 

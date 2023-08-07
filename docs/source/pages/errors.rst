@@ -1,8 +1,8 @@
 Exceptions
 ==========
 
-.. automodule:: newproject.errors
+.. automodule:: scifit.errors
 
-.. autoclass:: newproject.errors.GenericException
+.. autoclass:: scifit.errors.base.GenericError
 
-.. autoclass:: newproject.errors.InvalidParameter
+.. autoclass:: scifit.errors.base.InputDataError

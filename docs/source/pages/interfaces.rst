@@ -1,32 +1,23 @@
 Interfaces
 ==========
 
-.. automodule:: newproject.interfaces
+.. automodule:: scifit.interfaces
 
 Generic Interface
 -----------------
 
-.. automodule:: newproject.interfaces.generic
+.. automodule:: scifit.interfaces.generic
 
-.. autoclass:: newproject.interfaces.generic.GenericInterface
+.. autoclass:: scifit.interfaces.generic.FitSolverInterface
    :members:
 
-Implementation examples
------------------------
+Linear Solver
+-------------
 
-.. automodule:: newproject.interfaces.examples
+.. automodule:: scifit.solvers.linear
 
-Simple Cases
+Linear Regression
 ************
 
-In this use case, two basic interfaces are defined. The class :class:`SimpleCase`
-which accepts a single value as configuration but without any serializer defined:
-
-.. autoclass:: newproject.interfaces.examples.SimpleCase
-   :members:
-
-And the class :class:`SimpleCaseWithSerializer` which inherits from :class:`SimpleCase`
-and do provide a serializer:
-
-.. autoclass:: newproject.interfaces.examples.SimpleCaseWithSerializer
+.. autoclass:: scifit.solvers.linear.LinearFitSolver
    :members:
