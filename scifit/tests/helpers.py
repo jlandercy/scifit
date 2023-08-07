@@ -112,12 +112,15 @@ class GenericTestFitSolverInterface:
 
 class GenericTestFitSolver:
 
+    root_path = ".cache/media/"
+
     factory = None
     configuration = {}
     parameters = np.array([2., 3.])
 
     xmin = -1.
     xmax = +1.
+    mode = "lin"
     resolution = 30
     dimension = 1
     xdata = None
@@ -127,23 +130,23 @@ class GenericTestFitSolver:
     proportional = True
     generator = np.random.normal
     target_kwargs = {}
+    scale = 10.
 
-    scale = 100.
-
-    #scale = 10.
+    #proportional = True
     #generator = np.random.uniform
     #target_kwargs = {"low": -.5, "high": .5}
+    #scale = 10.
 
     def setUp(self) -> None:
 
-        self.media_path = pathlib.Path("media/{}".format(self.factory.__module__.split(".")[-1]))
+        self.media_path = pathlib.Path(self.root_path) / format(self.factory.__module__.split(".")[-1])
         self.media_path.mkdir(parents=True, exist_ok=True)
 
         self.solver = self.factory(**self.configuration)
 
         if self.xdata is None:
             self.xdata = self.solver.feature_dataset(
-                xmin=self.xmin, xmax=self.xmax, dimension=self.dimension, resolution=self.resolution
+                mode=self.mode, xmin=self.xmin, xmax=self.xmax, dimension=self.dimension, resolution=self.resolution
             )
 
         target = self.solver.target_dataset(
@@ -160,15 +163,9 @@ class GenericTestFitSolver:
         self.assertEqual(len(s.parameters) - 1, n)
 
     def test_model_implementation(self):
-        """
-        Check noisy data is close enough to regressed data up to `scale` StdDev of applied noise
-        Very unlikely to fail but tight enough to detect bad regression
-        """
-        sigma = self.sigma or 1e-16
-        if self.proportional:
-            sigma *= np.abs(self.ydata) + 1e-9
         yhat = self.solver.model(self.xdata, *self.parameters)
-        self.assertTrue(np.allclose(self.ydata, yhat, rtol=self.scale * sigma))
+        self.assertTrue(np.allclose(yhat, self.yref))
+        self.assertTrue(np.allclose(yhat + self.ynoise, self.ydata))
 
     def test_model_fit_signature(self):
         solution = self.solver.fit(self.xdata, self.ydata)
@@ -182,7 +179,7 @@ class GenericTestFitSolver:
         Check regressed parameters are equals up to `scale` Standard Deviation of fit precision
         Very unlikely to fail but tight enough to detect bad regression
          - Is the right solution
-         - Is it precise enough
+         - Is it precise enough wrt standard deviation
         """
         solution = self.solver.fit(self.xdata, self.ydata)
         for i in range(self.parameters.shape[0]):

@@ -520,7 +520,7 @@ class FitSolverInterface:
                     score = self.parametrized_loss(sigma=self._sigma)(*parameters)
 
                     fig, axe = plt.subplots()
-                    labels = axe.contour(x, y, np.log10(score), levels or 10, cmap="jet")
+                    labels = axe.contour(x, y, score, levels or 10, cmap="jet")
                     axe.clabel(labels, labels.levels, inline=True, fontsize=7)
 
                     axe.axvline(self._solution["parameters"][i], color="black", linestyle="-.")

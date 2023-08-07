@@ -189,7 +189,7 @@ class Generic2DFeatureRegression(GenericTestFitSolver):
     factory = linear.PlaneFitSolver
     dimension = 2
     resolution = 10
-    scale = 200
+    #scale = 200
     parameters = np.array([1., 1., 1.])
 
 
@@ -211,7 +211,7 @@ class PlaneRegressionNoiseL3(Generic2DFeatureRegression, TestCase):
 
 class PlaneRegressionNoiseL4(Generic2DFeatureRegression, TestCase):
     sigma = 1.
-    scale = 25000
+    #scale = 25000
 
 
 class PlaneRegressionNoiseL5(Generic2DFeatureRegression, TestCase):
@@ -241,7 +241,7 @@ class SaddleRegressionNoiseL3(QuadricRegression, TestCase):
 
 class SaddleRegressionNoiseL4(QuadricRegression, TestCase):
     sigma = 1.
-    scale = 25000
+    #scale = 25000
 
 
 class SaddleRegressionNoiseL5(QuadricRegression, TestCase):
