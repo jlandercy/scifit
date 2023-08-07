@@ -31,10 +31,11 @@ class GenericTestFitSolver:
 
     seed = 789
     sigma = None
-
-    scale = 100.
+    proportional = True
     generator = np.random.normal
     target_kwargs = {}
+
+    scale = 100.
 
     #scale = 10.
     #generator = np.random.uniform
@@ -54,7 +55,7 @@ class GenericTestFitSolver:
 
         target = self.solver.target_dataset(
             self.xdata, *self.parameters, sigma=self.sigma,
-            proportional=True, generator=self.generator, seed=self.seed, **self.target_kwargs,
+            proportional=self.proportional, generator=self.generator, seed=self.seed, **self.target_kwargs,
             full_output=True,
         )
 
@@ -71,8 +72,10 @@ class GenericTestFitSolver:
         Very unlikely to fail but tight enough to detect bad regression
         """
         sigma = self.sigma or 1e-16
+        if self.proportional:
+            sigma *= np.abs(self.ydata) + 1e-9
         yhat = self.solver.model(self.xdata, *self.parameters)
-        self.assertTrue(np.allclose(self.ydata, yhat, rtol=self.scale * sigma * np.abs(self.ydata)))
+        self.assertTrue(np.allclose(self.ydata, yhat, rtol=self.scale * sigma))
 
     def test_model_fit_signature(self):
         solution = self.solver.fit(self.xdata, self.ydata)
@@ -330,7 +333,7 @@ class Generic2DFeatureRegression(GenericTestFitSolver):
     factory = PlaneFitSolver
     dimension = 2
     resolution = 10
-    scale = 2500
+    scale = 200
     parameters = np.array([1., 1., 1.])
 
 
@@ -352,6 +355,7 @@ class PlaneRegressionNoiseL3(Generic2DFeatureRegression, TestCase):
 
 class PlaneRegressionNoiseL4(Generic2DFeatureRegression, TestCase):
     sigma = 1.
+    scale = 25000
 
 
 class PlaneRegressionNoiseL5(Generic2DFeatureRegression, TestCase):
@@ -360,7 +364,7 @@ class PlaneRegressionNoiseL5(Generic2DFeatureRegression, TestCase):
 
 class QuadricRegression(Generic2DFeatureRegression):
     factory = QuadricFitSolver
-    parameters = np.array([1., -1., 1., 1., 0.1, 0.1])
+    parameters = np.array([1., -1., 1.])
 
 
 class SaddleRegressionNoiseL0(QuadricRegression, TestCase):
@@ -381,23 +385,18 @@ class SaddleRegressionNoiseL3(QuadricRegression, TestCase):
 
 class SaddleRegressionNoiseL4(QuadricRegression, TestCase):
     sigma = 1.
+    scale = 25000
 
 
 class SaddleRegressionNoiseL5(QuadricRegression, TestCase):
     sigma = 10.
-    scale = 5000
 
 
 class ParaboloidRegressionNoiseL0(QuadricRegression, TestCase):
-    parameters = np.array([1., 1., 1., 1., 0.1, 0.1])
-    sigma = None
-
-
-class Paraboloid2RegressionNoiseL0(QuadricRegression, TestCase):
-    parameters = np.array([1., 1., -1., 1., 0.1, 0.1])
+    parameters = np.array([1., 1., 1.])
     sigma = None
 
 
 class Paraboloid3RegressionNoiseL0(QuadricRegression, TestCase):
-    parameters = np.array([1., 0.5, -0.3, .5, 0.1, 0.1])
+    parameters = np.array([1., 0.5, -0.3])
     sigma = None

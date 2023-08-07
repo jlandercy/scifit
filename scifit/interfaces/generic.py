@@ -428,10 +428,17 @@ class FitSolverInterface:
 
                     fig, axe = plt.subplots()
 
-                    axe.plot(
-                        xdata, self._ydata,
-                        linestyle="none", marker=".", label=r"Data: $(x_{{{}}},y)$".format(feature_index)
-                    )
+                    if self._sigma is None:
+                        axe.plot(
+                            xdata, self._ydata,
+                            linestyle="none", marker=".", label=r"Data: $(x_{{{}}},y)$".format(feature_index)
+                        )
+                    else:
+                        axe.errorbar(
+                            xdata, self._ydata, yerr=self._sigma, lolims=False, uplims=False,
+                            linestyle="none", marker=".", label=r"Data: $(x_{{{}}},y)$".format(feature_index)
+                        )
+
                     axe.plot(xscale, self.predict(xscale), label=r"Fit: $\hat{y} = f(\bar{x},\bar{\beta})$")
 
                     if errors:
