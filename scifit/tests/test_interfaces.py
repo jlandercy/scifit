@@ -13,7 +13,6 @@ from scifit.tests.helpers import GenericTestFitSolverInterface
 
 
 class TestFitSolverInterfaceErrors(TestCase):
-
     def setUp(self) -> None:
         self.solver = FitSolverInterface()
 
@@ -73,4 +72,3 @@ class TestFitSolverInterfaceWithArray2D(GenericTestFitSolverInterface, TestCase)
 class TestFitSolverInterfaceWithArray2DTypical(GenericTestFitSolverInterface, TestCase):
     xdata = np.random.randn(500).reshape(100, 5)
     ydata = np.random.randn(100)
-

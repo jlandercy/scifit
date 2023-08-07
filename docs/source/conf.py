@@ -18,16 +18,16 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 # Then import the package (not pythonic but handy):
 # No concerned by Furo issue #65 (see https://github.com/pradyunsg/furo/issues/65)
-import newproject
+import scifit
 
 # -- Project information -----------------------------------------------------
 
-project = 'Python New Project'
-copyright = '2020, Jean Landercy'
+project = 'SciFit'
+copyright = '2023, Jean Landercy'
 author = 'Jean Landercy'
 
 # The full version, including alpha/beta/rc tags
-release = newproject.__version__
+release = scifit.__version__
 
 
 # -- General to_dict ---------------------------------------------------

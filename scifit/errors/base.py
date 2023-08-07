@@ -1,4 +1,3 @@
-
 class GenericError(Exception):
     pass
 
@@ -21,4 +20,3 @@ class NotFittedError(GenericError):
 
 class NotSolvedError(GenericError):
     pass
-
