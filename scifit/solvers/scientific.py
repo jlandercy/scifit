@@ -9,12 +9,6 @@ class GompertzFitSolver(FitSolverInterface):
         return a * np.exp(-b * np.exp(-c * x[:, 0]))
 
 
-class LogGompertzFitSolver(FitSolverInterface):
-    @staticmethod
-    def model(x, a, b, c):
-        return np.log(a) - b * np.exp(-c * x[:, 0])
-
-
 class MichaelisMentenKineticFitSolver(FitSolverInterface):
     @staticmethod
     def model(x, vmax, km):

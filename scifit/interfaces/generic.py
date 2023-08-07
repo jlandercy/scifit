@@ -190,6 +190,7 @@ class FitSolverInterface:
             xdata,
             ydata,
             sigma=sigma,
+            absolute_sigma=True,
             full_output=True,
             check_finite=True,
             nan_policy="raise",
@@ -260,6 +261,7 @@ class FitSolverInterface:
         """
         if sigma is None:
             sigma = 1.0
+
         return (
             np.sum(
                 np.power(
@@ -271,7 +273,7 @@ class FitSolverInterface:
 
     loss.name = "$\chi^2$"
 
-    def score(self, xdata, ydata, parameters=None):
+    def score(self, xdata, ydata, sigma=None, parameters=None):
         """
         Compute Coefficient of Determination R2
         """
@@ -341,8 +343,8 @@ class FitSolverInterface:
             self._xdata, self._ydata, sigma=self._sigma, **kwargs
         )
         self._yhat = self.predict(self._xdata)
-        self._loss = self.loss(self._xdata, self._ydata)
-        self._score = self.score(self._xdata, self._ydata)
+        self._loss = self.loss(self._xdata, self._ydata, sigma=self._sigma)
+        self._score = self.score(self._xdata, self._ydata, sigma=self._sigma)
         self._gof = self.goodness_of_fit(self._xdata, self._ydata, sigma=self._sigma)
         return self._solution
 

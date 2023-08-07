@@ -131,12 +131,12 @@ class GenericTestFitSolver:
     scale_mode = "auto"
     generator = np.random.normal
     target_kwargs = {}
-    scale = 10.0
+    sigma_factor = 10.0
 
-    # proportional = True
+    # scale_mode = "auto"
     # generator = np.random.uniform
     # target_kwargs = {"low": -.5, "high": .5}
-    # scale = 10.
+    # sigma_factor = 10.
 
     def setUp(self) -> None:
         self.media_path = pathlib.Path(self.root_path) / format(
@@ -203,7 +203,7 @@ class GenericTestFitSolver:
                 np.allclose(
                     self.parameters[i],
                     solution["parameters"][i],
-                    atol=self.scale * np.sqrt(solution["covariance"][i][i]),
+                    atol=self.sigma_factor * np.sqrt(solution["covariance"][i][i]),
                 )
             )
 
@@ -263,7 +263,7 @@ class GenericTestFitSolver:
             axe.figure.savefig("{}/{}_fit_x{}.png".format(self.media_path, name, i))
             plt.close(axe.figure)
 
-    def _test_plot_loss(self):
+    def test_plot_loss(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)

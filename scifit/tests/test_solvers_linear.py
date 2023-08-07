@@ -11,9 +11,15 @@ from scifit.solvers import linear
 from scifit.tests.helpers import GenericTestFitSolver
 
 
+class GenericRegression(GenericTestFitSolver):
+    factory = linear.ConstantFitSolver
+    parameters = np.array([5.0])
+
+
 class GenericConstantRegression(GenericTestFitSolver):
     factory = linear.ConstantFitSolver
     parameters = np.array([5.0])
+    scale_mode = "abs"
 
 
 class ConstantRegressionNoiseL0(GenericConstantRegression, TestCase):
@@ -21,15 +27,15 @@ class ConstantRegressionNoiseL0(GenericConstantRegression, TestCase):
 
 
 class ConstantRegressionNoiseL1(GenericConstantRegression, TestCase):
-    sigma = 1.0e-3
+    sigma = 2.5e-2
 
 
 class ConstantRegressionNoiseL2(GenericConstantRegression, TestCase):
-    sigma = 1.0e-2
+    sigma = 1.0e-1
 
 
 class ConstantRegressionNoiseL3(GenericConstantRegression, TestCase):
-    sigma = 1.0e-1
+    sigma = 2.5e-1
 
 
 class ConstantRegressionNoiseL4(GenericConstantRegression, TestCase):
@@ -37,7 +43,7 @@ class ConstantRegressionNoiseL4(GenericConstantRegression, TestCase):
 
 
 class ConstantRegressionNoiseL5(GenericConstantRegression, TestCase):
-    sigma = 10.0
+    sigma = 2.5
 
 
 class GenericProportionalRegression(GenericTestFitSolver):
@@ -50,15 +56,15 @@ class ProportionalRegressionNoiseL0(GenericProportionalRegression, TestCase):
 
 
 class ProportionalRegressionNoiseL1(GenericProportionalRegression, TestCase):
-    sigma = 1.0e-3
+    sigma = 2.5e-2
 
 
 class ProportionalRegressionNoiseL2(GenericProportionalRegression, TestCase):
-    sigma = 1.0e-2
+    sigma = 1.0e-1
 
 
 class ProportionalRegressionNoiseL3(GenericProportionalRegression, TestCase):
-    sigma = 1.0e-1
+    sigma = 2.5e-1
 
 
 class ProportionalRegressionNoiseL4(GenericProportionalRegression, TestCase):
@@ -66,7 +72,7 @@ class ProportionalRegressionNoiseL4(GenericProportionalRegression, TestCase):
 
 
 class ProportionalRegressionNoiseL5(GenericProportionalRegression, TestCase):
-    sigma = 10.0
+    sigma = 2.5
 
 
 class GenericLinearRegression(GenericTestFitSolver):
@@ -79,15 +85,15 @@ class LinearRegressionNoiseL0(GenericLinearRegression, TestCase):
 
 
 class LinearRegressionNoiseL1(GenericLinearRegression, TestCase):
-    sigma = 1.0e-3
+    sigma = 2.5e-2
 
 
 class LinearRegressionNoiseL2(GenericLinearRegression, TestCase):
-    sigma = 1.0e-2
+    sigma = 1.0e-1
 
 
 class LinearRegressionNoiseL3(GenericLinearRegression, TestCase):
-    sigma = 1.0e-1
+    sigma = 2.5e-1
 
 
 class LinearRegressionNoiseL4(GenericLinearRegression, TestCase):
@@ -95,7 +101,7 @@ class LinearRegressionNoiseL4(GenericLinearRegression, TestCase):
 
 
 class LinearRegressionNoiseL5(GenericLinearRegression, TestCase):
-    sigma = 10.0
+    sigma = 2.5
 
 
 class GenericParabolicRegression(GenericTestFitSolver):
@@ -108,15 +114,15 @@ class ParabolicRegressionNoiseL0(GenericParabolicRegression, TestCase):
 
 
 class ParabolicRegressionNoiseL1(GenericParabolicRegression, TestCase):
-    sigma = 1.0e-3
+    sigma = 2.5e-2
 
 
 class ParabolicRegressionNoiseL2(GenericParabolicRegression, TestCase):
-    sigma = 1.0e-2
+    sigma = 1.0e-1
 
 
 class ParabolicRegressionNoiseL3(GenericParabolicRegression, TestCase):
-    sigma = 1.0e-1
+    sigma = 2.5e-1
 
 
 class ParabolicRegressionNoiseL4(GenericParabolicRegression, TestCase):
@@ -124,7 +130,7 @@ class ParabolicRegressionNoiseL4(GenericParabolicRegression, TestCase):
 
 
 class ParabolicRegressionNoiseL5(GenericParabolicRegression, TestCase):
-    sigma = 10.0
+    sigma = 2.5
 
 
 class GenericCubicRegression(GenericTestFitSolver):
@@ -137,15 +143,15 @@ class CubicRegressionNoiseL0(GenericCubicRegression, TestCase):
 
 
 class CubicRegressionNoiseL1(GenericCubicRegression, TestCase):
-    sigma = 1.0e-3
+    sigma = 2.5e-2
 
 
 class CubicRegressionNoiseL2(GenericCubicRegression, TestCase):
-    sigma = 1.0e-2
+    sigma = 1.0e-1
 
 
 class CubicRegressionNoiseL3(GenericCubicRegression, TestCase):
-    sigma = 1.0e-1
+    sigma = 2.5e-1
 
 
 class CubicRegressionNoiseL4(GenericCubicRegression, TestCase):
@@ -153,7 +159,7 @@ class CubicRegressionNoiseL4(GenericCubicRegression, TestCase):
 
 
 class CubicRegressionNoiseL5(GenericCubicRegression, TestCase):
-    sigma = 10.0
+    sigma = 2.5
 
 
 class GenericLinearRootRegression(GenericTestFitSolver):
@@ -166,15 +172,15 @@ class LinearRootRegressionNoiseL0(GenericLinearRootRegression, TestCase):
 
 
 class LinearRootRegressionNoiseL1(GenericLinearRootRegression, TestCase):
-    sigma = 1.0e-3
+    sigma = 2.5e-2
 
 
 class LinearRootRegressionNoiseL2(GenericLinearRootRegression, TestCase):
-    sigma = 1.0e-2
+    sigma = 1.0e-1
 
 
 class LinearRootRegressionNoiseL3(GenericLinearRootRegression, TestCase):
-    sigma = 1.0e-1
+    sigma = 2.5e-1
 
 
 class LinearRootRegressionNoiseL4(GenericLinearRootRegression, TestCase):
@@ -182,7 +188,7 @@ class LinearRootRegressionNoiseL4(GenericLinearRootRegression, TestCase):
 
 
 class LinearRootRegressionNoiseL5(GenericLinearRootRegression, TestCase):
-    sigma = 10.0
+    sigma = 2.5
 
 
 class Generic2DFeatureRegression(GenericTestFitSolver):
@@ -197,15 +203,15 @@ class PlaneRegressionNoiseL0(Generic2DFeatureRegression, TestCase):
 
 
 class PlaneRegressionNoiseL1(Generic2DFeatureRegression, TestCase):
-    sigma = 1.0e-3
+    sigma = 2.5e-2
 
 
 class PlaneRegressionNoiseL2(Generic2DFeatureRegression, TestCase):
-    sigma = 1.0e-2
+    sigma = 1.0e-1
 
 
 class PlaneRegressionNoiseL3(Generic2DFeatureRegression, TestCase):
-    sigma = 1.0e-1
+    sigma = 2.5e-1
 
 
 class PlaneRegressionNoiseL4(Generic2DFeatureRegression, TestCase):
@@ -213,7 +219,7 @@ class PlaneRegressionNoiseL4(Generic2DFeatureRegression, TestCase):
 
 
 class PlaneRegressionNoiseL5(Generic2DFeatureRegression, TestCase):
-    sigma = 10.0
+    sigma = 2.5
 
 
 class QuadricRegression(Generic2DFeatureRegression):
@@ -226,15 +232,15 @@ class SaddleRegressionNoiseL0(QuadricRegression, TestCase):
 
 
 class SaddleRegressionNoiseL1(QuadricRegression, TestCase):
-    sigma = 1.0e-3
+    sigma = 2.5e-2
 
 
 class SaddleRegressionNoiseL2(QuadricRegression, TestCase):
-    sigma = 1.0e-2
+    sigma = 1.0e-1
 
 
 class SaddleRegressionNoiseL3(QuadricRegression, TestCase):
-    sigma = 1.0e-1
+    sigma = 2.5e-1
 
 
 class SaddleRegressionNoiseL4(QuadricRegression, TestCase):
@@ -242,7 +248,7 @@ class SaddleRegressionNoiseL4(QuadricRegression, TestCase):
 
 
 class SaddleRegressionNoiseL5(QuadricRegression, TestCase):
-    sigma = 10.0
+    sigma = 2.5
 
 
 class ParaboloidRegressionNoiseL0(QuadricRegression, TestCase):
