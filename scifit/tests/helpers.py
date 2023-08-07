@@ -202,7 +202,11 @@ class GenericTestFitSolver:
         #pprint.pprint(test)
         # Ensure proper fits get its test valid:
         if self.sigma is not None and self.sigma > 0.:
-            self.assertTrue(test["pvalue"] >= 0.10)
+            self.assertTrue(test["statistic"] >= 0.50)
+            self.assertTrue(test["pvalue"] >= 0.50)
+        else:
+            self.assertTrue(test["statistic"] <= 0.000001)
+            self.assertTrue(test["pvalue"] >= 0.999999)
 
     def test_feature_dataset_auto(self):
         self.solver.store(self.xdata, self.ydata)
@@ -236,7 +240,7 @@ class GenericTestFitSolver:
             axe.figure.savefig("{}/{}_fit_x{}.png".format(self.media_path, name, i))
             plt.close(axe.figure)
 
-    def _test_plot_loss(self):
+    def test_plot_loss(self):
         name = self.__class__.__name__
         title = r"{} ($\sigma={:.1e}$, seed={:d})".format(name, self.sigma or 0., self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)

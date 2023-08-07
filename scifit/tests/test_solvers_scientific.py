@@ -9,6 +9,37 @@ import numpy as np
 
 from scifit.solvers import scientific
 from scifit.tests.helpers import GenericTestFitSolver
+from scifit.tests.test_solvers_linear import GenericLinearRegression
+
+
+class GompertzRegression(GenericLinearRegression):
+    factory = scientific.GompertzFitSolver
+    parameters = np.array([1., 1., 2.])
+    sigma = None
+
+
+class GompertzRegressionNoiseL0(GompertzRegression, TestCase):
+    sigma = None
+
+
+class GompertzRegressionNoiseL1(GompertzRegression, TestCase):
+    sigma = 1e-3
+
+
+class GompertzRegressionNoiseL2(GompertzRegression, TestCase):
+    sigma = 1e-2
+
+
+class GompertzRegressionNoiseL3(GompertzRegression, TestCase):
+    sigma = 1e-1
+
+
+class GompertzRegressionNoiseL4(GompertzRegression, TestCase):
+    sigma = 1.
+
+
+# class GompertzRegressionNoiseL5(GompertzRegression, TestCase):
+#     sigma = 10.
 
 
 class GenericKineticRegression(GenericTestFitSolver):
