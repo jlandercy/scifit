@@ -34,9 +34,9 @@ The complete package references decompose as follow:
    :maxdepth: 1
 
    Installation <./pages/installation.rst>
-   Service <./pages/service.rst>
-   Settings <./pages/settings.rst>
+   Quick Start Guide <./pages/quickstart.rst>
    Interfaces <./pages/interfaces.rst>
+   Solvers <./pages/solvers.rst>
    Exceptions <./pages/errors.rst>
 
 

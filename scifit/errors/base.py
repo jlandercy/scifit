@@ -10,6 +10,9 @@ class ConfigurationError(GenericError):
 
 
 class MissingModel(GenericError):
+    """
+    Error raised when model is not defined
+    """
     pass
 
 

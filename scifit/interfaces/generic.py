@@ -135,8 +135,13 @@ class FitSolverInterface:
     @staticmethod
     def model(xdata, *parameters):
         """
-        Model definition to fit with experimental data.
-        This method must be overridden by subclassing
+        This static method defines the model function to fit to experimental data in order to regress parameters.
+        This method must be overridden after the class has been inherited, it signature must be exactly:
+
+        :param xdata: Experimental features (variables) as (n,m) matrix
+        :param parameters: Sequence of k parameters with *ad hoc* names
+        :return: Model function evaluated at experimental features for the given parameters as (n,1) matrix
+        :raise: Exception :class:`scifit.errors.base.MissingModel`
         """
         raise MissingModel("Model is not defined")
 
