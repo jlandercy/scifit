@@ -554,13 +554,38 @@ class FitSolverInterface:
             "dof": self.dof,
             "statistic": statistic,
             "normalized": normalized,
-            "pvalue": law.sf(statistic),
-            "quantile": law.cdf(statistic),
-            "P95": law.ppf(0.95),
-            "P99": law.ppf(0.99),
-            "P999": law.ppf(0.999),
+            "pvalue": law.cdf(statistic),
             "law": law,
+            "critical": {
+                "left-sided": [],
+                "right-sided": [],
+                "two-sided": [],
+            },
         }
+        for alpha in [0.500, 0.900, 0.050, 0.010, 0.005, 0.001]:
+            # Left Sided Test:
+            chi = law.cdf(alpha)
+            result["critical"]["left-sided"].append({
+                "alpha": alpha,
+                "value": chi,
+                "H0": chi <= statistic
+            })
+            # Right Sided Test:
+            chi = law.cdf(1.0 - alpha)
+            result["critical"]["right-sided"].append({
+                "alpha": alpha,
+                "value": chi,
+                "H0": statistic <= chi
+            })
+            # Two Sided Test:
+            low = law.cdf(alpha/2.0)
+            high = law.cdf(1.0 - alpha/2.0)
+            result["critical"]["two-sided"].append({
+                "alpha": alpha,
+                "low-value": low,
+                "high-value": high,
+                "H0": low <= statistic <= high
+            })
         return result
 
     def parametrized_loss(self, sigma=None):
@@ -798,7 +823,7 @@ class FitSolverInterface:
             )
 
             if hasattr(self, "_gof"):
-                full_title += r", $P(\chi^2_{{{dof:d}}} < {normalized:.3f}) = {pvalue:.4f}$".format(
+                full_title += r", $P(\chi^2_{{{dof:d}}} \geq {normalized:.3f} \,|\, H_0) = {pvalue:.4f}$".format(
                     **self._gof
                 )
 
