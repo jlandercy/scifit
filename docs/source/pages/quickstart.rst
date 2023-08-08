@@ -1,45 +1,87 @@
 Quick Start Guide
 =================
 
-Fitting a model to experimental data with scifit.
+Fit an existing Model
+---------------------
 
-Classic Linear Regression
--------------------------
+Let's say we have experimental data suspected to follow the Hill Equation:
 
-First import the Solver interface:
 
-    .. code-block:: python
+.. math::
 
-        from scifit.interfaces.generic import FitSolverInterface
+    \theta = \frac{k \cdot L^n}{1 + k \cdot L^n}
 
-Then create the model function by overridding the model method:
+Fitting data is then as simple as:
 
-    .. code-block:: python
+.. code-block:: python
 
-        class LinearFitSolver(FitSolverInterface):
-            @staticmethod
-            def model(x, a, b):
-                return a * x[:, 0] + b
+    from scifit.solvers.scientific import HillKinetic
 
-Now create an new instance of the solver:
+    solver = HillKinetic()
+    solution = solver.fit(X, y, sigma=sigma)
 
-    .. code-block:: python
+    solver.plot_fit()
 
-        solver = LinearFitSolver()
+And it renders as follow:
 
-And fit to experimental data:
+.. image:: ../media/figures/QuickStart_CooperativeHillEquationFit.png
+  :width: 560
+  :alt: Cooperative Hill Equation (fit)
 
-    .. code-block:: python
+Where detailed solution is:
 
-        solution = solver.fit(X, y, sigma=sigma)
+.. code-block:: json
 
-It returns a complete solution set.
-And then exposes convenience to analyse the regression in depth:
+    {
+        "parameters": [2.1273207 , 0.26342174],
+        "covariance": [
+            [3.83758686e+14, 7.15865440e+14],
+            [7.15865440e+14, 1.33634099e+15]
+        ]
+    }
 
-    .. code-block:: python
 
-        solver.plot_fit()
-        solver.plot_loss()
+
+Create a new model
+------------------
+
+To create a new model, first import the Solver interface:
+
+.. code-block:: python
+
+    from scifit.interfaces.generic import FitSolverInterface
+
+Then create the model function by overriding the model method:
+
+.. code-block:: python
+
+    class LinearFitSolver(FitSolverInterface):
+        @staticmethod
+        def model(x, a, b):
+            return a * x[:, 0] + b
+
+We simply chose the classical linear regression for simplicity sake.
+At this point everything is setup, it is just about fit the data.
+
+Create an new instance of the solver:
+
+.. code-block:: python
+
+    solver = LinearFitSolver()
+
+Fit the model to experimental data:
+
+.. code-block:: python
+
+    solution = solver.fit(X, y, sigma=sigma)
+
+It returns a complete solution set and exposes convenience
+to analyse the regression in depth:
+
+.. code-block:: python
+
+    solver.plot_fit()
+    solver.plot_loss()
 
 Rendering respectively the fitted model to the data and the loss function
 wrt parameters:

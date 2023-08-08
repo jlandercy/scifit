@@ -90,83 +90,83 @@ class MichaelisMentenKineticRegressionNoiseL5(
     sigma = 2.5
 
 
-class CooperativeHillKineticRegression(GenericKineticRegression):
-    factory = scientific.HillKineticFitSolver
-    parameters = np.array([1.12, 2.5e-1])
+class CooperativeHillEquationRegression(GenericKineticRegression):
+    factory = scientific.HillEquationFitSolver
+    parameters = np.array([2.12, 2.5e-1])
 
 
-class CooperativeHillKineticRegressionNoiseL0(
-    CooperativeHillKineticRegression, TestCase
+class CooperativeHillEquationRegressionNoiseL0(
+    CooperativeHillEquationRegression, TestCase
 ):
     sigma = 1e-6
 
 
-class CooperativeHillKineticRegressionNoiseL1(
-    CooperativeHillKineticRegression, TestCase
+class CooperativeHillEquationRegressionNoiseL1(
+    CooperativeHillEquationRegression, TestCase
 ):
     sigma = 2.5e-2
 
 
-class CooperativeHillKineticRegressionNoiseL2(
-    CooperativeHillKineticRegression, TestCase
+class CooperativeHillEquationRegressionNoiseL2(
+    CooperativeHillEquationRegression, TestCase
 ):
     sigma = 1e-1
 
 
-class CooperativeHillKineticRegressionNoiseL3(
-    CooperativeHillKineticRegression, TestCase
+class CooperativeHillEquationRegressionNoiseL3(
+    CooperativeHillEquationRegression, TestCase
 ):
     sigma = 2.5e-1
 
 
-class CooperativeHillKineticRegressionNoiseL4(
-    CooperativeHillKineticRegression, TestCase
+class CooperativeHillEquationRegressionNoiseL4(
+    CooperativeHillEquationRegression, TestCase
 ):
     sigma = 1.0
 
 
-class CooperativeHillKineticRegressionNoiseL5(
-    CooperativeHillKineticRegression, TestCase
+class CooperativeHillEquationRegressionNoiseL5(
+    CooperativeHillEquationRegression, TestCase
 ):
     sigma = 2.5
 
 
-class CompetitiveHillKineticRegression(GenericKineticRegression):
-    factory = scientific.HillKineticFitSolver
-    parameters = np.array([0.72, 2.5e-1])
+class CompetitiveHillEquationRegression(GenericKineticRegression):
+    factory = scientific.HillEquationFitSolver
+    parameters = np.array([0.32, 2.5e-1])
 
 
-class CompetitiveHillKineticRegressionNoiseL0(
-    CompetitiveHillKineticRegression, TestCase
+class CompetitiveHillEquationRegressionNoiseL0(
+    CompetitiveHillEquationRegression, TestCase
 ):
     sigma = 1e-6
 
 
-class CompetitiveHillKineticRegressionNoiseL1(
-    CompetitiveHillKineticRegression, TestCase
+class CompetitiveHillEquationRegressionNoiseL1(
+    CompetitiveHillEquationRegression, TestCase
 ):
     sigma = 2.5e-2
 
 
-class CompetitiveHillKineticRegressionNoiseL2(
-    CompetitiveHillKineticRegression, TestCase
+class CompetitiveHillEquationRegressionNoiseL2(
+    CompetitiveHillEquationRegression, TestCase
 ):
     sigma = 1e-1
 
 
-class CompetitiveHillKineticRegressionNoiseL3(
-    CompetitiveHillKineticRegression, TestCase
+class CompetitiveHillEquationRegressionNoiseL3(
+    CompetitiveHillEquationRegression, TestCase
 ):
     sigma = 2.5e-1
 
 
-class CompetitiveHillKineticRegressionNoiseL4(
-    CompetitiveHillKineticRegression, TestCase
+class CompetitiveHillEquationRegressionNoiseL4(
+    CompetitiveHillEquationRegression, TestCase
 ):
     sigma = 1.0
 
 
-class CompetitiveHillKineticRegressionNoiseL5(
-    CompetitiveHillKineticRegression, TestCase
+class CompetitiveHillEquationRegressionNoiseL5(
+    CompetitiveHillEquationRegression, TestCase
 ):
     sigma = 2.5

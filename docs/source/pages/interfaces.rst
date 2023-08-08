@@ -3,8 +3,8 @@ Interfaces
 
 .. automodule:: scifit.interfaces
 
-Generic Interface
------------------
+Fit Solver Interface
+--------------------
 
 .. automodule:: scifit.interfaces.generic
 

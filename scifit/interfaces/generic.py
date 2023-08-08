@@ -1,9 +1,3 @@
-"""
-Module :py:mod:`scifit.interfaces.generic` defines generic interfaces :class:`GenericInterface`
-on which any other interfaces must inherit from. This class exposes generic abstract methods
-all interfaces must implement.
-"""
-
 import inspect
 import itertools
 from collections.abc import Iterable
@@ -23,7 +17,7 @@ class FitSolverInterface:
     This class is an interface exposing clean way to fit a defined model to experimental data
     and commodities to analyse regressed parameters and loss function behaviour wrt parameter space.
 
-    This class essentially wraps :module:`scipy` classical optimization procedures to make it easy to use.
+    This class essentially wraps :py:mod:`scipy` classical optimization procedures to make it easy to use.
     Additionally, the interface is compliant with the
     `SciKit Learn interface <https://scikit-learn.org/stable/modules/classes.html#module-sklearn.base>`_
     in terms of methods and signatures.

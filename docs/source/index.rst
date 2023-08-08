@@ -1,17 +1,10 @@
 SciFit documentation
 ====================
 
-.. note::
-
-   This repository is a crude skeleton for a complete python package.
-
 .. warning::
 
-   All the work still needs to be done.
+   This package is under active development.
 
-.. caution::
-
-   Read the license before doing anything with this package.
 
 Package References
 ------------------

@@ -182,7 +182,6 @@ class GenericTestFitSolver:
 
     def test_model_fit_signature(self):
         solution = self.solver.fit(self.xdata, self.ydata)
-        print(solution)
         self.assertIsInstance(solution, dict)
         self.assertSetEqual(
             {"parameters", "covariance", "info", "message", "status"},
@@ -219,7 +218,6 @@ class GenericTestFitSolver:
             set(test.keys()).intersection({"statistic", "pvalue"}),
             {"statistic", "pvalue"},
         )
-        # pprint.pprint(test)
         # Ensure proper fits get its test valid:
         if self.sigma is not None and self.sigma > 0.0:
             self.assertTrue(test["statistic"] >= 0.50)

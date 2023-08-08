@@ -1,10 +1,6 @@
 Exceptions
 ==========
 
-.. automodule:: scifit.errors
+.. automodule:: scifit.errors.base
+   :members:
 
-.. autoclass:: scifit.errors.base.GenericError
-
-.. autoclass:: scifit.errors.base.InputDataError
-
-.. autoclass:: scifit.errors.base.MissingModel
