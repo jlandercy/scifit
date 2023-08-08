@@ -532,13 +532,13 @@ class FitSolverInterface:
 
         .. math::
 
-            P\\left[\\chi^2 > \\chi^2_c\\right] \\geq 1 - \\alpha
+            P\\left[\\chi^2 \\geq \\chi^2_c\\right] = \\int\\limits_{\\chi^2_c}^{+\\infty}f(x)\\mathrm{d}x = \\alpha \\Rightarrow \\chi^2_c = \\mathrm{ppf}(1 - \\alpha)
 
         - Compute actual Chi Square statistic :math:`\\chi^2_r` and the :math:`p`-value associated:
 
         .. math::
 
-            p = P\\left[\\chi^2_\\nu < \\chi^2_r\\right]
+            p = P\\left[\\chi^2 \\geq \\chi^2_r\\right] = \\int\\limits_{\\chi^2_r}^{+\\infty}f(x)\\mathrm{d}x = 1 - \\mathrm{cdf}(\\chi^2_r) = \\mathrm{sf}(\\chi^2_r)
 
         :param xdata: Features (variables) as :code:`(n,m)` matrix
         :param ydata: Target as :code:`(n,)` matrix
@@ -555,7 +555,7 @@ class FitSolverInterface:
             "dof": self.dof,
             "statistic": statistic,
             "normalized": normalized,
-            "pvalue": law.cdf(statistic),
+            "pvalue": law.sf(statistic),
             "law": law,
             "significance": {
                 "left-sided": [],
