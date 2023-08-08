@@ -592,7 +592,7 @@ class FitSolverInterface:
 
     def parametrized_loss(self, xdata=None, ydata=None, sigma=None):
         """
-        Wrapper: Loss function decorated with experimental data and vectorized for parameters.
+        **Wrapper:** Loss function decorated with experimental data and vectorized for parameters.
         This decorator load loss method with features (variables), target and sigma to expose only parameters.
 
         .. code-block:: python

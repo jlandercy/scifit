@@ -170,3 +170,14 @@ class CompetitiveHillEquationRegressionNoiseL5(
     CompetitiveHillEquationRegression, TestCase
 ):
     sigma = 2.5
+
+
+class LogisticRegression(GenericLinearRegression):
+    factory = scientific.LogisticFitSolver
+    parameters = np.array([3.1, 10.27])
+
+
+class LogisticRegressionNoiseL0(
+    LogisticRegression, TestCase
+):
+    sigma = 1e-6

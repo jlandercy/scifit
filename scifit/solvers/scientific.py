@@ -25,6 +25,28 @@ class GompertzFitSolver(FitSolverInterface):
         return a * np.exp(-b * np.exp(-c * x[:, 0]))
 
 
+class LogisticFitSolver(FitSolverInterface):
+    """
+    `Logistic function model (calculus) <https://en.wikipedia.org/wiki/Logit>`_
+    """
+    @staticmethod
+    def model(x, a, b):
+        """
+        Logistic function is defined as follows:
+
+        .. math::
+
+            y = \\frac{1}{1 + a \\cdot \\exp(- b \\cdot x)}
+
+        :param x: independent variable :math:`x`
+        :param a: asymptotic value :math:`a`
+        :param b: displacement :math:`b`
+        :param c: growth rate :math:`c`
+        :return: Logistic function :math:`y`
+        """
+        return 1.0/(1.0 + a * np.exp(-b * x[:, 0]))
+
+
 class MichaelisMentenKineticFitSolver(FitSolverInterface):
     """
     `Michaëlis-Menten kinetic model (biochemistry) <https://en.wikipedia.org/wiki/Michaelis%E2%80%93Menten_kinetics>`_
