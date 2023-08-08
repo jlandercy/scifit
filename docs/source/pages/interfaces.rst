@@ -10,3 +10,5 @@ Fit Solver Interface
 
 .. autoclass:: scifit.interfaces.generic.FitSolverInterface
    :members:
+
+   .. automethod:: __init__

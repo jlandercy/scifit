@@ -25,11 +25,11 @@ class FitSolverInterface:
     Main goal of :class:`FitSolverInterface` is to regress :math:`k` parameters :math:`(\\beta)` of the model
     to :math:`n` experimental points :math:`(\\textbf{x})` with :math:`m` features (also called variables)
     and :math:`1` target :math:`(y)` by minimizing a loss function :math:`L(\\textbf{x},y,\\beta)`
-    which is either the Sum of Squared Errors :math:`(SSE)` if no target uncertainties are given:
+    which is either the Residual Sum of Squares :math:`(RSS)` if no target uncertainties are given:
 
     .. math::
 
-       \\arg \\min_{\\beta} SSE = \\sum\\limits_{i=1}^{n}\\left(y_i - \\hat{y}_i\\right)^2 = \\sum\\limits_{i=1}^{n}e_i^2
+       \\arg \\min_{\\beta} RSS = \\sum\\limits_{i=1}^{n}\\left(y_i - \\hat{y}_i\\right)^2 = \\sum\\limits_{i=1}^{n}e_i^2
 
     Where:
 
@@ -43,7 +43,7 @@ class FitSolverInterface:
 
        \\arg \\min_{\\beta} \\chi^2 = \\sum\\limits_{i=1}^{n}\\left(\\frac{y_i - \\hat{y}_i}{\\sigma_i}\\right)^2
 
-    Practically, when uncertainties are omitted they are assumed to be unitary, leading to :math:`SSE = \\chi^2`.
+    Practically, when uncertainties are omitted they are assumed to be unitary, leading to :math:`RSS = \\chi^2`.
 
     To create a new solver for a specific model, it suffices to subclass the :class:`FitSolverInterface` and
     implement the static method :meth:`scifit.interfaces.generic.FitSolverInterface.model` such in the follwing
@@ -63,7 +63,7 @@ class FitSolverInterface:
 
     def __init__(self, **kwargs):
         """
-        Create a new instance of :class:`FitSolverInterface` and store passed parameters to pass them
+        Create a new instance of :class:`FitSolverInterface` and store parameters to pass them to :py:mod:`scipy`
         afterwards when fitting experimental data.
 
         :param kwargs: Dictionary of parameters to pass to :meth:`scipy.optimize.curve_fit`
@@ -74,7 +74,7 @@ class FitSolverInterface:
         """
         Return stored configuration updated by parameters passed to the method.
 
-        :param kwargs: extra parameters to updated initially stored configuration
+        :param kwargs: extra parameters to update initially stored configuration
         :return: Dictionary of parameters
         """
         return self._configuration | kwargs
@@ -83,9 +83,9 @@ class FitSolverInterface:
         """
         Validate and store experimental data.
 
-        :param xdata: Experimental features (variables) as a (n,m) matrix
-        :param ydata: Experimental target as a (n,1) matrix
-        :param sigma: Experimental target uncertainties as (n,1) matrix
+        :param xdata: Experimental features (variables) as a :code:`(n,m)` matrix
+        :param ydata: Experimental target as a :code:`(n,)` matrix
+        :param sigma: Experimental target uncertainties as :code:`(n,)` matrix
         :raise: Exception :class:`scifit.errors.base.InputDataError` if validation fails
         """
         xdata = np.array(xdata)
@@ -127,14 +127,14 @@ class FitSolverInterface:
         self._sigma = sigma
 
     @staticmethod
-    def model(xdata, *parameters):
+    def model(x, *parameters):
         """
         This static method defines the model function to fit to experimental data in order to regress parameters.
-        This method must be overridden after the class has been inherited, it signature must be exactly:
+        This method must be overridden after the class has been inherited, its signature must be exactly:
 
-        :param xdata: Experimental features (variables) as (n,m) matrix
-        :param parameters: Sequence of k parameters with *ad hoc* names
-        :return: Model function evaluated at experimental features for the given parameters as (n,1) matrix
+        :param x: Features (variables) as :code:`(n,m)` matrix
+        :param parameters: Sequence of :code:`k` parameters with explicit names (don't use unpacking when implementing)
+        :return: Model function evaluated for the given features and parameters as :code:`(n,)` matrix
         :raise: Exception :class:`scifit.errors.base.MissingModel`
         """
         raise MissingModel("Model must be defined before regression")
@@ -201,18 +201,28 @@ class FitSolverInterface:
         **kwargs
     ):
         """
-        Generate synthetic dataset with ad hoc noise for the model using features and sigma
+        Generate synthetic target for the model using features, parameters and eventually add noise to it.
 
-        :param xdata:
-        :param parameters:
-        :param sigma:
-        :param precision:
-        :param scale_mode:
-        :param generator:
-        :param seed:
-        :param full_output:
-        :param kwargs:
-        :return:
+        Noise can be added in three different modes (:code:`scale_mode`):
+
+        - :code:`abs` (default) add absolute noise scaled by :code:`sigma`
+        - :code:`auto` add absolute noise scaled by :code:`sigma` and halved target extent
+        - :code:`rel` add relative noise scaled by :code:`sigma` and target absolute value in each point
+
+        Pseudo Random Generator (PRG) is defined by the object :code:`generator` which must be a PRG
+        coming from :py:mod:`numpy.random` by default it is a Standard Normal distribution :class:`numpy.random.normal`.
+
+        :param x: Features (variables) as :code:`(n,m)` matrix
+        :param parameters: Sequence of :code:`k` parameters with explicit names
+        :param sigma: Shape (scale) parameter for noise if any (default :code:`None`)
+        :param precision: Tiny :code:`float` added in noise generation to enforce numerical stability
+        :param scale_mode: Type of noise added to target
+        :param generator: Pseudo Random Generator used to create noise on target
+        :param seed: Seed used by the PRG to sample noise
+        :param full_output: Switch to add extra computation to the function output
+        :param kwargs: Extra parameters passed to the PRG function
+        :return: Target as a :code:`(n,)` matrix when :code:`full_output=False` or a dictionary of objects
+                 containing at least synthetic features and details about noise applied on it when :code:`full_output=True`
         """
 
         if seed is not None:
@@ -259,14 +269,14 @@ class FitSolverInterface:
 
     def solve(self, xdata, ydata, sigma=None, **kwargs):
         """
-        Solve the fitting problem by minimizing the loss function wrt expermiental features, target and sigma.
+        Solve the fitting problem by finding a set of parameters minimizing the loss function wrt features, target and sigma.
         Return structured solution and update solver object in order to expose analysis convenience (fit, loss).
 
-        :param xdata:
-        :param ydata:
-        :param sigma:
-        :param kwargs:
-        :return:
+        :param xdata: Features (variables) as :code:`(n,m)` matrix
+        :param ydata: Target as :code:`(n,)` matrix
+        :param sigma: Uncertainty on target as :code:`(n,)` matrix or scalar or :code:`None`
+        :param kwargs: Extra parameters to pass to :code:`scipy.optimize.curve_fit`
+        :return: Dictionary of objects with details about the regression including regressed parameters and final covariance
         """
         solution = optimize.curve_fit(
             self.model,
@@ -289,16 +299,25 @@ class FitSolverInterface:
 
     def stored(self, error=False):
         """
-        Stored means the solver object has stored input data successfully
+        Boolean switch to indicate if the solver object has stored input data successfully
+
+        :param error: raise error instead of returning
+        :return: Stored status as boolean
+        :raise: :class:`scifit.errors.base.NotStoredError`
         """
         is_stored = hasattr(self, "_xdata") and hasattr(self, "_ydata")
         if not (is_stored) and error:
-            NotFittedError("Input data must be stored prior to this operation")
+            NotStoredError("Input data must be stored prior to this operation")
         return is_stored
 
     def fitted(self, error=False):
         """
-        Fitted means the fitting procedure has been executed successfully
+        Boolean switch to indicate if the fitting procedure has been executed successfully.
+        It does not tell anything about the quality and convergence of the actual solution.
+
+        :param error: raise error instead of returning
+        :return: Fitted status as boolean
+        :raise: :class:`scifit.errors.base.NotFittedError`
         """
         is_fitted = hasattr(self, "_solution")
         if not (self.stored(error=error)) or not (is_fitted) and error:
@@ -307,7 +326,12 @@ class FitSolverInterface:
 
     def solved(self, error=False):
         """
-        Solved means the fitting procedure has been executed successfully and has converged to a potential solution
+        Boolean switch to indicate if the fitting procedure has been executed successfully
+        and has converged to a potential solution.
+
+        :param error: raise error instead of returning
+        :return: Fitted status as boolean
+        :raise: :class:`scifit.errors.base.NotSolvedError`
         """
         has_converged = self.fitted(error=error) and self._solution["status"] in {
             1,
@@ -324,6 +348,14 @@ class FitSolverInterface:
         return has_converged
 
     def predict(self, xdata, parameters=None):
+        """
+        Predict target wrt features (variables) and parameters.
+        If parameters are not provided uses regressed parameters (problem needs to be solved first).
+
+        :param x: Features (variables) as :code:`(n,m)` matrix
+        :param parameters: Sequence of :code:`k` parameters with explicit names
+        :return: Predicted target as a :code:`(n,)` matrix
+        """
         if parameters is not None or self.fitted(error=True):
             return self.model(xdata, *(parameters or self._solution["parameters"]))
 
