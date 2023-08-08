@@ -504,23 +504,48 @@ class FitSolverInterface:
 
     def score(self, xdata, ydata, sigma=None, parameters=None):
         """
-        Compute Coefficient of Determination R2
+        Compute Coefficient of Determination :math:`R^2` as follows:
+
+        .. math::
+
+            R^2 = 1 - \\frac{RSS}{TSS}
+
+        :param xdata: Features (variables) as :code:`(n,m)` matrix
+        :param ydata: Target as :code:`(n,)` matrix
+        :param sigma: Uncertainty on target as :code:`(n,)` matrix or scalar or :code:`None`
+        :param parameters: Sequence of :code:`k` parameters
+        :return: Coefficient of Determination :math:`R^2`
         """
         return 1.0 - self.RSS(xdata, ydata) / self.TSS(ydata)
 
     score.name = "$R^2$"
 
     def goodness_of_fit(
-        self, xdata, ydata, sigma=None, parameters=None, full_output=False
+        self, xdata, ydata, sigma=None, parameters=None
     ):
         """
-        Compute Chi Square for Goodness of Fit
+        Compute Chi Square for Goodness of Fit (GoF) as follows:
+
+        - Create a Chi Square distribution :math:`\\chi^2(\\nu=n-k)`
+        - Assess critical values :math:`\\chi^2_c` for typical values of :math:`\\alpha = 0.95, 0.99, 0.999`:
+
+        .. math::
+
+            P\\left[\\chi^2 > \\chi^2_c\\right] \\geq 1 - \\alpha
+
+        - Compute actual Chi Square statistic :math:`\\chi^2_r` and the :math:`p`-value associated:
+
+        .. math::
+
+            p = P\\left[\\chi^2_\\nu < \\chi^2_r\\right]
+
+        :param xdata: Features (variables) as :code:`(n,m)` matrix
+        :param ydata: Target as :code:`(n,)` matrix
+        :param sigma: Uncertainty on target as :code:`(n,)` matrix or scalar or :code:`None`
+        :param parameters: Sequence of :code:`k` parameters
+        :return: Dictionary of objects containing elements to interpret the Chi Square Test for Goodness of Fit
         """
-        yhat = self.predict(xdata, parameters=parameters)
-        if sigma is None:
-            sigma = 1.0
-        terms = np.power((ydata - yhat) / sigma, 2)
-        statistic = np.sum(terms)
+        statistic = self.chi_square(xdata, ydata, sigma=sigma, parameters=parameters)
         normalized = statistic / self.n
         law = stats.chi2(df=self.dof)
         result = {
@@ -536,16 +561,6 @@ class FitSolverInterface:
             "P999": law.ppf(0.999),
             "law": law,
         }
-        if full_output:
-            result.update(
-                {
-                    "xdata": xdata,
-                    "ydata": ydata,
-                    "sigma": sigma,
-                    "yhat": yhat,
-                    "terms": terms,
-                }
-            )
         return result
 
     def parametrized_loss(self, sigma=None):
@@ -783,7 +798,7 @@ class FitSolverInterface:
             )
 
             if hasattr(self, "_gof"):
-                full_title += r", $P(\chi^2_{{{dof:d}}} > {normalized:.3f}) = {pvalue:.4f}$".format(
+                full_title += r", $P(\chi^2_{{{dof:d}}} < {normalized:.3f}) = {pvalue:.4f}$".format(
                     **self._gof
                 )
 
