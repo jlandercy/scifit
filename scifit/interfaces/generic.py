@@ -1,5 +1,6 @@
 import inspect
 import itertools
+import pprint
 from collections.abc import Iterable
 
 import matplotlib.patches as patches
@@ -556,36 +557,37 @@ class FitSolverInterface:
             "normalized": normalized,
             "pvalue": law.cdf(statistic),
             "law": law,
-            "critical": {
+            "significance": {
                 "left-sided": [],
                 "right-sided": [],
                 "two-sided": [],
             },
         }
-        for alpha in [0.500, 0.900, 0.050, 0.010, 0.005, 0.001]:
+        for alpha in [0.500, 0.100, 0.050, 0.010, 0.005, 0.001]:
             # Left Sided Test:
-            chi = law.cdf(alpha)
-            result["critical"]["left-sided"].append({
+            chi = law.ppf(alpha)
+            result["significance"]["left-sided"].append({
                 "alpha": alpha,
                 "value": chi,
                 "H0": chi <= statistic
             })
             # Right Sided Test:
-            chi = law.cdf(1.0 - alpha)
-            result["critical"]["right-sided"].append({
+            chi = law.ppf(1.0 - alpha)
+            result["significance"]["right-sided"].append({
                 "alpha": alpha,
                 "value": chi,
                 "H0": statistic <= chi
             })
             # Two Sided Test:
-            low = law.cdf(alpha/2.0)
-            high = law.cdf(1.0 - alpha/2.0)
-            result["critical"]["two-sided"].append({
+            low = law.ppf(alpha/2.0)
+            high = law.ppf(1.0 - alpha/2.0)
+            result["significance"]["two-sided"].append({
                 "alpha": alpha,
                 "low-value": low,
                 "high-value": high,
                 "H0": low <= statistic <= high
             })
+        pprint.pprint(result["significance"])
         return result
 
     def parametrized_loss(self, sigma=None):
