@@ -590,15 +590,33 @@ class FitSolverInterface:
         pprint.pprint(result["significance"])
         return result
 
-    def parametrized_loss(self, sigma=None):
+    def parametrized_loss(self, xdata=None, ydata=None, sigma=None):
         """
-        Vectorized loss wrt to parameter space
+        Wrapper: Loss function decorated with experimental data and vectorized for parameters.
+        This decorator load loss method with features (variables), target and sigma to expose only parameters.
+
+        .. code-block:: python
+
+            loss = solver.parametrized_loss(X, y, sigma)
+            chi2 = loss(*parameters)
+
+        :param xdata: Features (variables) as :code:`(n,m)` matrix
+        :param ydata: Target as :code:`(n,)` matrix
+        :param sigma: Uncertainty on target as :code:`(n,)` matrix or scalar or :code:`None`
+        :return: Wrapped loss function decorated with experimental data and vectorized for parameters
         """
+
+        if xdata is None:
+            xdata = self._xdata
+        if ydata is None:
+            ydata = self._ydata
+        if sigma is None:
+            sigma = self._sigma
 
         @np.vectorize
         def wrapped(*parameters):
             return self.loss(
-                self._xdata, self._ydata, sigma=sigma, parameters=parameters
+                xdata, ydata, sigma=sigma, parameters=parameters
             )
 
         return wrapped
@@ -606,6 +624,13 @@ class FitSolverInterface:
     def fit(self, xdata, ydata, sigma=None, **kwargs):
         """
         Solve fitting problem and store data and results
+
+        :param xdata:
+        :param ydata:
+        :param sigma:
+        :param kwargs:
+        :return:
+
         """
         self.store(xdata, ydata, sigma=sigma)
         self._solution = self.solve(
@@ -1018,3 +1043,6 @@ class FitSolverInterface:
 
                 axe._pair_indices = (0, 0)
                 yield axe
+
+    def plot_chi_square(self):
+        pass
