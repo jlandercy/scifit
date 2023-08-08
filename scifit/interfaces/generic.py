@@ -81,7 +81,7 @@ class FitSolverInterface:
 
     def store(self, xdata, ydata, sigma=None):
         """
-        Validate and store experimental data.
+        Validate and store features (variables), target and target uncertainties.
 
         :param xdata: Experimental features (variables) as a :code:`(n,m)` matrix
         :param ydata: Experimental target as a :code:`(n,)` matrix
@@ -303,7 +303,7 @@ class FitSolverInterface:
 
         :param error: raise error instead of returning
         :return: Stored status as boolean
-        :raise: :class:`scifit.errors.base.NotStoredError`
+        :raise: Exception :class:`scifit.errors.base.NotStoredError` if check fails
         """
         is_stored = hasattr(self, "_xdata") and hasattr(self, "_ydata")
         if not (is_stored) and error:
@@ -317,7 +317,7 @@ class FitSolverInterface:
 
         :param error: raise error instead of returning
         :return: Fitted status as boolean
-        :raise: :class:`scifit.errors.base.NotFittedError`
+        :raise: Exception :class:`scifit.errors.base.NotFittedError` if check fails
         """
         is_fitted = hasattr(self, "_solution")
         if not (self.stored(error=error)) or not (is_fitted) and error:
@@ -331,7 +331,7 @@ class FitSolverInterface:
 
         :param error: raise error instead of returning
         :return: Fitted status as boolean
-        :raise: :class:`scifit.errors.base.NotSolvedError`
+        :raise: Exception :class:`scifit.errors.base.NotSolvedError` if check fails
         """
         has_converged = self.fitted(error=error) and self._solution["status"] in {
             1,
@@ -353,7 +353,7 @@ class FitSolverInterface:
         If parameters are not provided uses regressed parameters (problem needs to be solved first).
 
         :param x: Features (variables) as :code:`(n,m)` matrix
-        :param parameters: Sequence of :code:`k` parameters with explicit names
+        :param parameters: Sequence of :code:`k` parameters
         :return: Predicted target as a :code:`(n,)` matrix
         """
         if parameters is not None or self.fitted(error=True):
@@ -361,6 +361,21 @@ class FitSolverInterface:
 
     @property
     def degree_of_freedom(self):
+        """
+        Return the degree of freedom :math:`\\nu` of the actual fitting problem as defined for a
+        Chi Square Goodness if Fit Test:
+
+        .. math::
+
+            \\nu = n - k
+
+        Where:
+
+        - :math:`n` is the number of observations
+        - :math:`k` is the number of model parameters
+
+        :return: Degree of freedom :math:`\\nu` (strictly positive natural number)
+        """
         dof = self.n - self.k
         if dof < 1:
             raise ConfigurationError("Degree of freedom must be greater than zero")
@@ -368,28 +383,130 @@ class FitSolverInterface:
 
     @property
     def dof(self):
+        """
+        :return: Degree of freedom :math:`\\nu` (strictly positive natural number)
+        """
         return self.degree_of_freedom
 
-    def loss(self, xdata, ydata, sigma=None, parameters=None):
+    def sigma_weight(self, sigma=None):
         """
-        Compute Chi Square Statistic reduced to Sum of Squared Error if no sigma provided
+        Compute uncertainties associated weights as follows:
+
+        .. math::
+
+            w_i = \\frac{1}{\\sigma^2_i}
+
+        :param sigma: Uncertainty on target as :code:`(n,)` matrix or scalar or :code:`None`
+        :return: Weights as :code:`(n,)` matrix computed from uncertainties
         """
         if sigma is None:
             sigma = 1.0
+        return 1.0/np.power(sigma, 2)
+
+    def WRSS(self, xdata, ydata, wdata=None, parameters=None):
+        """
+        Compute Weighted Residual Sum of Square (WRSS) which is equivalent to the loss function for this solver.
+
+        .. math::
+
+            WRSS = \\sum\\limits_{i=1}^{n}w_i\cdot \\left(y_i - \\hat{y}_i\\right)^2 = \\sum\\limits_{i=1}^{n}w_i \cdot e_i^2
+
+        :param xdata: Features (variables) as :code:`(n,m)` matrix
+        :param ydata: Target as :code:`(n,)` matrix
+        :param wdata: Weights as :code:`(n,)` matrix or scalar or :code:`None`
+        :param parameters: Sequence of :code:`k` parameters
+        :return: Weighted Residual Sum of Square for given features, target, parameters and target uncertainties
+        """
+        if wdata is None:
+            wdata = 1.0
 
         return np.sum(
-            np.power((ydata - self.predict(xdata, parameters=parameters)) / sigma, 2)
+            wdata * np.power(
+                (ydata - self.predict(xdata, parameters=parameters)), 2
+            )
         )
 
+    def RSS(self, xdata, ydata, parameters=None):
+        """
+        Compute Residual Sum of Square (RSS) which is equivalent to the loss function for this solver.
+
+        .. math::
+
+            RSS = \\sum\\limits_{i=1}^{n}\\left(y_i - \\hat{y}_i\\right)^2 = \\sum\\limits_{i=1}^{n}e_i^2
+
+        :param xdata: Features (variables) as :code:`(n,m)` matrix
+        :param ydata: Target as :code:`(n,)` matrix
+        :param parameters: Sequence of :code:`k` parameters
+        :return: Residual Sum of Square for given features, target, parameters and target uncertainties
+        """
+        return self.WRSS(xdata, ydata, wdata=1.0, parameters=parameters)
+
+    def chi_square(self, xdata, ydata, sigma=None, parameters=None):
+        """
+        Compute Chi Square Statistic :math:`\\chi^2` reduced to Residual Sum of Squares (RSS) if no sigma provided.
+
+        .. math::
+
+            \\chi^2 = \\sum\\limits_{i=1}^{n}\\left(\\frac{y_i - \\hat{y}_i}{\\sigma_i}\\right)^2
+
+        :param xdata: Features (variables) as :code:`(n,m)` matrix
+        :param ydata: Target as :code:`(n,)` matrix
+        :param sigma: Uncertainty on target as :code:`(n,)` matrix or scalar or :code:`None`
+        :param parameters: Sequence of :code:`k` parameters
+        :return: Chi Square statistic :math:`\\chi^2` for given features, target, parameters and target uncertainties
+        """
+        return self.WRSS(xdata, ydata, wdata=self.sigma_weight(sigma), parameters=parameters)
+
+    def loss(self, xdata, ydata, sigma=None, parameters=None):
+        """
+        Compute loss function :math:`L(\\mathbf{x}, y, \\beta)` as Chi Square statistic :math:`\\chi^2`:
+
+        .. math::
+
+            L(\\mathbf{x}, y, \\beta) = \\chi^2 = \\sum\\limits_{i=1}^{n}\\left(\\frac{y_i - \\hat{y}_i}{\\sigma_i}\\right)^2
+
+        :param xdata: Features (variables) as :code:`(n,m)` matrix
+        :param ydata: Target as :code:`(n,)` matrix
+        :param sigma: Uncertainty on target as :code:`(n,)` matrix or scalar or :code:`None`
+        :param parameters: Sequence of :code:`k` parameters
+        :return: Chi Square statistic :math:`\\chi^2` for given features, target, parameters and target uncertainties
+        """
+        return self.chi_square(xdata, ydata, sigma=sigma, parameters=parameters)
+
     loss.name = "$\chi^2$"
+
+    def weighted_mean(self, ydata, wdata=None):
+        """
+        Compute weighted mean as follows:
+
+        .. math::
+
+            \\bar{y}_w = \\frac{ \\sum\\limits_{i=1}^n w_i \cdot y_i}{\\sum\\limits_{i=1}^n w_i}
+
+        :param ydata: Variable as :code:`(n,)` matrix
+        :param wdata: Weights as :code:`(n,)` matrix or scalar or :code:`None`
+        :return:
+        """
+        return np.sum(ydata * wdata)/np.sum(wdata)
+
+    def TSS(self, ydata):
+        """
+        Compute Total Sum of Square (TSS) as follows:
+
+        .. math::
+
+            TSS = \\sum\\limits_{i=1}^{n}\\left(y_i - \\bar{y}\\right)^2
+
+        :param ydata: Variable as :code:`(n,)` matrix
+        :return: Total Sum of Square for the given data
+        """
+        return np.sum(np.power(ydata - ydata.mean(), 2))
 
     def score(self, xdata, ydata, sigma=None, parameters=None):
         """
         Compute Coefficient of Determination R2
         """
-        RSS = np.sum(np.power(ydata - self.predict(xdata, parameters=parameters), 2))
-        TSS = np.sum(np.power(ydata - self._ydata.mean(), 2))
-        return 1 - RSS / TSS
+        return 1.0 - self.RSS(xdata, ydata) / self.TSS(ydata)
 
     score.name = "$R^2$"
 
