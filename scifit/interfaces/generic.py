@@ -822,12 +822,12 @@ class FitSolverInterface:
             )
         )
 
-    def get_latex_parameters(self, show_sigma=True, precision=2, mode="f"):
+    def get_latex_parameters(self, show_sigma=True, precision=3, mode="f"):
         if self.fitted(error=True):
             terms = []
             for i, parameter in enumerate(self._solution["parameters"]):
                 term = ("{:.%d%s}" % (precision, mode)).format(
-                    i, parameter
+                    parameter
                 )
                 if show_sigma:
                     term += (r" \pm {:.%d%s}" % (precision, mode)).format(
