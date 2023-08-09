@@ -256,23 +256,19 @@ class GenericTestFitSolver:
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        for i, axe in enumerate(
-            self.solver.plot_fit(title=title, errors=True, squared_errors=False)
-        ):
-            axe.figure.savefig("{}/{}_fit_x{}.png".format(self.media_path, name, i))
-            plt.close(axe.figure)
+        axe = self.solver.plot_fit(title=title, errors=True, squared_errors=False)
+        axe.figure.savefig("{}/{}_fit_x{}.png".format(self.media_path, name, 0))
+        plt.close(axe.figure)
 
     def test_plot_chi_square(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        for i, axe in enumerate(
-            self.solver.plot_chi_square(title=title)
-        ):
-            axe.figure.savefig("{}/{}_chi2.png".format(self.media_path, name))
-            plt.close(axe.figure)
+        axe = self.solver.plot_chi_square(title=title)
+        axe.figure.savefig("{}/{}_chi2.png".format(self.media_path, name))
+        plt.close(axe.figure)
 
-    def _test_plot_loss(self):
+    def test_plot_loss(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)

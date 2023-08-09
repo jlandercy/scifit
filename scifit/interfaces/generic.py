@@ -873,67 +873,66 @@ class FitSolverInterface:
             full_title = "Fit Plot: {}\n{}".format(title, self.get_title())
             if self.m == 1:
                 scales = self.feature_scales(resolution=resolution)
-                for feature_index, scale in enumerate(scales):
-                    xdata = self._xdata[:, feature_index]
-                    error = self._ydata - self._yhat
-                    xscale = scale.reshape(-1, 1)
 
-                    fig, axe = plt.subplots()
+                xdata = self._xdata[:, 0]
+                error = self._ydata - self._yhat
+                xscale = scales[0].reshape(-1, 1)
 
-                    if self._sigma is None:
-                        axe.plot(
-                            xdata,
-                            self._ydata,
-                            linestyle="none",
-                            marker=".",
-                            label=r"Data: $(x_{{{}}},y)$".format(feature_index),
-                        )
-                    else:
-                        axe.errorbar(
-                            xdata,
-                            self._ydata,
-                            yerr=self._sigma,
-                            lolims=False,
-                            uplims=False,
-                            linestyle="none",
-                            marker=".",
-                            label=r"Data: $(x_{{{}}},y)$".format(feature_index),
-                        )
+                fig, axe = plt.subplots()
 
+                if self._sigma is None:
                     axe.plot(
-                        xscale,
-                        self.predict(xscale),
-                        label=r"Fit: $\hat{y} = f(\bar{x},\bar{\beta})$",
+                        xdata,
+                        self._ydata,
+                        linestyle="none",
+                        marker=".",
+                        label=r"Data: $(x_{{{}}},y)$".format(0),
+                    )
+                else:
+                    axe.errorbar(
+                        xdata,
+                        self._ydata,
+                        yerr=self._sigma,
+                        lolims=False,
+                        uplims=False,
+                        linestyle="none",
+                        marker=".",
+                        label=r"Data: $(x_{{{}}},y)$".format(0),
                     )
 
-                    if errors:
-                        for xs, y, e in zip(xdata, self._ydata, error):
-                            axe.plot([xs, xs], [y, y - e], color="blue", linewidth=0.25)
+                axe.plot(
+                    xscale,
+                    self.predict(xscale),
+                    label=r"Fit: $\hat{y} = f(\bar{x},\bar{\beta})$",
+                )
 
-                    if squared_errors:
-                        for xs, y, e in zip(xdata, self._ydata, error):
-                            square = patches.Rectangle(
-                                (xs, y),
-                                -e,
-                                -e,
-                                linewidth=0.0,
-                                edgecolor="black",
-                                facecolor="lightblue",
-                                alpha=0.5,
-                            )
-                            axe.add_patch(square)
+                if errors:
+                    for xs, y, e in zip(xdata, self._ydata, error):
+                        axe.plot([xs, xs], [y, y - e], color="blue", linewidth=0.25)
 
-                    axe.set_title(full_title, fontdict={"fontsize": 10})
-                    axe.set_xlabel(r"Feature, $x_{{{}}}$".format(feature_index))
-                    axe.set_ylabel(r"Target, $y$")
-                    axe.set_aspect(aspect)
-                    axe.legend()
-                    axe.grid()
+                if squared_errors:
+                    for xs, y, e in zip(xdata, self._ydata, error):
+                        square = patches.Rectangle(
+                            (xs, y),
+                            -e,
+                            -e,
+                            linewidth=0.0,
+                            edgecolor="black",
+                            facecolor="lightblue",
+                            alpha=0.5,
+                        )
+                        axe.add_patch(square)
 
-                    fig.subplots_adjust(top=0.8, left=0.2)
-                    # fig.tight_layout()
+                axe.set_title(full_title, fontdict={"fontsize": 10})
+                axe.set_xlabel(r"Feature, $x_{{{}}}$".format(0))
+                axe.set_ylabel(r"Target, $y$")
+                axe.set_aspect(aspect)
+                axe.legend()
+                axe.grid()
 
-                    yield axe
+                fig.subplots_adjust(top=0.8, left=0.2)
+
+                return axe
 
             elif self.m == 2:
                 fig = plt.figure()
@@ -967,7 +966,7 @@ class FitSolverInterface:
 
                 fig.subplots_adjust(top=0.8, left=0.2)
 
-                yield axe
+                return axe
 
             else:
                 pass
@@ -1075,4 +1074,4 @@ class FitSolverInterface:
 
             fig.subplots_adjust(top=0.8, left=0.15)
 
-            yield axe
+            return axe
