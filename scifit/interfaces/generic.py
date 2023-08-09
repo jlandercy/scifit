@@ -587,7 +587,6 @@ class FitSolverInterface:
                 "high-value": high,
                 "H0": low <= statistic <= high
             })
-        pprint.pprint(result["significance"])
         return result
 
     def parametrized_loss(self, xdata=None, ydata=None, sigma=None):
@@ -1061,6 +1060,10 @@ class FitSolverInterface:
             axe.axvline(statistic, linestyle="-.", color="black", label="r$\chi^2_r = {:.3f}$".format(statistic))
 
             for alpha, color in zip([0.050, 0.01], ["orange", "red"]):
+
+                chi2 = law.ppf(alpha)
+                axe.axvline(chi2, color=color, linestyle="--", label=r"$\chi^2_{{\alpha = {:.2f}}} = {:.1f}$".format(alpha, chi2))
+
                 chi2 = law.ppf(1.0 - alpha)
                 axe.axvline(chi2, color=color, label=r"$\chi^2_{{\alpha = {:.2f}}} = {:.1f}$".format(alpha, chi2))
 
