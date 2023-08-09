@@ -1044,5 +1044,32 @@ class FitSolverInterface:
                 axe._pair_indices = (0, 0)
                 yield axe
 
-    def plot_chi_square(self):
-        pass
+    def plot_chi_square(self, title=""):
+
+        if self.fitted(error=True):
+            full_title = "Fit $\chi^2$ Plot: {}\n{}".format(title, self.get_title())
+
+            law = self._gof["law"]
+            statistic = self._gof["statistic"]
+            xlin = np.linspace(0.0, law.ppf(0.9999), 200)
+            xarea = np.linspace(statistic, law.ppf(0.9999), 200)
+
+            fig, axe = plt.subplots()
+
+            axe.plot(xlin, law.pdf(xlin), label=r"$\chi^2(\nu={:d})$".format(self._gof["dof"]))
+            axe.fill_between(xarea, law.pdf(xarea), alpha=0.5, label=r"$p$ = {:.4f}".format(self._gof["pvalue"]))
+            axe.axvline(statistic, linestyle="-.", color="black", label="r$\chi^2_r = {:.3f}$".format(statistic))
+
+            for alpha, color in zip([0.050, 0.01], ["orange", "red"]):
+                chi2 = law.ppf(1.0 - alpha)
+                axe.axvline(chi2, color=color, label=r"$\chi^2_{{\alpha = {:.2f}}} = {:.1f}$".format(alpha, chi2))
+
+            axe.set_title(full_title, fontdict={"fontsize": 10})
+            axe.set_xlabel(r"Random Variable, $\chi^2$")
+            axe.set_ylabel(r"Density, $f(\chi^2)$")
+            axe.legend()
+            axe.grid()
+
+            fig.subplots_adjust(top=0.8, left=0.15)
+
+            yield axe
