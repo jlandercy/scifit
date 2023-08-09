@@ -826,17 +826,17 @@ class FitSolverInterface:
         if self.fitted(error=True):
             terms = []
             for i, parameter in enumerate(self._solution["parameters"]):
-                term = (r"$\beta_{{{:d}}}=${:.%d%s}" % (precision, mode)).format(
+                term = ("{:.%d%s}" % (precision, mode)).format(
                     i, parameter
                 )
                 if show_sigma:
-                    term += (r" $\pm$ {:.%d%s}" % (precision, mode)).format(
+                    term += (r" \pm {:.%d%s}" % (precision, mode)).format(
                         np.sqrt(self._solution["covariance"][i][i])
                     )
                 # if i % 4 == 0:
                 #     term += "\n"
                 terms.append(term)
-            return ", ".join(terms)
+            return r"$\beta = ({})$".format(", ".join(terms))
 
     def get_title(self):
         if self.fitted(error=True):
@@ -863,7 +863,7 @@ class FitSolverInterface:
         errors=False,
         squared_errors=False,
         aspect="auto",
-        resolution=200,
+        resolution=100,
     ):
         """
         Plot data and fitted function for each feature
@@ -979,7 +979,7 @@ class FitSolverInterface:
         xmax=None,
         title="",
         levels=None,
-        resolution=40,
+        resolution=75,
     ):
         """
         Plot loss function for each parameter pairs
@@ -1043,7 +1043,7 @@ class FitSolverInterface:
                 axe._pair_indices = (0, 0)
                 yield axe
 
-    def plot_chi_square(self, title="", resolution=40):
+    def plot_chi_square(self, title="", resolution=100):
 
         if self.fitted(error=True):
             full_title = "Fit $\chi^2$ Plot: {}\n{}".format(title, self.get_title())
@@ -1059,13 +1059,13 @@ class FitSolverInterface:
             axe.fill_between(xarea, law.pdf(xarea), alpha=0.5, label=r"$p$ = {:.4f}".format(self._gof["pvalue"]))
             axe.axvline(statistic, linestyle="-.", color="black", label="r$\chi^2_r = {:.3f}$".format(statistic))
 
-            for alpha, color in zip([0.050, 0.010, 0.005], ["orange", "darkorange", "red"]):
+            for alpha, color in zip([0.050, 0.025, 0.010, 0.005], ["orange", "darkorange", "red", "darkred"]):
 
                 chi2 = law.ppf(alpha)
-                axe.axvline(chi2, color=color, linestyle="--", label=r"$\chi^2_{{\alpha = {:.2f}}} = {:.1f}$".format(alpha, chi2))
+                axe.axvline(chi2, color=color, linestyle="--", label=r"$\chi^2_{{\alpha = {:.1f}\%}} = {:.1f}$".format(alpha * 100.0, chi2))
 
                 chi2 = law.ppf(1.0 - alpha)
-                axe.axvline(chi2, color=color, label=r"$\chi^2_{{\alpha = {:.3f}}} = {:.1f}$".format(alpha, chi2))
+                axe.axvline(chi2, color=color, label=r"$\chi^2_{{\alpha = {:.1f}\%}} = {:.1f}$".format(alpha * 100.0, chi2))
 
             axe.set_title(full_title, fontdict={"fontsize": 10})
             axe.set_xlabel(r"Random Variable, $\chi^2$")
