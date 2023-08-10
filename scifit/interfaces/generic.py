@@ -1069,6 +1069,8 @@ class FitSolverInterface:
         title="",
         levels=None,
         resolution=75,
+        add_labels=True,
+        add_title=True,
     ):
         """
         Plot loss function for each parameter pairs
@@ -1106,8 +1108,9 @@ class FitSolverInterface:
                     self._solution["parameters"][first_index], color="black", linestyle="-."
                 )
 
-                axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index))
-                axe.set_ylabel(r"Loss, $L(\beta_{{{}}})$".format(first_index))
+                if add_labels:
+                    axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index))
+                    axe.set_ylabel(r"Loss, $L(\beta_{{{}}})$".format(first_index))
 
                 axe._pair_indices = (first_index, first_index)
 
@@ -1125,8 +1128,8 @@ class FitSolverInterface:
                 parameters[second_index] = y
                 score = self.parametrized_loss(sigma=self._sigma)(*parameters)
 
-                labels = axe.contour(x, y, score, levels or 10, cmap="jet")
-                axe.clabel(labels, labels.levels, inline=True, fontsize=7)
+                clabels = axe.contour(x, y, score, levels or 10, cmap="jet")
+                axe.clabel(clabels, clabels.levels, inline=True, fontsize=7)
 
                 axe.axvline(
                     self._solution["parameters"][first_index], color="black", linestyle="-."
@@ -1135,16 +1138,20 @@ class FitSolverInterface:
                     self._solution["parameters"][second_index], color="black", linestyle="-."
                 )
 
-                axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index))
-                axe.set_ylabel(r"Parameter, $\beta_{{{}}}$".format(second_index))
+                if add_labels:
+                    axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index))
+                    axe.set_ylabel(r"Parameter, $\beta_{{{}}}$".format(second_index))
 
             else:
                 raise ConfigurationError("Cannot plot loss due to configuration")
 
-            axe.set_title(full_title, fontdict={"fontsize": 10})
+            if add_title:
+                axe.set_title(full_title, fontdict={"fontsize": 10})
+                fig.subplots_adjust(top=0.8, left=0.2)
+
             axe.grid()
+
             axe._pair_indices = (first_index, second_index)
-            fig.subplots_adjust(top=0.8, left=0.2)
 
             return axe
 
@@ -1171,7 +1178,8 @@ class FitSolverInterface:
             full_title = "Fit Loss Plot: {}\n{}".format(title, self.get_title())
 
             fig, axes = plt.subplots(
-                ncols=self.k - 1, nrows=self.k - 1, sharex="col", sharey="row"
+                ncols=self.k - 1, nrows=self.k - 1, sharex="col", sharey="row",
+                gridspec_kw={"wspace": 0.05, "hspace": 0.05}
             )
 
             for i, j in itertools.combinations(range(self.k), 2):
@@ -1180,12 +1188,21 @@ class FitSolverInterface:
 
                     axe = self.plot_loss_low_dimension(
                         first_index=i, second_index=j, axe=axes[j - 1][i],
-                        mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, title=title, levels=levels, resolution=resolution
+                        mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, title=title, levels=levels, resolution=resolution,
+                        add_labels=False, add_title=False,
                     )
 
-                    axe.tick_params(axis='x', labelbottom='off')
-                    axe.tick_params(axis='y', labelbottom='off')
+                    if i == 0:
+                        axe.set_ylabel(r"$\beta_{{{}}}$".format(j))
+
+                    if j == self.k - 1:
+                        axe.set_xlabel(r"$\beta_{{{}}}$".format(i))
+
+                elif j <= i < self.k:
+                    print(i, j)
+                    axe[j][i].set_axis_off()
 
             fig.suptitle(full_title, fontsize=10)
+            fig.subplots_adjust(top=0.8, left=0.2)
 
         return axe
