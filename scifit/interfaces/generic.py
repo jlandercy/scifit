@@ -1065,6 +1065,7 @@ class FitSolverInterface:
         xmax=None,
         title="",
         levels=None,
+        scatter=False,
         resolution=75,
     ):
         """
@@ -1078,64 +1079,74 @@ class FitSolverInterface:
         """
 
         if self.fitted(error=True):
+
             full_title = "Fit Loss Plot: {}\n{}".format(title, self.get_title())
 
             scales = self.parameter_scales(
                 mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, resolution=resolution
             )
 
-            if self.k >= 1:
+            if scatter:
+                fig, axes = plt.subplots(self.k, self.k)
 
-                for i, j in itertools.combinations_with_replacement(range(self.k), 2):
+            for i, j in itertools.combinations_with_replacement(range(self.k), 2):
 
-                    if i != j:
+                if i != j:
 
-                        x, y = np.meshgrid(scales[i], scales[j])
-                        parameters = list(self._solution["parameters"])
-                        parameters[i] = x
-                        parameters[j] = y
-                        score = self.parametrized_loss(sigma=self._sigma)(*parameters)
+                    x, y = np.meshgrid(scales[i], scales[j])
+                    parameters = list(self._solution["parameters"])
+                    parameters[i] = x
+                    parameters[j] = y
+                    score = self.parametrized_loss(sigma=self._sigma)(*parameters)
 
+                    if scatter:
+                        axe = axes[i][j]
+                    else:
                         fig, axe = plt.subplots()
-                        labels = axe.contour(x, y, score, levels or 10, cmap="jet")
-                        axe.clabel(labels, labels.levels, inline=True, fontsize=7)
 
-                        axe.axvline(
-                            self._solution["parameters"][i], color="black", linestyle="-."
-                        )
-                        axe.axhline(
-                            self._solution["parameters"][j], color="black", linestyle="-."
-                        )
+                    labels = axe.contour(x, y, score, levels or 10, cmap="jet")
+                    axe.clabel(labels, labels.levels, inline=True, fontsize=7)
 
-                        axe.set_title(full_title, fontdict={"fontsize": 10})
-                        axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(i))
-                        axe.set_ylabel(r"Parameter, $\beta_{{{}}}$".format(j))
-                        axe.grid()
+                    axe.axvline(
+                        self._solution["parameters"][i], color="black", linestyle="-."
+                    )
+                    axe.axhline(
+                        self._solution["parameters"][j], color="black", linestyle="-."
+                    )
 
-                        fig.subplots_adjust(top=0.8, left=0.2)
+                    axe.set_title(full_title, fontdict={"fontsize": 10})
+                    axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(i))
+                    axe.set_ylabel(r"Parameter, $\beta_{{{}}}$".format(j))
+                    axe.grid()
 
-                        axe._pair_indices = (i, j)
-                        yield axe
+                    fig.subplots_adjust(top=0.8, left=0.2)
 
-                    elif i == j:
+                    axe._pair_indices = (i, j)
+                    yield axe
 
-                        parameters = list(self._solution["parameters"])
-                        parameters[i] = scales[i]
-                        score = self.parametrized_loss(sigma=self._sigma)(*parameters)
+                elif i == j:
 
+                    parameters = list(self._solution["parameters"])
+                    parameters[i] = scales[i]
+                    score = self.parametrized_loss(sigma=self._sigma)(*parameters)
+
+                    if scatter:
+                        axe = axes[i][i]
+                    else:
                         fig, axe = plt.subplots()
-                        axe.plot(scales[i], score)
-                        axe.axvline(
-                            self._solution["parameters"][0], color="black", linestyle="-."
-                        )
 
-                        axe.set_title(full_title, fontdict={"fontsize": 10})
+                    axe.plot(scales[i], score)
+                    axe.axvline(
+                        self._solution["parameters"][i], color="black", linestyle="-."
+                    )
 
-                        axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(i))
-                        axe.set_ylabel(r"Loss, $L(\beta_{{{}}})$".format(i))
-                        axe.grid()
+                    axe.set_title(full_title, fontdict={"fontsize": 10})
 
-                        fig.subplots_adjust(top=0.8, left=0.2)
+                    axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(i))
+                    axe.set_ylabel(r"Loss, $L(\beta_{{{}}})$".format(i))
+                    axe.grid()
 
-                        axe._pair_indices = (i, i)
-                        yield axe
+                    fig.subplots_adjust(top=0.8, left=0.2)
+
+                    axe._pair_indices = (i, i)
+                    yield axe
