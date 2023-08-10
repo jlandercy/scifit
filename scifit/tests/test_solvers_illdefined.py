@@ -17,7 +17,5 @@ class IncompleteLogisticRegression(GenericLinearRegression):
     parameters = np.array([3.1, 1.27])
 
 
-class IncompleteLogisticRegressionNoiseL0(
-    IncompleteLogisticRegression, TestCase
-):
+class IncompleteLogisticRegressionNoiseL0(IncompleteLogisticRegression, TestCase):
     sigma = 1e-6

@@ -402,7 +402,7 @@ class FitSolverInterface:
         """
         if sigma is None:
             sigma = 1.0
-        return 1.0/np.power(sigma, 2)
+        return 1.0 / np.power(sigma, 2)
 
     def WRSS(self, xdata, ydata, wdata=None, parameters=None):
         """
@@ -422,9 +422,7 @@ class FitSolverInterface:
             wdata = 1.0
 
         return np.sum(
-            wdata * np.power(
-                (ydata - self.predict(xdata, parameters=parameters)), 2
-            )
+            wdata * np.power((ydata - self.predict(xdata, parameters=parameters)), 2)
         )
 
     def RSS(self, xdata, ydata, parameters=None):
@@ -456,7 +454,9 @@ class FitSolverInterface:
         :param parameters: Sequence of :code:`k` parameters
         :return: Chi Square statistic :math:`\\chi^2` for given features, target, parameters and target uncertainties
         """
-        return self.WRSS(xdata, ydata, wdata=self.sigma_weight(sigma), parameters=parameters)
+        return self.WRSS(
+            xdata, ydata, wdata=self.sigma_weight(sigma), parameters=parameters
+        )
 
     def loss(self, xdata, ydata, sigma=None, parameters=None):
         """
@@ -488,7 +488,7 @@ class FitSolverInterface:
         :param wdata: Weights as :code:`(n,)` matrix or scalar or :code:`None`
         :return:
         """
-        return np.sum(ydata * wdata)/np.sum(wdata)
+        return np.sum(ydata * wdata) / np.sum(wdata)
 
     def TSS(self, ydata):
         """
@@ -521,14 +521,17 @@ class FitSolverInterface:
 
     score.name = "$R^2$"
 
-    def goodness_of_fit(
-        self, xdata, ydata, sigma=None, parameters=None
-    ):
+    def goodness_of_fit(self, xdata, ydata, sigma=None, parameters=None):
         """
         Compute Chi Square for Goodness of Fit (GoF) as follows:
 
         - Create a Chi Square distribution :math:`\\chi^2(\\nu=n-k)`
-        - Assess critical values :math:`\\chi^2_c` for typical values of :math:`\\alpha = 0.95, 0.99, 0.999`:
+        - Assess critical values :math:`\\chi^2_c` for typical values of :math:`\\alpha = 0.05, 0.01, 0.005, 0.001` for
+          left and right sided tests:
+
+        .. math::
+
+            P\\left[\\chi^2 \\leq \\chi^2_c\\right] = \\int\\limits_{-\\infty}^{\\chi^2_c}f(x)\\mathrm{d}x = \\alpha \\Rightarrow \\chi^2_c = \\mathrm{ppf}(\\alpha)
 
         .. math::
 
@@ -539,6 +542,15 @@ class FitSolverInterface:
         .. math::
 
             p = P\\left[\\chi^2 \\geq \\chi^2_r\\right] = \\int\\limits_{\\chi^2_r}^{+\\infty}f(x)\\mathrm{d}x = 1 - \\mathrm{cdf}(\\chi^2_r) = \\mathrm{sf}(\\chi^2_r)
+
+        - Check for typical values of :math:`\\alpha` if :math:`H_0` must be rejected or not in three modes:
+        left, right and both sided.
+
+        Figure below shows a chi square tests for an adjustment:
+
+        .. image:: ../media/figures/GoodnessOfFitPlot.png
+          :width: 560
+          :alt: Chi Square Goodness of Fit Plot
 
         :param xdata: Features (variables) as :code:`(n,m)` matrix
         :param ydata: Target as :code:`(n,)` matrix
@@ -566,27 +578,25 @@ class FitSolverInterface:
         for alpha in [0.500, 0.100, 0.050, 0.010, 0.005, 0.001]:
             # Left Sided Test:
             chi = law.ppf(alpha)
-            result["significance"]["left-sided"].append({
-                "alpha": alpha,
-                "value": chi,
-                "H0": chi <= statistic
-            })
+            result["significance"]["left-sided"].append(
+                {"alpha": alpha, "value": chi, "H0": chi <= statistic}
+            )
             # Right Sided Test:
             chi = law.ppf(1.0 - alpha)
-            result["significance"]["right-sided"].append({
-                "alpha": alpha,
-                "value": chi,
-                "H0": statistic <= chi
-            })
+            result["significance"]["right-sided"].append(
+                {"alpha": alpha, "value": chi, "H0": statistic <= chi}
+            )
             # Two Sided Test:
-            low = law.ppf(alpha/2.0)
-            high = law.ppf(1.0 - alpha/2.0)
-            result["significance"]["two-sided"].append({
-                "alpha": alpha,
-                "low-value": low,
-                "high-value": high,
-                "H0": low <= statistic <= high
-            })
+            low = law.ppf(alpha / 2.0)
+            high = law.ppf(1.0 - alpha / 2.0)
+            result["significance"]["two-sided"].append(
+                {
+                    "alpha": alpha,
+                    "low-value": low,
+                    "high-value": high,
+                    "H0": low <= statistic <= high,
+                }
+            )
         return result
 
     def parametrized_loss(self, xdata=None, ydata=None, sigma=None):
@@ -614,9 +624,7 @@ class FitSolverInterface:
 
         @np.vectorize
         def wrapped(*parameters):
-            return self.loss(
-                xdata, ydata, sigma=sigma, parameters=parameters
-            )
+            return self.loss(xdata, ydata, sigma=sigma, parameters=parameters)
 
         return wrapped
 
@@ -826,9 +834,7 @@ class FitSolverInterface:
         if self.fitted(error=True):
             terms = []
             for i, parameter in enumerate(self._solution["parameters"]):
-                term = ("{:.%d%s}" % (precision, mode)).format(
-                    parameter
-                )
+                term = ("{:.%d%s}" % (precision, mode)).format(parameter)
                 if show_sigma:
                     term += (r" \pm {:.%d%s}" % (precision, mode)).format(
                         np.sqrt(self._solution["covariance"][i][i])
@@ -867,6 +873,12 @@ class FitSolverInterface:
     ):
         """
         Plot data and fitted function for each feature
+
+        .. image:: ../media/figures/FitPlot.png
+            :width: 560
+            :alt: Fit Plot
+
+
         """
 
         if self.fitted(error=True):
@@ -971,6 +983,80 @@ class FitSolverInterface:
             else:
                 pass
 
+    def plot_chi_square(self, title="", resolution=100):
+        """
+
+        .. image:: ../media/figures/GoodnessOfFitPlot.png
+            :width: 560
+            :alt: Chi Square Goodness of Fit Plot
+
+
+        :param title:
+        :param resolution:
+        :return:
+        """
+        if self.fitted(error=True):
+            full_title = "Fit $\chi^2$ Plot: {}\n{}".format(title, self.get_title())
+
+            law = self._gof["law"]
+            statistic = self._gof["statistic"]
+            xlin = np.linspace(law.ppf(0.0001), law.ppf(0.9999), resolution)
+            xarea = np.linspace(statistic, law.ppf(0.9999), resolution)
+
+            fig, axe = plt.subplots()
+
+            axe.plot(
+                xlin,
+                law.pdf(xlin),
+                label=r"$\chi^2(\nu={:d})$".format(self._gof["dof"]),
+            )
+            axe.fill_between(
+                xarea,
+                law.pdf(xarea),
+                alpha=0.5,
+                label=r"$p$ = {:.4f}".format(self._gof["pvalue"]),
+            )
+            axe.axvline(
+                statistic,
+                linestyle="-.",
+                color="black",
+                label="r$\chi^2_r = {:.3f}$".format(statistic),
+            )
+
+            alphas = [0.050, 0.025, 0.010, 0.005]
+            colors = ["orange", "darkorange", "red", "darkred"]
+
+            for alpha, color in zip(reversed(alphas), reversed(colors)):
+                chi2 = law.ppf(alpha)
+                axe.axvline(
+                    chi2,
+                    color=color,
+                    linestyle="--",
+                    label=r"$\chi^2_{{\alpha = {:.1f}\%}} = {:.1f}$".format(
+                        alpha * 100.0, chi2
+                    ),
+                )
+
+            for alpha, color in zip(alphas, colors):
+                chi2 = law.ppf(1.0 - alpha)
+                axe.axvline(
+                    chi2,
+                    color=color,
+                    label=r"$\chi^2_{{\alpha = {:.1f}\%}} = {:.1f}$".format(
+                        alpha * 100.0, chi2
+                    ),
+                )
+
+            axe.set_title(full_title, fontdict={"fontsize": 10})
+            axe.set_xlabel(r"Random Variable, $\chi^2$")
+            axe.set_ylabel(r"Density, $f(\chi^2)$")
+            axe.legend(bbox_to_anchor=(1, 1), fontsize=8)
+            axe.grid()
+
+            fig.subplots_adjust(top=0.8, left=0.15, right=0.75)
+
+            return axe
+
     def plot_loss(
         self,
         mode="lin",
@@ -984,6 +1070,11 @@ class FitSolverInterface:
         """
         Plot loss function for each parameter pairs
         Make it as scatter
+
+        .. image:: ../media/figures/FitLossPlot.png
+            :width: 560
+            :alt: Fit Loss Plot
+
         """
 
         if self.fitted(error=True):
@@ -1042,37 +1133,3 @@ class FitSolverInterface:
 
                 axe._pair_indices = (0, 0)
                 yield axe
-
-    def plot_chi_square(self, title="", resolution=100):
-
-        if self.fitted(error=True):
-            full_title = "Fit $\chi^2$ Plot: {}\n{}".format(title, self.get_title())
-
-            law = self._gof["law"]
-            statistic = self._gof["statistic"]
-            xlin = np.linspace(law.ppf(0.0001), law.ppf(0.9999), resolution)
-            xarea = np.linspace(statistic, law.ppf(0.9999), resolution)
-
-            fig, axe = plt.subplots()
-
-            axe.plot(xlin, law.pdf(xlin), label=r"$\chi^2(\nu={:d})$".format(self._gof["dof"]))
-            axe.fill_between(xarea, law.pdf(xarea), alpha=0.5, label=r"$p$ = {:.4f}".format(self._gof["pvalue"]))
-            axe.axvline(statistic, linestyle="-.", color="black", label="r$\chi^2_r = {:.3f}$".format(statistic))
-
-            for alpha, color in zip([0.050, 0.025, 0.010, 0.005], ["orange", "darkorange", "red", "darkred"]):
-
-                chi2 = law.ppf(alpha)
-                axe.axvline(chi2, color=color, linestyle="--", label=r"$\chi^2_{{\alpha = {:.1f}\%}} = {:.1f}$".format(alpha * 100.0, chi2))
-
-                chi2 = law.ppf(1.0 - alpha)
-                axe.axvline(chi2, color=color, label=r"$\chi^2_{{\alpha = {:.1f}\%}} = {:.1f}$".format(alpha * 100.0, chi2))
-
-            axe.set_title(full_title, fontdict={"fontsize": 10})
-            axe.set_xlabel(r"Random Variable, $\chi^2$")
-            axe.set_ylabel(r"Density, $f(\chi^2)$")
-            axe.legend(bbox_to_anchor=(1, 1), fontsize=8)
-            axe.grid()
-
-            fig.subplots_adjust(top=0.8, left=0.15, right=0.75)
-
-            return axe

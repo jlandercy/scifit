@@ -7,6 +7,7 @@ class GompertzFitSolver(FitSolverInterface):
     """
     `Gompertz function model (calculus) <https://en.wikipedia.org/wiki/Gompertz_function>`_
     """
+
     @staticmethod
     def model(x, a, b, c):
         """
@@ -29,6 +30,7 @@ class LogisticFitSolver(FitSolverInterface):
     """
     `Logistic function model (calculus) <https://en.wikipedia.org/wiki/Logit>`_
     """
+
     @staticmethod
     def model(x, a, b):
         """
@@ -44,13 +46,14 @@ class LogisticFitSolver(FitSolverInterface):
         :param c: growth rate :math:`c`
         :return: Logistic function :math:`y`
         """
-        return 1.0/(1.0 + a * np.exp(-b * x[:, 0]))
+        return 1.0 / (1.0 + a * np.exp(-b * x[:, 0]))
 
 
 class MichaelisMentenKineticFitSolver(FitSolverInterface):
     """
     `Michaëlis-Menten kinetic model (biochemistry) <https://en.wikipedia.org/wiki/Michaelis%E2%80%93Menten_kinetics>`_
     """
+
     @staticmethod
     def model(x, vmax, km):
         """
@@ -72,6 +75,7 @@ class HillEquationFitSolver(FitSolverInterface):
     """
     `Hill equation model (biochemistry) <https://en.wikipedia.org/wiki/Hill_equation_(biochemistry)>`_
     """
+
     @staticmethod
     def model(x, n, k):
         """

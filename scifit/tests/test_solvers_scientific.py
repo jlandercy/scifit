@@ -177,7 +177,5 @@ class LogisticRegression(GenericLinearRegression):
     parameters = np.array([3.1, 10.27])
 
 
-class LogisticRegressionNoiseL0(
-    LogisticRegression, TestCase
-):
+class LogisticRegressionNoiseL0(LogisticRegression, TestCase):
     sigma = 1e-6
