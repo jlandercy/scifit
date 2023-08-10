@@ -1057,15 +1057,17 @@ class FitSolverInterface:
 
             return axe
 
-    def plot_loss(
+    def plot_loss_low_dimension(
         self,
+        first_index=None,
+        second_index=None,
+        axe=None,
         mode="lin",
         ratio=0.1,
         xmin=None,
         xmax=None,
         title="",
         levels=None,
-        scatter=False,
         resolution=75,
     ):
         """
@@ -1080,73 +1082,110 @@ class FitSolverInterface:
 
         if self.fitted(error=True):
 
+            if axe is None:
+                fig, axe = plt.subplots()
+            fig = axe.figure
+
             full_title = "Fit Loss Plot: {}\n{}".format(title, self.get_title())
 
             scales = self.parameter_scales(
                 mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, resolution=resolution
             )
 
-            if scatter:
-                fig, axes = plt.subplots(self.k, self.k)
+            if self.k == 1 or (first_index is not None and second_index is None):
 
-            for i, j in itertools.combinations_with_replacement(range(self.k), 2):
+                first_index = first_index or 0
+                parameters = list(self._solution["parameters"])
+                parameters[first_index] = scales[first_index]
+                score = self.parametrized_loss(sigma=self._sigma)(*parameters)
 
-                if i != j:
+                fig, axe = plt.subplots()
 
-                    x, y = np.meshgrid(scales[i], scales[j])
-                    parameters = list(self._solution["parameters"])
-                    parameters[i] = x
-                    parameters[j] = y
-                    score = self.parametrized_loss(sigma=self._sigma)(*parameters)
+                axe.plot(scales[first_index], score)
+                axe.axvline(
+                    self._solution["parameters"][first_index], color="black", linestyle="-."
+                )
 
-                    if scatter:
-                        axe = axes[i][j]
-                    else:
-                        fig, axe = plt.subplots()
+                axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index))
+                axe.set_ylabel(r"Loss, $L(\beta_{{{}}})$".format(first_index))
 
-                    labels = axe.contour(x, y, score, levels or 10, cmap="jet")
-                    axe.clabel(labels, labels.levels, inline=True, fontsize=7)
+                axe._pair_indices = (first_index, first_index)
 
-                    axe.axvline(
-                        self._solution["parameters"][i], color="black", linestyle="-."
+            elif self.k == 2 or (first_index is not None and second_index is not None):
+
+                first_index = first_index or 0
+                second_index = second_index or 1
+
+                if first_index == second_index:
+                    raise ConfigurationError("First and second index cannot be the same")
+
+                x, y = np.meshgrid(scales[first_index], scales[second_index])
+                parameters = list(self._solution["parameters"])
+                parameters[first_index] = x
+                parameters[second_index] = y
+                score = self.parametrized_loss(sigma=self._sigma)(*parameters)
+
+                labels = axe.contour(x, y, score, levels or 10, cmap="jet")
+                axe.clabel(labels, labels.levels, inline=True, fontsize=7)
+
+                axe.axvline(
+                    self._solution["parameters"][first_index], color="black", linestyle="-."
+                )
+                axe.axhline(
+                    self._solution["parameters"][second_index], color="black", linestyle="-."
+                )
+
+                axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index))
+                axe.set_ylabel(r"Parameter, $\beta_{{{}}}$".format(second_index))
+
+            else:
+                raise ConfigurationError("Cannot plot loss due to configuration")
+
+            axe.set_title(full_title, fontdict={"fontsize": 10})
+            axe.grid()
+            axe._pair_indices = (first_index, second_index)
+            fig.subplots_adjust(top=0.8, left=0.2)
+
+            return axe
+
+    def plot_loss(
+        self,
+        mode="lin",
+        ratio=0.1,
+        xmin=None,
+        xmax=None,
+        title="",
+        levels=None,
+        resolution=75,
+        scatter=False
+    ):
+
+        if self.k <= 2:
+
+            axe = self.plot_loss_low_dimension(
+                mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, title=title, levels=levels, resolution=resolution
+            )
+
+        else:
+
+            full_title = "Fit Loss Plot: {}\n{}".format(title, self.get_title())
+
+            fig, axes = plt.subplots(
+                ncols=self.k - 1, nrows=self.k - 1, sharex="col", sharey="row"
+            )
+
+            for i, j in itertools.combinations(range(self.k), 2):
+
+                if i < j <= self.k:
+
+                    axe = self.plot_loss_low_dimension(
+                        first_index=i, second_index=j, axe=axes[j - 1][i],
+                        mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, title=title, levels=levels, resolution=resolution
                     )
-                    axe.axhline(
-                        self._solution["parameters"][j], color="black", linestyle="-."
-                    )
 
-                    axe.set_title(full_title, fontdict={"fontsize": 10})
-                    axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(i))
-                    axe.set_ylabel(r"Parameter, $\beta_{{{}}}$".format(j))
-                    axe.grid()
+                    axe.tick_params(axis='x', labelbottom='off')
+                    axe.tick_params(axis='y', labelbottom='off')
 
-                    fig.subplots_adjust(top=0.8, left=0.2)
+            fig.suptitle(full_title, fontsize=10)
 
-                    axe._pair_indices = (i, j)
-                    yield axe
-
-                elif i == j:
-
-                    parameters = list(self._solution["parameters"])
-                    parameters[i] = scales[i]
-                    score = self.parametrized_loss(sigma=self._sigma)(*parameters)
-
-                    if scatter:
-                        axe = axes[i][i]
-                    else:
-                        fig, axe = plt.subplots()
-
-                    axe.plot(scales[i], score)
-                    axe.axvline(
-                        self._solution["parameters"][i], color="black", linestyle="-."
-                    )
-
-                    axe.set_title(full_title, fontdict={"fontsize": 10})
-
-                    axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(i))
-                    axe.set_ylabel(r"Loss, $L(\beta_{{{}}})$".format(i))
-                    axe.grid()
-
-                    fig.subplots_adjust(top=0.8, left=0.2)
-
-                    axe._pair_indices = (i, i)
-                    yield axe
+        return axe
