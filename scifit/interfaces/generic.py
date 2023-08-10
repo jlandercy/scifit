@@ -1164,7 +1164,6 @@ class FitSolverInterface:
         title="",
         levels=None,
         resolution=75,
-        scatter=False
     ):
 
         if self.k <= 2:
@@ -1182,12 +1181,12 @@ class FitSolverInterface:
                 gridspec_kw={"wspace": 0.05, "hspace": 0.05}
             )
 
-            for i, j in itertools.combinations(range(self.k), 2):
+            for i, j in itertools.product(range(self.k), repeat=2):
 
-                if i < j <= self.k:
-
-                    axe = self.plot_loss_low_dimension(
-                        first_index=i, second_index=j, axe=axes[j - 1][i],
+                if (i < j) and (j <= self.k):
+                    axe = axes[j - 1][i]
+                    self.plot_loss_low_dimension(
+                        first_index=i, second_index=j, axe=axe,
                         mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, title=title, levels=levels, resolution=resolution,
                         add_labels=False, add_title=False,
                     )
@@ -1198,9 +1197,11 @@ class FitSolverInterface:
                     if j == self.k - 1:
                         axe.set_xlabel(r"$\beta_{{{}}}$".format(i))
 
-                elif j <= i < self.k:
-                    print(i, j)
-                    axe[j][i].set_axis_off()
+                # elif (j <= i) and (i < self.k):
+                #     print(axes)
+                #     print(self.k, i, j)
+                #     axe = axes[i][j]
+                #     axe.set_axis_off()
 
             fig.suptitle(full_title, fontsize=10)
             fig.subplots_adjust(top=0.8, left=0.2)
