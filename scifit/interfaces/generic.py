@@ -1083,7 +1083,6 @@ class FitSolverInterface:
         """
 
         if self.fitted(error=True):
-
             if axe is None:
                 fig, axe = plt.subplots()
             fig = axe.figure
@@ -1095,7 +1094,6 @@ class FitSolverInterface:
             )
 
             if self.k == 1 or (first_index is not None and second_index is None):
-
                 first_index = first_index or 0
                 parameters = list(self._solution["parameters"])
                 parameters[first_index] = scales[first_index]
@@ -1105,7 +1103,9 @@ class FitSolverInterface:
 
                 axe.plot(scales[first_index], loss)
                 axe.axvline(
-                    self._solution["parameters"][first_index], color="black", linestyle="-."
+                    self._solution["parameters"][first_index],
+                    color="black",
+                    linestyle="-.",
                 )
 
                 if add_labels:
@@ -1115,12 +1115,13 @@ class FitSolverInterface:
                 axe._pair_indices = (first_index, first_index)
 
             elif self.k == 2 or (first_index is not None and second_index is not None):
-
                 first_index = first_index or 0
                 second_index = second_index or 1
 
                 if first_index == second_index:
-                    raise ConfigurationError("First and second index cannot be the same")
+                    raise ConfigurationError(
+                        "First and second index cannot be the same"
+                    )
 
                 x, y = np.meshgrid(scales[first_index], scales[second_index])
                 parameters = list(self._solution["parameters"])
@@ -1132,10 +1133,14 @@ class FitSolverInterface:
                 axe.clabel(clabels, clabels.levels, inline=True, fontsize=7)
 
                 axe.axvline(
-                    self._solution["parameters"][first_index], color="black", linestyle="-."
+                    self._solution["parameters"][first_index],
+                    color="black",
+                    linestyle="-.",
                 )
                 axe.axhline(
-                    self._solution["parameters"][second_index], color="black", linestyle="-."
+                    self._solution["parameters"][second_index],
+                    color="black",
+                    linestyle="-.",
                 )
 
                 if add_labels:
@@ -1165,31 +1170,44 @@ class FitSolverInterface:
         levels=None,
         resolution=75,
     ):
-
         if self.k <= 2:
-
             axe = self.plot_loss_low_dimension(
-                mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, title=title, levels=levels, resolution=resolution
+                mode=mode,
+                ratio=ratio,
+                xmin=xmin,
+                xmax=xmax,
+                title=title,
+                levels=levels,
+                resolution=resolution,
             )
 
         else:
-
             full_title = "Fit Loss Plot: {}\n{}".format(title, self.get_title())
 
             fig, axes = plt.subplots(
-                ncols=self.k - 1, nrows=self.k - 1, sharex="col", sharey="row",
-                gridspec_kw={"wspace": 0.05, "hspace": 0.05}
+                ncols=self.k - 1,
+                nrows=self.k - 1,
+                sharex="col",
+                sharey="row",
+                gridspec_kw={"wspace": 0.05, "hspace": 0.05},
             )
 
             for i, j in itertools.product(range(self.k), repeat=2):
-
                 if (i < j) and (j <= self.k):
-
-                    axe = axes[j-1][i]
+                    axe = axes[j - 1][i]
                     self.plot_loss_low_dimension(
-                        first_index=i, second_index=j, axe=axe,
-                        mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, title=title, levels=levels, resolution=resolution,
-                        add_labels=False, add_title=False,
+                        first_index=i,
+                        second_index=j,
+                        axe=axe,
+                        mode=mode,
+                        ratio=ratio,
+                        xmin=xmin,
+                        xmax=xmax,
+                        title=title,
+                        levels=levels,
+                        resolution=resolution,
+                        add_labels=False,
+                        add_title=False,
                     )
 
                     if i == 0:

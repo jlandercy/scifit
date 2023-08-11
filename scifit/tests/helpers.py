@@ -273,7 +273,5 @@ class GenericTestFitSolver:
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         axe = self.solver.plot_loss(title=title)
-        axe.figure.savefig(
-            "{}/{}_loss_scatter.png".format(self.media_path, name)
-        )
+        axe.figure.savefig("{}/{}_loss_scatter.png".format(self.media_path, name))
         plt.close(axe.figure)
