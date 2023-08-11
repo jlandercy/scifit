@@ -32,21 +32,20 @@ class LogisticFitSolver(FitSolverInterface):
     """
 
     @staticmethod
-    def model(x, a, b):
+    def model(x, k, x0):
         """
         Logistic function is defined as follows:
 
         .. math::
 
-            y = \\frac{1}{1 + a \\cdot \\exp(- b \\cdot x)}
+            y = \\frac{1}{1 + \\exp\\left[- k \\cdot (x - x_0)\\right]}
 
         :param x: independent variable :math:`x`
-        :param a: asymptotic value :math:`a`
-        :param b: displacement :math:`b`
-        :param c: growth rate :math:`c`
+        :param k: growth rate or sigmoid steepness :math:`k`
+        :param x0: displacement or sigmoid inflexion point :math:`x_0`
         :return: Logistic function :math:`y`
         """
-        return 1.0 / (1.0 + a * np.exp(-b * x[:, 0]))
+        return 1.0 / (1.0 + np.exp(-k * (x[:, 0]) - x0))
 
 
 class MichaelisMentenKineticFitSolver(FitSolverInterface):
