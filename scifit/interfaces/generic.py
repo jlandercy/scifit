@@ -1099,11 +1099,11 @@ class FitSolverInterface:
                 first_index = first_index or 0
                 parameters = list(self._solution["parameters"])
                 parameters[first_index] = scales[first_index]
-                score = self.parametrized_loss(sigma=self._sigma)(*parameters)
+                loss = self.parametrized_loss(sigma=self._sigma)(*parameters)
 
                 fig, axe = plt.subplots()
 
-                axe.plot(scales[first_index], score)
+                axe.plot(scales[first_index], loss)
                 axe.axvline(
                     self._solution["parameters"][first_index], color="black", linestyle="-."
                 )
@@ -1126,9 +1126,9 @@ class FitSolverInterface:
                 parameters = list(self._solution["parameters"])
                 parameters[first_index] = x
                 parameters[second_index] = y
-                score = self.parametrized_loss(sigma=self._sigma)(*parameters)
+                loss = self.parametrized_loss(sigma=self._sigma)(*parameters)
 
-                clabels = axe.contour(x, y, score, levels or 10, cmap="jet")
+                clabels = axe.contour(x, y, loss, levels or 10, cmap="jet")
                 axe.clabel(clabels, clabels.levels, inline=True, fontsize=7)
 
                 axe.axvline(
@@ -1184,7 +1184,8 @@ class FitSolverInterface:
             for i, j in itertools.product(range(self.k), repeat=2):
 
                 if (i < j) and (j <= self.k):
-                    axe = axes[j - 1][i]
+
+                    axe = axes[j-1][i]
                     self.plot_loss_low_dimension(
                         first_index=i, second_index=j, axe=axe,
                         mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, title=title, levels=levels, resolution=resolution,
@@ -1197,11 +1198,9 @@ class FitSolverInterface:
                     if j == self.k - 1:
                         axe.set_xlabel(r"$\beta_{{{}}}$".format(i))
 
-                # elif (j <= i) and (i < self.k):
-                #     print(axes)
-                #     print(self.k, i, j)
-                #     axe = axes[i][j]
-                #     axe.set_axis_off()
+                if (i < j) and (j < self.k - 1):
+                    axe = axes[i][j]
+                    axe.set_axis_off()
 
             fig.suptitle(full_title, fontsize=10)
             fig.subplots_adjust(top=0.8, left=0.2)
