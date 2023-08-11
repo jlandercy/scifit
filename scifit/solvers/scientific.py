@@ -48,6 +48,27 @@ class LogisticFitSolver(FitSolverInterface):
         return 1.0 / (1.0 + np.exp(-k * (x[:, 0]) - x0))
 
 
+class AlgebraicSigmoidFitSolver(FitSolverInterface):
+    """
+    `Algebric sigmoid function model (calculus) <https://en.wikipedia.org/wiki/Algebraic_function>`_
+    """
+
+    @staticmethod
+    def model(x, k):
+        """
+        Logistic function is defined as follows:
+
+        .. math::
+
+            y = \\frac{x}{\\left(1 + |x|^k\\right^{\\frac{1}{k}}}
+
+        :param x: independent variable :math:`x`
+        :param k: growth rate or sigmoid steepness :math:`k`
+        :return: Logistic function :math:`y`
+        """
+        return  x[:, 0] / np.power(1.0 + np.power(x[:, 0], k), 1/k)
+
+
 class MichaelisMentenKineticFitSolver(FitSolverInterface):
     """
     `Michaëlis-Menten kinetic model (biochemistry) <https://en.wikipedia.org/wiki/Michaelis%E2%80%93Menten_kinetics>`_

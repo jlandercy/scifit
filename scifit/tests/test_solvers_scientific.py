@@ -187,3 +187,21 @@ class LogisticRegressionNoiseL1(LogisticRegression, TestCase):
 
 class LogisticRegressionNoiseL2(LogisticRegression, TestCase):
     sigma = 1e-1
+
+
+class AlgebraicSigmoidRegression(GenericLinearRegression):
+    factory = scientific.AlgebraicSigmoidFitSolver
+    parameters = np.array([3.1])
+
+
+class AlgebraicSigmoidRegressionNoiseL0(AlgebraicSigmoidRegression, TestCase):
+    sigma = 1e-6
+
+
+class AlgebraicSigmoidRegressionNoiseL1(AlgebraicSigmoidRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class AlgebraicSigmoidRegressionNoiseL2(AlgebraicSigmoidRegression, TestCase):
+    sigma = 1e-1
+
