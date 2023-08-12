@@ -61,6 +61,12 @@ This package follows the usual `setuptools` flow, installation is as simple as:
 python3 setup.py install
 ```
 
+To compile using pip:
+
+```bash
+pip-compile --extra dev pyproject.toml
+```
+
 This will install dependencies as well (as defined in [`requirements.txt`][200]).
 
 To build a wheel and install from it, then issue:
