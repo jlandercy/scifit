@@ -135,7 +135,7 @@ class InverseBoxCoxFitSolver(FitSolverInterface):
 
         .. math::
 
-            \\Phi(x, \\lambda) = y =
+            \\varphi(x, \\lambda) = y =
             \\begin{cases}
             (1 - \\lambda x)^\\frac{1}{\\lambda},  & \\lambda \\ne 0 \\\\
             \\exp(-x),           & \\lambda \\ge 0 \\\\
@@ -162,9 +162,9 @@ class DoubleInverseBoxCoxSigmoidFitSolver(FitSolverInterface):
 
         .. math::
 
-            y = \\Phi(\\phi(x, \\beta), \\alpha) \\quad, \\alpha < 1, \\, \\beta < 1
+            y = \\varphi(\\varphi(x, \\beta), \\alpha), \\quad \\alpha < 1, \\, \\beta < 1
 
-        Where :math:`\\Phi` is the Inverse Box-Cox transformation, see :class:`InverseBoxCoxFitSolver` for details.
+        Where :math:`\\varphi` is the Inverse Box-Cox transformation, see :class:`InverseBoxCoxFitSolver` for details.
 
         :param alpha: first Box-Cox parameter :math:`\\alpha`
         :param beta: second Box-Cox parameter :math:`\\beta`

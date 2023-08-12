@@ -763,7 +763,7 @@ class FitSolverInterface:
         dataset = np.vstack([scale.ravel() for scale in space])
         return dataset.T
 
-    def parameter_domains(self, mode="lin", xmin=None, xmax=None, ratio=10.):
+    def parameter_domains(self, mode="lin", xmin=None, xmax=None, ratio=10.0):
         """
         Generate Parameter Domains
         """
@@ -771,8 +771,8 @@ class FitSolverInterface:
         if self.fitted():
             parameters = self._solution["parameters"]
             if mode == "lin":
-                xmin = xmin or list(parameters - 3. * ratio * np.abs(parameters))
-                xmax = xmax or list(parameters + 3. * ratio * np.abs(parameters))
+                xmin = xmin or list(parameters - 3.0 * ratio * np.abs(parameters))
+                xmax = xmax or list(parameters + 3.0 * ratio * np.abs(parameters))
             elif mode == "log":
                 xmin = xmin or list(parameters / (ratio**3))
                 xmax = xmax or list(parameters * (ratio**3))
