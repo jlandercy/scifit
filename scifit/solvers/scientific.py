@@ -66,7 +66,7 @@ class AlgebraicSigmoidFitSolver(FitSolverInterface):
         :param k: growth rate or sigmoid steepness :math:`k`
         :return: Algebraic sigmoid function :math:`y`
         """
-        return x[:, 0] / np.power(1.0 + np.power(np.abs(x[:, 0]), k), 1.0/k)
+        return x[:, 0] / np.power(1.0 + np.power(np.abs(x[:, 0]), k), 1.0 / k)
 
 
 class RichardGeneralizedSigmoidFitSolver(FitSolverInterface):
@@ -89,9 +89,90 @@ class RichardGeneralizedSigmoidFitSolver(FitSolverInterface):
         :param K: upper (right) asymptote :math:`K`
         :param Q: location parameter :math:`Q`
         :param nu: asymptotical growth rate :math:`\\nu`
-        :return: Algebraic sigmoid function :math:`y`
+        :return: GRS function :math:`y`
         """
-        return A + (K - A) / np.power(C + Q * np.exp(- B * x[:, 0]), 1.0/nu)
+        return A + (K - A) / np.power(C + Q * np.exp(-B * x[:, 0]), 1.0 / nu)
+
+
+class SmoothstepSigmoidFitSolver(FitSolverInterface):
+    """
+    `Smoothstep sigmoid function model (calculus) <https://en.wikipedia.org/wiki/Smoothstep>`_
+    """
+
+    @staticmethod
+    def model(x, a, b):
+        """
+        Smoothstep function is defined as follows:
+
+        .. math::
+
+            y =
+            \\begin{cases}
+            0,           & x \\le 0 \\\\
+            a \\cdot x^2 - b \\cdot x^3, & 0 \\le x \\le 1 \\\\
+            1,           & x \\ge 1 \\\\
+            \\end{cases}
+
+        :param a: quadratic coefficient :math:`a`
+        :param b: cubic coefficient :math:`b`
+        :return: Smoothstep sigmoid function :math:`y`
+        """
+        y = a * np.power(x[:, 0], 2) - b * np.power(x[:, 0], 3)
+        y[x[:, 0] <= 0.0] = 0.0
+        y[x[:, 0] >= 1.0] = 1.0
+        return y
+
+
+class InverseBoxCoxFitSolver(FitSolverInterface):
+    """
+    `Inverse Box-Cox model (calculus) <https://en.wikipedia.org/wiki/Power_transform#Box%E2%80%93Cox_transformation>`_
+    """
+
+    @staticmethod
+    def model(x, lambda_):
+        """
+        Inverse Box-Cox function is defined as follows:
+
+        .. math::
+
+            \\Phi(x, \\lambda) = y =
+            \\begin{cases}
+            (1 - \\lambda x)^\\frac{1}{\\lambda},  & \\lambda \\ne 0 \\\\
+            \\exp(-x),           & \\lambda \\ge 0 \\\\
+            \\end{cases}
+
+        :param lambda\_: Box-Cox parameter :math:`\\lambda`
+        :return: Inverse Box-Cox function :math:`y`
+        """
+        if np.allclose(lambda_, 0.0):
+            return np.exp(-x[:, 0])
+        else:
+            return np.power(1.0 - lambda_ * x[:, 0], 1.0 / lambda_)
+
+
+class DoubleInverseBoxCoxSigmoidFitSolver(FitSolverInterface):
+    """
+    Double Inverse Box-Cox sigmoid model (calculus)
+    """
+
+    @staticmethod
+    def model(x, alpha, beta):
+        """
+        Inverse Box-Cox function is defined as follows:
+
+        .. math::
+
+            y = \\Phi(\\phi(x, \\beta), \\alpha) \\quad, \\alpha < 1, \\, \\beta < 1
+
+        Where :math:`\\Phi` is the Inverse Box-Cox transformation, see :class:`InverseBoxCoxFitSolver` for details.
+
+        :param alpha: first Box-Cox parameter :math:`\\alpha`
+        :param beta: second Box-Cox parameter :math:`\\beta`
+        :return: Double Inverse Box-Cox sigmoid function :math:`y`
+        """
+        return InverseBoxCoxFitSolver.model(
+            InverseBoxCoxFitSolver.model(x, beta).reshape(-1, 1), alpha
+        )
 
 
 class MichaelisMentenKineticFitSolver(FitSolverInterface):

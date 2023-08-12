@@ -216,13 +216,84 @@ class RichardGeneralizedSigmoidRegression(GenericLinearRegression):
     resolution = 50
 
 
-class RichardGeneralizedSigmoidRegressionNoiseL0(RichardGeneralizedSigmoidRegression, TestCase):
+class RichardGeneralizedSigmoidRegressionNoiseL0(
+    RichardGeneralizedSigmoidRegression, TestCase
+):
     sigma = 1e-6
 
 
-class RichardGeneralizedSigmoidRegressionNoiseL1(RichardGeneralizedSigmoidRegression, TestCase):
+class RichardGeneralizedSigmoidRegressionNoiseL1(
+    RichardGeneralizedSigmoidRegression, TestCase
+):
     sigma = 2.5e-2
 
 
-class RichardGeneralizedSigmoidRegressionNoiseL2(RichardGeneralizedSigmoidRegression, TestCase):
+class RichardGeneralizedSigmoidRegressionNoiseL2(
+    RichardGeneralizedSigmoidRegression, TestCase
+):
+    sigma = 1e-1
+
+
+class SmoothstepSigmoidRegression(GenericLinearRegression):
+    factory = scientific.SmoothstepSigmoidFitSolver
+    parameters = np.array([3.0, 2.0])
+    xmin = -1.5
+    xmax = +1.5
+
+
+class SmoothstepSigmoidRegressionNoiseL0(SmoothstepSigmoidRegression, TestCase):
+    sigma = 1e-6
+
+
+class SmoothstepSigmoidRegressionNoiseL1(SmoothstepSigmoidRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class SmoothstepSigmoidRegressionNoiseL2(SmoothstepSigmoidRegression, TestCase):
+    sigma = 1e-1
+
+
+class InverseBoxCoxRegression(GenericLinearRegression):
+    factory = scientific.InverseBoxCoxFitSolver
+    configuration = {"p0": (0.0,)}
+    parameters = np.array([0.38])
+    xmin = 0.0
+    xmax = 1.0
+
+
+class InverseBoxCoxRegressionNoiseL0(InverseBoxCoxRegression, TestCase):
+    sigma = 1e-6
+
+
+class InverseBoxCoxRegressionNoiseL1(InverseBoxCoxRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class InverseBoxCoxRegressionNoiseL2(InverseBoxCoxRegression, TestCase):
+    sigma = 1e-1
+
+
+class DoubleInverseBoxCoxSigmoidRegression(GenericLinearRegression):
+    factory = scientific.DoubleInverseBoxCoxSigmoidFitSolver
+    configuration = {"p0": (0.5, 0.5)}
+    parameters = np.array([0.38, 0.47])
+    xmin = 0.0
+    xmax = 1.0
+
+
+class DoubleInverseBoxCoxSigmoidRegressionNoiseL0(
+    DoubleInverseBoxCoxSigmoidRegression, TestCase
+):
+    sigma = 1e-6
+
+
+class DoubleInverseBoxCoxSigmoidRegressionNoiseL1(
+    DoubleInverseBoxCoxSigmoidRegression, TestCase
+):
+    sigma = 2.5e-2
+
+
+class DoubleInverseBoxCoxSigmoidRegressionNoiseL2(
+    DoubleInverseBoxCoxSigmoidRegression, TestCase
+):
     sigma = 1e-1

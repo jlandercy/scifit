@@ -221,7 +221,7 @@ class GenericTestFitSolver:
         # Ensure proper fits get its test valid:
         if self.sigma is not None and self.sigma > 0.0:
             self.assertTrue(test["statistic"] >= 0.50)
-            self.assertTrue(test["pvalue"] >= 0.20)
+            self.assertTrue(test["pvalue"] >= 0.25)
         else:
             self.assertTrue(test["statistic"] <= 0.000001)
             self.assertTrue(test["pvalue"] >= 0.999999)
