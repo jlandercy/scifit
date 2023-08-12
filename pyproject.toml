@@ -9,9 +9,8 @@ optional-dependencies = {dev = { file = ["requirements_ci.txt"] }}
 
 [project]
 name = "scifit"
+version = "0.1.0"
 description = "Scientific Fit for Python"
-current_version = "0.1.0"
-version_pattern = "MAJOR.MINOR.PATCH"
 authors = [{ name = "Jean Landercy", email = "jeanlandercy@live.com" }]
 license = { file = "LICENSE" }
 readme = "README.md"
