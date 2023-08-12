@@ -1,34 +1,21 @@
-# Python New Project Package
+# SciFit Package
 
-This repository holds a minimal but complete `python3` package
-with the following quality services already included:
+Welcome to SciFit package the scientist companion for quality.
+SciFit aims to support your work by:
 
- - [`setuptools`][100] flow for packaging;
- - [`unittest`][101] test suite sub-package suited for Test Driven Development;
- - [`coverage`][102] for test suite;
- - [`bandit`][111] and [`safety`][114] for security tests;
- - [`pylint`][103] and [`flake8`][112] for syntax checks;
- - [`mypy`][104] for type hints checks and errors;
- - [`black`][105] and [`isort`][106] for code formatting;
- - [`jupyter`][107] notebooks rendering (with Sphinx integration);
- - [`Sphinx`][108] documentation builder;
- - [`anybadge`][109] for any session badges;  
- - [`nox`][110] for session coordination;
- - GitLab CI Pipeline and GitHub Workflow (future).
+ - Providing a clean, stable and compliant interface for each solver;
+ - Perform ad hoc transformation, processing and tests on each stage of solver procedure;
+ - Render high quality figures summarizing solver solution.
 
-## How to?
+## Solvers
 
-### Start a new project
+Package is under active development, available solvers are:
 
-To start a new project from this package few steps are required:
-
- 1. Fork this [repository](https://github.com/jlandercy/newproject) to your hub
-    account and rename it;
- 2. Clone the forked repository to your workspace;
- 3. Rename the project by renaming the package directory;
- 4. Start to implement your project as usual.
-
-### Check package capabilities
+ - [x] Fit Solver
+ - [ ] ODE Solver
+ - [ ] System Solver
+ 
+## Capabilities
 
 Running Code Quality tool suite for this package requires
 Code Quality packages are installed (defined in [`./docs/requirements.txt`][201]):

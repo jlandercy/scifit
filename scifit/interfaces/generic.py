@@ -544,7 +544,7 @@ class FitSolverInterface:
             p = P\\left[\\chi^2 \\geq \\chi^2_r\\right] = \\int\\limits_{\\chi^2_r}^{+\\infty}f(x)\\mathrm{d}x = 1 - \\mathrm{cdf}(\\chi^2_r) = \\mathrm{sf}(\\chi^2_r)
 
         - Check for typical values of :math:`\\alpha` if :math:`H_0` must be rejected or not in three modes:
-        left, right and both sided.
+          left, right and both sided.
 
         Figure below shows a chi square tests for an adjustment:
 
@@ -603,6 +603,7 @@ class FitSolverInterface:
         """
         **Wrapper:** Loss function decorated with experimental data and vectorized for parameters.
         This decorator load loss method with features (variables), target and sigma to expose only parameters.
+        Decorated function is used by :meth:`FitSolverInterface.plot_loss` in order to sketch the loss landscape.
 
         .. code-block:: python
 
@@ -630,13 +631,15 @@ class FitSolverInterface:
 
     def fit(self, xdata, ydata, sigma=None, **kwargs):
         """
-        Solve fitting problem and store data and results
+        Fully solve the fitting problem for the given model and input data.
+        This method stores input data and fit results. It assesses loss function over parameter neighborhoods,
+        computes score and performs goodness of fit test.
 
-        :param xdata:
-        :param ydata:
-        :param sigma:
-        :param kwargs:
-        :return:
+        :param xdata: Features (variables) as :code:`(n,m)` matrix
+        :param ydata: Target as :code:`(n,)` matrix
+        :param sigma: Uncertainty on target as :code:`(n,)` matrix or scalar or :code:`None`
+        :param kwargs: Dictionary of extra parameters passed to :py:mod`curve_fit`.
+        :return: Dictionary of values related to fit solution
 
         """
         self.store(xdata, ydata, sigma=sigma)
@@ -652,11 +655,13 @@ class FitSolverInterface:
     @staticmethod
     def scale(mode="lin", xmin=0.0, xmax=1.0, resolution=100, base=10):
         """
-        Generate 1-dimensional scale
+        Generate a 1-dimensional scale (xmin, xmax) of given resolution and mode
         """
         if mode == "lin":
             return np.linspace(xmin, xmax, resolution)
         elif mode == "log":
+            xmin = np.log10(xmin)/np.log10(base)
+            xmax = np.log10(xmax)/np.log10(base)
             return np.logspace(xmin, xmax, resolution, base=base)
         else:
             raise ConfigurationError(
@@ -674,7 +679,7 @@ class FitSolverInterface:
         resolution=100,
     ):
         """
-        Generate scales for each domain or synthetic scales if no domains defined
+        Generate scales for each domain or synthetic scales if domains are not defined
         """
         if (domains is None) and ((xmin is None) or (xmax is None)):
             ConfigurationError(
@@ -694,6 +699,10 @@ class FitSolverInterface:
         return scales
 
     def feature_domains(self):
+        """
+        Get feature (variable) domains, useful for drawing scales fitting the dataset
+        :return:
+        """
         data = pd.DataFrame(self._xdata)
         return data.describe()
 
@@ -707,7 +716,7 @@ class FitSolverInterface:
         resolution=100,
     ):
         """
-        Generate Features Scales
+        Generate features scales
         """
         if (dimension is None) and (domains is None):
             domains = self.feature_domains()
@@ -730,7 +739,7 @@ class FitSolverInterface:
         resolution=10,
     ):
         """
-        Generate Feature Space
+        Generate feature space
         """
         return np.meshgrid(
             *self.feature_scales(
@@ -752,6 +761,10 @@ class FitSolverInterface:
         dimension=None,
         resolution=10,
     ):
+        """
+        Generate feature dataset, useful to generate variables for a synthetic dataset or to create a grid
+        for interpolation over the features space.
+        """
         space = self.feature_space(
             domains=domains,
             mode=mode,
@@ -765,7 +778,7 @@ class FitSolverInterface:
 
     def parameter_domains(self, mode="lin", xmin=None, xmax=None, ratio=10.0):
         """
-        Generate Parameter Domains
+        Generate parameter domains, useful for drawing scales fitting the parameters space
         """
 
         if self.fitted():
@@ -805,7 +818,7 @@ class FitSolverInterface:
         self, domains=None, mode="lin", xmin=None, xmax=None, ratio=0.1, resolution=100
     ):
         """
-        Generate Parameter Scales
+        Generate parameter scales
         """
         if domains is None:
             domains = self.parameter_domains(
@@ -817,7 +830,7 @@ class FitSolverInterface:
         self, domains=None, mode="lin", ratio=0.1, xmin=None, xmax=None, resolution=10
     ):
         """
-        Generate Parameter Space
+        Generate parameter space
         """
         return np.meshgrid(
             *self.parameter_scales(
@@ -831,6 +844,9 @@ class FitSolverInterface:
         )
 
     def get_latex_parameters(self, show_sigma=True, precision=3, mode="f"):
+        """
+        Return parameters in a compact LaTeX fashion, useful for figure title
+        """
         if self.fitted(error=True):
             terms = []
             for i, parameter in enumerate(self._solution["parameters"]):
@@ -845,6 +861,9 @@ class FitSolverInterface:
             return r"$\beta = ({})$".format(", ".join(terms))
 
     def get_title(self):
+        """
+        Get detailed figure title (including parameters if fitted)
+        """
         if self.fitted(error=True):
             full_title = "n={:d}, {}={:.3f}, {}={:.3f}".format(
                 self.n,
@@ -872,13 +891,11 @@ class FitSolverInterface:
         resolution=100,
     ):
         """
-        Plot data and fitted function for each feature
+        Plot data and fitted function for low dimension problems (:math:`m \leq 2`)
 
         .. image:: ../media/figures/FitPlot.png
             :width: 560
             :alt: Fit Plot
-
-
         """
 
         if self.fitted(error=True):
@@ -985,6 +1002,7 @@ class FitSolverInterface:
 
     def plot_chi_square(self, title="", resolution=100):
         """
+        Plot Chi Square Goodness of Fit figure, summarizes all critical thresholds and p-value
 
         .. image:: ../media/figures/GoodnessOfFitPlot.png
             :width: 560
@@ -1073,13 +1091,13 @@ class FitSolverInterface:
         add_title=True,
     ):
         """
-        Plot loss function for each parameter pairs
-        Make it as scatter
+        Sketch and plot loss function for low dimensional space (complete for :math:`k \leq 2`) or sub-space.
 
-        .. image:: ../media/figures/FitLossPlot.png
+        .. image:: ../media/figures/FitLossPlotLowDim.png
             :width: 560
-            :alt: Fit Loss Plot
+            :alt: Low Dimensionality Fit Loss Plot
 
+        See :meth:`FitSolverInterface.plot_loss` for full loss landscape.
         """
 
         if self.fitted(error=True):
@@ -1170,6 +1188,22 @@ class FitSolverInterface:
         levels=None,
         resolution=75,
     ):
+        """
+        Sketch and plot full loss landscape in order to assess parameters optima convergence and uniqueness.
+
+        .. image:: ../media/figures/FitLossPlotFull.png
+            :width: 560
+            :alt: Full Fit Loss Plot
+
+        :param mode:
+        :param ratio:
+        :param xmin:
+        :param xmax:
+        :param title:
+        :param levels:
+        :param resolution:
+        :return:
+        """
         if self.k <= 2:
             axe = self.plot_loss_low_dimension(
                 mode=mode,
