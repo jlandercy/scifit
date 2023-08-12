@@ -191,7 +191,9 @@ class LogisticRegressionNoiseL2(LogisticRegression, TestCase):
 
 class AlgebraicSigmoidRegression(GenericLinearRegression):
     factory = scientific.AlgebraicSigmoidFitSolver
-    parameters = np.array([2.1])
+    parameters = np.array([4.1])
+    xmin = -5.0
+    xmax = +5.0
 
 
 class AlgebraicSigmoidRegressionNoiseL0(AlgebraicSigmoidRegression, TestCase):
@@ -205,3 +207,22 @@ class AlgebraicSigmoidRegressionNoiseL1(AlgebraicSigmoidRegression, TestCase):
 class AlgebraicSigmoidRegressionNoiseL2(AlgebraicSigmoidRegression, TestCase):
     sigma = 1e-1
 
+
+class RichardGeneralizedSigmoidRegression(GenericLinearRegression):
+    factory = scientific.RichardGeneralizedSigmoidFitSolver
+    parameters = np.array([4.1, 2.3, 1.1, 4.7, 3.2, 1.1])
+    xmin = -5.0
+    xmax = +5.0
+    resolution = 50
+
+
+class RichardGeneralizedSigmoidRegressionNoiseL0(RichardGeneralizedSigmoidRegression, TestCase):
+    sigma = 1e-6
+
+
+class RichardGeneralizedSigmoidRegressionNoiseL1(RichardGeneralizedSigmoidRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class RichardGeneralizedSigmoidRegressionNoiseL2(RichardGeneralizedSigmoidRegression, TestCase):
+    sigma = 1e-1

@@ -50,7 +50,7 @@ class LogisticFitSolver(FitSolverInterface):
 
 class AlgebraicSigmoidFitSolver(FitSolverInterface):
     """
-    `Algebric sigmoid function model (calculus) <https://en.wikipedia.org/wiki/Algebraic_function>`_
+    `Algebraic sigmoid function model (calculus) <https://en.wikipedia.org/wiki/Algebraic_function>`_
     """
 
     @staticmethod
@@ -60,13 +60,38 @@ class AlgebraicSigmoidFitSolver(FitSolverInterface):
 
         .. math::
 
-            y = \\frac{x}{\\left(1 + |x|^k\\right^{\\frac{1}{k}}}
+            y = \\frac{x}{\\left(1 + |x|^k\\right)^{\\frac{1}{k}}}
 
         :param x: independent variable :math:`x`
         :param k: growth rate or sigmoid steepness :math:`k`
-        :return: Logistic function :math:`y`
+        :return: Algebraic sigmoid function :math:`y`
         """
-        return  x[:, 0] / np.power(1.0 + np.power(x[:, 0], k), 1/k)
+        return x[:, 0] / np.power(1.0 + np.power(np.abs(x[:, 0]), k), 1.0/k)
+
+
+class RichardGeneralizedSigmoidFitSolver(FitSolverInterface):
+    """
+    `Richard's generalized sigmoid function model (calculus) <https://en.wikipedia.org/wiki/Generalised_logistic_function>`_
+    """
+
+    @staticmethod
+    def model(x, A, B, C, K, Q, nu):
+        """
+        Richard's generalized sigmoid (GRS) function is defined as follows:
+
+        .. math::
+
+            y = A + \\frac{K - A}{\\left(C + Q\\cdot\\exp(-B\\cdot t)\\right)^{\\frac{1}{\\nu}}}
+
+        :param A: lower (left) asymptote :math:`A`
+        :param B: growth rate or sigmoid steepness :math:`B`
+        :param C: asymptotical parameter :math:`C`
+        :param K: upper (right) asymptote :math:`K`
+        :param Q: location parameter :math:`Q`
+        :param nu: asymptotical growth rate :math:`\\nu`
+        :return: Algebraic sigmoid function :math:`y`
+        """
+        return A + (K - A) / np.power(C + Q * np.exp(- B * x[:, 0]), 1.0/nu)
 
 
 class MichaelisMentenKineticFitSolver(FitSolverInterface):
