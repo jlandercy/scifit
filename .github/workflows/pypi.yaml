@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11"]
 
     steps:
 
@@ -54,10 +54,12 @@ jobs:
         run: |
           twine check dist/*
 
-#      - name: Documentation (nox)
-#        run: |
-#          nox --session package install
-#          nox --session notebooks docs
+      - name: Documentation (nox)
+        run: |
+          apt-get install python3-venv
+          python -m pip install -U sphinx
+          nox --session package install
+          nox --session notebooks docs
 
       - name: Collect report artifacts
         uses: actions/upload-artifact@v3
@@ -84,9 +86,8 @@ jobs:
           name: notebooks
           path: docs/source/notebooks
 
-#      - name: Collect documentation artifacts
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: documentation
-#          path: .cache/docs
-
+      - name: Collect documentation artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: documentation
+          path: .cache/docs
