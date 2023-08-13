@@ -209,7 +209,7 @@ def notebooks(session):
     """Package Notebooks (badge)"""
     report = reports_path / "notebooks.log"
     with report.open("w") as handler:
-        session.run("python", "-m", "ipykernel", "install", "--name=venv", stderr=handler)
+        #session.run("python", "-m", "ipykernel", "install", "--name=venv", stderr=handler)
         session.run(
             "python", "-m",
             "jupyter", "nbconvert", "--debug",

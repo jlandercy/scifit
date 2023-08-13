@@ -46,32 +46,9 @@ jobs:
         run: |
           nox --session tests
 
-#
-#      - name: Documentation (nox)
-#        run: |
-#          nox --session notebooks docs
-#Run nox --session notebooks docs
-#  nox --session notebooks docs
-#  shell: /usr/bin/bash -e {0}
-#  env:
-#    pythonLocation: /opt/hostedtoolcache/Python/3.11.4/x64
-#    PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.4/x64/lib/pkgconfig
-#    Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.4/x64
-#    Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.4/x64
-#    Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.4/x64
-#    LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.4/x64/lib
-#nox > Running session notebooks
-#nox > python -m ipykernel install --name=venv
-#nox > Command python -m ipykernel install --name=venv failed with exit code 1
-#nox > Session notebooks failed.
-#nox > Running session docs
-#nox > sphinx-build -b html docs/source .cache/docs
-#nox > Command sphinx-build -b html docs/source .cache/docs failed with exit code 2
-#nox > Session docs failed.
-#nox > Ran multiple sessions:
-#nox > * notebooks: failed
-#nox > * docs: failed
-#Error: Process completed with exit code 1.
+      - name: Documentation (nox)
+        run: |
+          nox --session notebooks docs
 
       - name: Create package
         run: |
