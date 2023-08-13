@@ -22,6 +22,9 @@ jobs:
 
       - name: Create cache folder
         run: |
+          rm -rf dist/
+          rm -rf build/
+          rm -rf .cache/
           mkdir -p .cache/reports
           mkdir -p .cache/media
           mkdir -p .cache/docs
@@ -47,9 +50,11 @@ jobs:
         run: |
           nox --session tests
 
-#      - name: Build package
-#        run: |
-#          nox --session build
+      - name: Build package
+        run: |
+          nox --session build
+          ls -lh build/
+          ls -lh dist/
 
       - name: Check package
         run: |
