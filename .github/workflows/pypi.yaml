@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
 
     steps:
 
@@ -39,11 +39,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          wget https://github.com/jgm/pandoc/releases/download/3.1.6.1/pandoc-3.1.6.1-1-amd64.deb
-          dpkg -i pandoc-3.1.6.1-1-amd64.deb
           python -m pip install --upgrade pip
           python -m pip install --upgrade nox build twine pip-tools
-          python -m pip install --upgrade pandoc
           pip-compile --extra dev pyproject.toml 
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
@@ -61,10 +58,14 @@ jobs:
 #        run: |
 #          twine check dist/*
 
-      - name: Documentation
+      - name: Notebooks
         run: |
           nox --session package install
-          nox --session notebooks docs
+          nox --session notebooks
+
+#      - name: Documentation
+#        run: |
+#          nox --session docs
 
       - name: Collect report artifacts
         uses: actions/upload-artifact@v3
@@ -91,8 +92,8 @@ jobs:
           name: notebooks
           path: docs/source/notebooks
 
-      - name: Collect documentation artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: documentation
-          path: .cache/docs
+#      - name: Collect documentation artifacts
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: documentation
+#          path: .cache/docs
