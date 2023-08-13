@@ -253,9 +253,9 @@ def docs(session):
             stdout=handler,
             success_codes=[0, 1, 2],
         )
-    pattern = re.compile(r"build (?P<status>[\w]+).")
-    status = pattern.findall(report.read_text())[0]
-    badge = reports_path / 'docs.svg'
-    if badge.exists():
-        badge.unlink()
-    session.run("anybadge", f"--value={status:}", f"--file={badge:}", "--label=docs")
+    # pattern = re.compile(r"build (?P<status>[\w]+).")
+    # status = pattern.findall(report.read_text())[0]
+    # badge = reports_path / 'docs.svg'
+    # if badge.exists():
+    #     badge.unlink()
+    # session.run("anybadge", f"--value={status:}", f"--file={badge:}", "--label=docs")
