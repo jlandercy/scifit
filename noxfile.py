@@ -54,6 +54,19 @@ def install(session):
 
 
 @nox.session
+def builder(session):
+    """Package builder"""
+
+    report = reports_path / "requirements.txt"
+    with report.open("w") as handler:
+        session.run("pip-compile", "--extra", "dev", "pyproject.toml", stdout=handler)
+
+    report = reports_path / "build.log"
+    with report.open("w") as handler:
+        session.run("python", "-m", "build", stdout=handler)
+
+
+@nox.session
 def uninstall(session):
     """Package Uninstaller"""
     report = reports_path / "uninstall.log"

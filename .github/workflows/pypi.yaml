@@ -38,26 +38,26 @@ jobs:
           pip-compile --extra dev pyproject.toml 
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Unit tests suite (classic)
-        run: |
-          python -m unittest -v
+#      - name: Unit tests suite (classic)
+#        run: |
+#          python -m unittest -v
 
       - name: Unit tests suite (nox)
         run: |
           nox --session tests
 
-      - name: Documentation (nox)
-        run: |
-          nox --session package install
-          nox --session notebooks docs
-
       - name: Create package
         run: |
-          python -m build
+          nox --session build
 
       - name: Check package
         run: |
           twine check dist/*
+
+#      - name: Documentation (nox)
+#        run: |
+#          nox --session package install
+#          nox --session notebooks docs
 
       - name: Report artifacts
         uses: actions/upload-artifact@v3
@@ -71,11 +71,11 @@ jobs:
           name: media
           path: .cache/media
 
-      - name: Documentation artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: documentation
-          path: .cache/docs
+#      - name: Documentation artifacts
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: documentation
+#          path: .cache/docs
 
       - name: Package artifacts
         uses: actions/upload-artifact@v3
