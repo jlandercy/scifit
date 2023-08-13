@@ -45,11 +45,11 @@ jobs:
       - name: Unit tests suite (nox)
         run: |
           nox --session tests
-
-      - name: Documentation (nox)
-        run: |
-          nox --session package install
-          nox --session notebooks docs
+#
+#      - name: Documentation (nox)
+#        run: |
+#          nox --session package install
+#          nox --session notebooks docs
 
       - name: Create package
         run: |
@@ -71,11 +71,11 @@ jobs:
           name: media
           path: .cache/media
 
-      - name: Documentation artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: documentation
-          path: .cache/docs
+#      - name: Documentation artifacts
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: documentation
+#          path: .cache/docs
 
       - name: Package artifacts
         uses: actions/upload-artifact@v3
