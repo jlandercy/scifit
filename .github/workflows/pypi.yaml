@@ -57,3 +57,28 @@ jobs:
       - name: Check package
         run: |
           twine check dist/*
+
+      - name: Report artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: reports
+          path: .cache/reports
+
+      - name: Media artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: media
+          path: .cache/media
+
+      - name: Documentation artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: documentation
+          path: .cache/docs
+
+      - name: Package artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: |
+            dist

@@ -214,7 +214,7 @@ def notebooks(session):
             "python", "-m",
             "jupyter", "nbconvert", "--debug",
             "--ExecutePreprocessor.timeout=600",
-            "--ExecutePreprocessor.kernel_name=venv",
+            #"--ExecutePreprocessor.kernel_name=venv",
             "--inplace", "--clear-output", "--to", "notebook",
             "--execute", "./docs/source/notebooks/*.ipynb",
             stderr=handler,
