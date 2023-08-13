@@ -39,6 +39,8 @@ jobs:
 
       - name: Install dependencies
         run: |
+          wget https://github.com/jgm/pandoc/releases/download/3.1.6.1/pandoc-3.1.6.1-1-amd64.deb
+          dpkg -i pandoc-3.1.6.1-1-amd64.deb
           python -m pip install --upgrade pip
           python -m pip install --upgrade nox build twine pip-tools
           python -m pip install --upgrade pandoc
