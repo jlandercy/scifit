@@ -48,6 +48,7 @@ jobs:
 
       - name: Documentation (nox)
         run: |
+          nox --session package install
           nox --session notebooks docs
 
       - name: Create package
