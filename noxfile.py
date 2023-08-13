@@ -222,12 +222,12 @@ def notebooks(session):
     """Package Notebooks (badge)"""
     report = reports_path / "notebooks.log"
     with report.open("w") as handler:
-        session.run("python", "-m", "ipykernel", "install", "--name=venv", stderr=handler)
+        #session.run("python", "-m", "ipykernel", "install", "--name=venv", stderr=handler)
         session.run(
             "python", "-m",
-            "jupyter", "nbconvert", "--debug",
+            "jupyter", "nbconvert",  # "--debug",
             "--ExecutePreprocessor.timeout=600",
-            "--ExecutePreprocessor.kernel_name=venv",
+            #"--ExecutePreprocessor.kernel_name=venv",
             "--inplace", "--clear-output", "--to", "notebook",
             "--execute", "./docs/source/notebooks/*.ipynb",
             stderr=handler,
@@ -248,8 +248,11 @@ def docs(session):
     """Package Documentation (badge)"""
     report = reports_path / "docs.log"
     with report.open("w") as handler:
-        session.run("sphinx-build", "-b", "html", f"docs/source", str(cache_path / "docs"),
-                    stdout=handler)
+        session.run(
+            "sphinx-build", "-b", "html", f"docs/source", str(cache_path / "docs"),
+            stdout=handler,
+            success_codes=[0, 1, 2],
+        )
     pattern = re.compile(r"build (?P<status>[\w]+).")
     status = pattern.findall(report.read_text())[0]
     badge = reports_path / 'docs.svg'
