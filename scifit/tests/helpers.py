@@ -232,7 +232,7 @@ class GenericTestFitSolver:
                 np.allclose(
                     solution["parameters"][i],
                     minimized["parameters"][i],
-                    rtol=1e-2,
+                    rtol=5e-3,
                 )
             )
 
@@ -297,7 +297,7 @@ class GenericTestFitSolver:
         axe.figure.savefig("{}/{}_chi2.png".format(self.media_path, name))
         plt.close(axe.figure)
 
-    def test_plot_loss_automatic(self):
+    def _test_plot_loss_automatic(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)

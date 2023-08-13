@@ -322,6 +322,7 @@ class FitSolverInterface:
             loss,
             x0=x0,
             method="L-BFGS-B",
+            tol=1e-9,
             **kwargs
         )
         return {
