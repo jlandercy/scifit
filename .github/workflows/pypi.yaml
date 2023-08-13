@@ -3,7 +3,6 @@ name: Python package
 on:
   push:
     branches:
-      - master
       - main
 
 jobs:
@@ -17,7 +16,13 @@ jobs:
         python-version: ["3.10", "3.11"]
 
     steps:
-      - uses: actions/checkout@v3
+
+      - name: Checkout
+          uses: actions/checkout@v3
+
+      - name: Create cache folder
+          run: |
+            mkdir -p .cache
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -31,17 +36,15 @@ jobs:
           pip-compile --extra dev pyproject.toml 
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Unit Test Suite
+      - name: Unit tests suite
         run: |
-          mkdir .cache
           nox --session tests
 
-      - name: Documentation
+      - name: Documentations
         run: |
-          mkdir .cache
           nox --session notebooks docs
 
-      - name: Package
+      - name: Create package
         run: |
           python -m build
 
