@@ -59,7 +59,7 @@ def build(session):
 
     report = reports_path / "requirements.txt"
     with report.open("w") as handler:
-        session.run("pip-compile", "pyproject.toml", stdout=handler)
+        session.run("pip-compile", "--extra", "dev", "pyproject.toml", stdout=handler)
 
     report = reports_path / "build.log"
     with report.open("w") as handler:
