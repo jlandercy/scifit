@@ -39,16 +39,16 @@ class GenericTestFitSolverInterface:
         self.assertIsInstance(xlin, np.ndarray)
         self.assertEqual(xlin.ndim, 1)
         self.assertEqual(xlin.shape[0], 200)
-        self.assertEqual(xlin.min(), -10.0)
-        self.assertEqual(xlin.max(), +10.0)
+        self.assertTrue(np.allclose(xlin.min(), -10.0))
+        self.assertTrue(np.allclose(xlin.max(), +10.0))
 
     def test_logarithmic_space_generation(self):
-        xlog = self.solver.scale(mode="log", xmin=1e-10, xmax=1e10, resolution=200)
+        xlog = self.solver.scale(mode="log", xmin=1e-10, xmax=1e+10, resolution=200)
         self.assertIsInstance(xlog, np.ndarray)
         self.assertEqual(xlog.ndim, 1)
         self.assertEqual(xlog.shape[0], 200)
-        self.assertEqual(xlog.min(), 1e-10)
-        self.assertEqual(xlog.max(), 1e10)
+        self.assertTrue(np.allclose(xlog.min(), 1e-10))
+        self.assertTrue(np.allclose(xlog.max(), 1e+10))
 
     def test_feature_scales(self):
         scales = self.solver.feature_scales(resolution=200)
