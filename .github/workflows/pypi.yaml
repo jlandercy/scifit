@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.10", "3.11"]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
 
     steps:
 
@@ -36,9 +36,17 @@ jobs:
           pip-compile --extra dev pyproject.toml 
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Unit tests suite
+      - name: Unit tests suite (classic)
         run: |
           python -m unittest -v
+
+      - name: Unit tests suite (nox)
+        run: |
+          nox --session tests
+
+      - name: Documentation (nox)
+        run: |
+          nox --session notebooks docs
 
       - name: Create package
         run: |
