@@ -39,14 +39,6 @@ jobs:
        - name: Unit tests suite
          run: |
            python -m unittest -v
-#
-#      - name: Unit tests suite
-#        run: |
-#          nox --session tests
-#
-#      - name: Documentations
-#        run: |
-#          nox --session notebooks docs
 
       - name: Create package
         run: |
