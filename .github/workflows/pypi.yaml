@@ -20,10 +20,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Create cache folder
+      - name: Clean & Create cache folders
         run: |
           rm -rf dist/
-          rm -rf build/
           rm -rf .cache/
           mkdir -p .cache/reports
           mkdir -p .cache/media
@@ -53,7 +52,6 @@ jobs:
       - name: Build package
         run: |
           nox --session build
-          ls -lh build/
           ls -lh dist/
 
       - name: Check package
