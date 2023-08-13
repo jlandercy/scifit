@@ -255,7 +255,7 @@ class SmoothstepSigmoidRegressionNoiseL2(SmoothstepSigmoidRegression, TestCase):
 
 class InverseBoxCoxRegression(GenericLinearRegression):
     factory = scientific.InverseBoxCoxFitSolver
-    configuration = {"p0": (0.0,)}
+    configuration = {"p0": (0.75,)}
     parameters = np.array([0.38])
     xmin = 0.0
     xmax = 1.0

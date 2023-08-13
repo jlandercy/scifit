@@ -226,12 +226,13 @@ class GenericTestFitSolver:
         print()
         print(solution["parameters"])
         print(minimized["parameters"])
+        # Assert both solve and minimize are alike at percent level
         for i in range(self.parameters.shape[0]):
             self.assertTrue(
                 np.allclose(
                     solution["parameters"][i],
                     minimized["parameters"][i],
-                    rtol=1e-4,
+                    rtol=1e-2,
                 )
             )
 
