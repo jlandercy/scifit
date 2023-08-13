@@ -687,6 +687,9 @@ class FitSolverInterface:
         self._solution = self.solve(
             self._xdata, self._ydata, sigma=self._sigma, **kwargs
         )
+        self._minimize = self.minimize(
+            self._xdata, self._ydata, sigma=self._sigma, **kwargs
+        )
         self._yhat = self.predict(self._xdata)
         self._loss = self.loss(self._xdata, self._ydata, sigma=self._sigma)
         self._score = self.score(self._xdata, self._ydata, sigma=self._sigma)
@@ -1154,18 +1157,21 @@ class FitSolverInterface:
 
             if self.k == 1 or (first_index is not None and second_index is None):
                 first_index = first_index or 0
-                parameters = list(self._solution["parameters"])
+                p0 = self._solution["parameters"]
+                parameters = list(p0)
                 parameters[first_index] = scales[first_index]
-                loss = self.parametrized_loss(sigma=self._sigma)(*parameters)
+                loss = self.parametrized_loss(sigma=self._sigma)
 
                 fig, axe = plt.subplots()
 
-                axe.plot(scales[first_index], loss)
+                axe.plot(scales[first_index], loss(*parameters))
                 axe.axvline(
                     self._solution["parameters"][first_index],
                     color="black",
                     linestyle="-.",
                 )
+                axe.scatter(p0, loss(*p0))
+                axe.scatter(self._minimize["parameters"], loss(*self._minimize["parameters"]))
 
                 if add_labels:
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index))
@@ -1183,7 +1189,8 @@ class FitSolverInterface:
                     )
 
                 x, y = np.meshgrid(scales[first_index], scales[second_index])
-                parameters = list(self._solution["parameters"])
+                p0 = self._solution["parameters"]
+                parameters = list(p0)
                 parameters[first_index] = x
                 parameters[second_index] = y
                 loss = self.parametrized_loss(sigma=self._sigma)(*parameters)
@@ -1201,6 +1208,9 @@ class FitSolverInterface:
                     color="black",
                     linestyle="-.",
                 )
+
+                axe.scatter(p0[first_index], p0[second_index])
+                axe.scatter(self._minimize["parameters"][first_index], self._minimize["parameters"][second_index])
 
                 if add_labels:
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index))

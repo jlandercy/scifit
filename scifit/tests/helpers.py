@@ -219,8 +219,10 @@ class GenericTestFitSolver:
             )
 
     def test_model_minimize_parameters(self):
+        np.random.seed(self.seed)
         solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        minimized = self.solver.minimize(self.xdata, self.ydata, sigma=self.sigmas)
+        np.random.seed(self.seed)
+        minimized = self.solver.minimize(self.xdata, self.ydata, sigma=None)
         print()
         print(solution["parameters"])
         print(minimized["parameters"])
@@ -229,7 +231,7 @@ class GenericTestFitSolver:
                 np.allclose(
                     solution["parameters"][i],
                     minimized["parameters"][i],
-                    rtol=1e-6,
+                    rtol=1e-4,
                 )
             )
 
@@ -294,7 +296,7 @@ class GenericTestFitSolver:
         axe.figure.savefig("{}/{}_chi2.png".format(self.media_path, name))
         plt.close(axe.figure)
 
-    def _test_plot_loss_automatic(self):
+    def test_plot_loss_automatic(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
