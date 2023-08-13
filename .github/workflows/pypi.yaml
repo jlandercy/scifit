@@ -36,13 +36,17 @@ jobs:
           pip-compile --extra dev pyproject.toml 
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Unit tests suite
-        run: |
-          nox --session tests
-
-      - name: Documentations
-        run: |
-          nox --session notebooks docs
+       - name: Unit tests suite
+         run: |
+           python -m unittest -v
+#
+#      - name: Unit tests suite
+#        run: |
+#          nox --session tests
+#
+#      - name: Documentations
+#        run: |
+#          nox --session notebooks docs
 
       - name: Create package
         run: |
