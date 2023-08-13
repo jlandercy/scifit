@@ -22,7 +22,9 @@ jobs:
 
       - name: Create cache folder
         run: |
-          mkdir -p .cache
+          mkdir -p .cache/reports
+          mkdir -p .cache/media
+          mkdir -p .cache/docs
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
