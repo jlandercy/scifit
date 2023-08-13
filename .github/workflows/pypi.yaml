@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.10", "3.11"]
 
     steps:
 
@@ -42,11 +42,11 @@ jobs:
 #        run: |
 #          python -m unittest -v
 
-      - name: Unit tests suite (nox)
+      - name: Unit tests suite
         run: |
           nox --session tests
 
-      - name: Create package
+      - name: Build package
         run: |
           nox --session build
 
@@ -59,27 +59,34 @@ jobs:
 #          nox --session package install
 #          nox --session notebooks docs
 
-      - name: Report artifacts
+      - name: Collect report artifacts
         uses: actions/upload-artifact@v3
         with:
           name: reports
           path: .cache/reports
 
-      - name: Media artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: media
-          path: .cache/media
-
-#      - name: Documentation artifacts
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: documentation
-#          path: .cache/docs
-
-      - name: Package artifacts
+      - name: Collect package artifacts
         uses: actions/upload-artifact@v3
         with:
           name: package
           path: |
             dist
+
+      - name: Collect media artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: media
+          path: .cache/media
+
+      - name: Collect notebooks artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: notebooks
+          path: docs/source/notebooks
+
+#      - name: Collect documentation artifacts
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: documentation
+#          path: .cache/docs
+

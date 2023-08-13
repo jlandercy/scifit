@@ -54,7 +54,7 @@ def install(session):
 
 
 @nox.session
-def builder(session):
+def build(session):
     """Package builder"""
 
     report = reports_path / "requirements.txt"
