@@ -59,7 +59,7 @@ def build(session):
 
     report = reports_path / "requirements.txt"
     with report.open("w") as handler:
-        session.run("pip-compile", "--extra", "dev", "pyproject.toml", stdout=handler)
+        session.run("pip-compile", "pyproject.toml", stdout=handler)
 
     report = reports_path / "build.log"
     with report.open("w") as handler:
@@ -222,12 +222,12 @@ def notebooks(session):
     """Package Notebooks (badge)"""
     report = reports_path / "notebooks.log"
     with report.open("w") as handler:
-        #session.run("python", "-m", "ipykernel", "install", "--name=venv", stderr=handler)
+        session.run("python", "-m", "ipykernel", "install", "--name=venv", stderr=handler)
         session.run(
             "python", "-m",
             "jupyter", "nbconvert", "--debug",
             "--ExecutePreprocessor.timeout=600",
-            #"--ExecutePreprocessor.kernel_name=venv",
+            "--ExecutePreprocessor.kernel_name=venv",
             "--inplace", "--clear-output", "--to", "notebook",
             "--execute", "./docs/source/notebooks/*.ipynb",
             stderr=handler,
