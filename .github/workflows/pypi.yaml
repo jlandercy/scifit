@@ -47,9 +47,9 @@ jobs:
         run: |
           nox --session tests
 
-      - name: Build package
-        run: |
-          nox --session build
+#      - name: Build package
+#        run: |
+#          nox --session build
 
       - name: Check package
         run: |
