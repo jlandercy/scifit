@@ -37,8 +37,8 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Unit tests suite
-       run: |
-         python -m unittest -v
+        run: |
+          python -m unittest -v
 
       - name: Create package
         run: |
