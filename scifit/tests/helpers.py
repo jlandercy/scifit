@@ -180,15 +180,26 @@ class GenericTestFitSolver:
         self.assertTrue(np.allclose(yhat, self.yref))
         self.assertTrue(np.allclose(yhat + self.ynoise, self.ydata))
 
-    def test_model_fit_signature(self):
-        solution = self.solver.fit(self.xdata, self.ydata)
-        self.assertIsInstance(solution, dict)
-        self.assertSetEqual(
-            {"parameters", "covariance", "info", "message", "status"},
-            set(solution.keys()),
-        )
+    def test_model_fit_stored_fields(self):
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         for key in ["_xdata", "_ydata", "_solution", "_yhat", "_score"]:
             self.assertTrue(hasattr(self.solver, key))
+
+    def test_model_solve_signature(self):
+        solution = self.solver.solve(self.xdata, self.ydata, sigma=self.sigmas)
+        self.assertIsInstance(solution, dict)
+        self.assertSetEqual(
+            {"success", "parameters", "covariance", "info", "message", "status"},
+            set(solution.keys()),
+        )
+
+    def test_model_minimize_signature(self):
+        solution = self.solver.minimize(self.xdata, self.ydata, sigma=self.sigmas)
+        self.assertIsInstance(solution, dict)
+        self.assertSetEqual(
+            {"success", "parameters", "covariance", "info", "message", "status"},
+            set(solution.keys()),
+        )
 
     def test_model_fit_parameters(self):
         """
@@ -197,13 +208,28 @@ class GenericTestFitSolver:
          - Is the right solution
          - Is it precise enough wrt standard deviation
         """
-        solution = self.solver.fit(self.xdata, self.ydata)
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         for i in range(self.parameters.shape[0]):
             self.assertTrue(
                 np.allclose(
                     self.parameters[i],
                     solution["parameters"][i],
                     atol=self.sigma_factor * np.sqrt(solution["covariance"][i][i]),
+                )
+            )
+
+    def test_model_minimize_parameters(self):
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        minimized = self.solver.minimize(self.xdata, self.ydata, sigma=self.sigmas)
+        print()
+        print(solution["parameters"])
+        print(minimized["parameters"])
+        for i in range(self.parameters.shape[0]):
+            self.assertTrue(
+                np.allclose(
+                    solution["parameters"][i],
+                    minimized["parameters"][i],
+                    rtol=1e-6,
                 )
             )
 

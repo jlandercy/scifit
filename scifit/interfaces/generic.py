@@ -291,11 +291,52 @@ class FitSolverInterface:
             **self.configuration(**kwargs)
         )
         return {
+            "success": solution[4] in {1, 2, 3, 4},
             "parameters": solution[0],
             "covariance": solution[1],
             "info": solution[2],
             "message": solution[3],
             "status": solution[4],
+        }
+
+    def minimize(self, xdata, ydata, sigma=None, x0=None, **kwargs):
+        """
+        Solve the fitting problem by finding a set of parameters minimizing the loss function wrt features, target and sigma.
+        Return structured solution and update solver object in order to expose analysis convenience (fit, loss).
+
+        :param xdata: Features (variables) as :code:`(n,m)` matrix
+        :param ydata: Target as :code:`(n,)` matrix
+        :param sigma: Uncertainty on target as :code:`(n,)` matrix or scalar or :code:`None`
+        :param kwargs: Extra parameters to pass to :code:`scipy.optimize.curve_fit`
+        :return: Dictionary of objects with details about the regression including regressed parameters and final covariance
+        """
+        kwargs = self.configuration(**kwargs)
+        x0 = kwargs.pop("p0", None) or kwargs.pop("x0", None)
+        if x0 is None:
+            x0 = np.full((self.k,), 1.)
+
+        def loss(p):
+            return self.parametrized_loss(xdata, ydata, sigma=sigma)(*p)
+
+        solution = optimize.minimize(
+            loss,
+            x0=x0,
+            method="L-BFGS-B",
+            **kwargs
+        )
+        return {
+            "success": solution.success,
+            "parameters": solution.x,
+            "covariance": solution.hess_inv,
+            "info": {
+                "jac": solution.jac,
+                "nit": solution.nit,
+                "fun": solution.fun,
+                "nfev": solution.nfev,
+                "njev": solution.njev,
+            },
+            "message": solution.message,
+            "status": solution.status,
         }
 
     def stored(self, error=False):
