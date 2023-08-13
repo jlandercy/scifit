@@ -223,9 +223,6 @@ class GenericTestFitSolver:
         solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         np.random.seed(self.seed)
         minimized = self.solver.minimize(self.xdata, self.ydata, sigma=None)
-        print()
-        print(solution["parameters"])
-        print(minimized["parameters"])
         # Assert both solve and minimize are alike at percent level
         for i in range(self.parameters.shape[0]):
             self.assertTrue(
@@ -289,7 +286,7 @@ class GenericTestFitSolver:
         axe.figure.savefig("{}/{}_fit_x{}.png".format(self.media_path, name, 0))
         plt.close(axe.figure)
 
-    def _test_plot_chi_square(self):
+    def test_plot_chi_square(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
@@ -297,7 +294,7 @@ class GenericTestFitSolver:
         axe.figure.savefig("{}/{}_chi2.png".format(self.media_path, name))
         plt.close(axe.figure)
 
-    def _test_plot_loss_automatic(self):
+    def test_plot_loss_automatic(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
