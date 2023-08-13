@@ -43,7 +43,7 @@ class GenericTestFitSolverInterface:
         self.assertEqual(xlin.max(), +10.0)
 
     def test_logarithmic_space_generation(self):
-        xlog = self.solver.scale(mode="log", xmin=-10.0, xmax=+10.0, resolution=200)
+        xlog = self.solver.scale(mode="log", xmin=1e-10, xmax=1e10, resolution=200)
         self.assertIsInstance(xlog, np.ndarray)
         self.assertEqual(xlog.ndim, 1)
         self.assertEqual(xlog.shape[0], 200)
@@ -242,15 +242,15 @@ class GenericTestFitSolver:
 
     def test_parameters_domain_linear_fixed(self):
         solution = self.solver.fit(self.xdata, self.ydata)
-        domains = self.solver.parameter_domains(xmax=100.0)
+        domains = self.solver.parameter_domains(xmax=1e2)
 
     def test_parameters_domain_logarithmic_auto(self):
         solution = self.solver.fit(self.xdata, self.ydata)
-        domains = self.solver.parameter_domains(mode="log")
+        domains = self.solver.parameter_domains(mode="log", xmin=1e-5)
 
     def test_parameters_domain_logarithmic_fixed(self):
         solution = self.solver.fit(self.xdata, self.ydata)
-        domains = self.solver.parameter_domains(mode="log", xmax=100.0)
+        domains = self.solver.parameter_domains(mode="log", xmin=1e-5, xmax=100.0)
 
     def test_plot_fit(self):
         name = self.__class__.__name__
