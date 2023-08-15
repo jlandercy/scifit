@@ -980,7 +980,7 @@ class FitSolverInterface:
                         self._ydata,
                         linestyle="none",
                         marker=".",
-                        label=r"Data: $(x_{{{}}},y)$".format(0),
+                        label=r"Data: $(x_{1},y)$",
                     )
                 else:
                     axe.errorbar(
@@ -991,7 +991,7 @@ class FitSolverInterface:
                         uplims=False,
                         linestyle="none",
                         marker=".",
-                        label=r"Data: $(x_{{{}}},y)$".format(0),
+                        label=r"Data: $(x_1,y)$",
                     )
 
                 axe.plot(
@@ -1018,7 +1018,7 @@ class FitSolverInterface:
                         axe.add_patch(square)
 
                 axe.set_title(full_title, fontdict={"fontsize": 10})
-                axe.set_xlabel(r"Feature, $x_{{{}}}$".format(0))
+                axe.set_xlabel(r"Feature, $x_1$")
                 axe.set_ylabel(r"Target, $y$")
                 axe.set_aspect(aspect)
                 axe.legend()
@@ -1053,8 +1053,8 @@ class FitSolverInterface:
                         )
 
                 axe.set_title(full_title, fontdict={"fontsize": 10})
-                axe.set_xlabel(r"Feature, $x_0$")
-                axe.set_ylabel(r"Feature, $x_1$")
+                axe.set_xlabel(r"Feature, $x_1$")
+                axe.set_ylabel(r"Feature, $x_2$")
                 axe.set_zlabel(r"Target, $y$")
                 axe.grid()
 
@@ -1204,8 +1204,8 @@ class FitSolverInterface:
                 axe.scatter(self._minimize["parameters"], loss(*self._minimize["parameters"]))
 
                 if add_labels:
-                    axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index))
-                    axe.set_ylabel(r"Loss, $L(\beta_{{{}}})$".format(first_index))
+                    axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index + 1))
+                    axe.set_ylabel(r"Loss, $L(\beta_{{{}}})$".format(first_index + 1))
 
                 axe._pair_indices = (first_index, first_index)
 
@@ -1250,8 +1250,8 @@ class FitSolverInterface:
                 axe.scatter(self._minimize["parameters"][first_index], self._minimize["parameters"][second_index])
 
                 if add_labels:
-                    axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index))
-                    axe.set_ylabel(r"Parameter, $\beta_{{{}}}$".format(second_index))
+                    axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index + 1))
+                    axe.set_ylabel(r"Parameter, $\beta_{{{}}}$".format(second_index + 1))
 
             else:
                 raise ConfigurationError("Cannot plot loss due to configuration")
@@ -1336,10 +1336,10 @@ class FitSolverInterface:
                     )
 
                     if i == 0:
-                        axe.set_ylabel(r"$\beta_{{{}}}$".format(j))
+                        axe.set_ylabel(r"$\beta_{{{}}}$".format(j + 1))
 
                     if j == self.k - 1:
-                        axe.set_xlabel(r"$\beta_{{{}}}$".format(i))
+                        axe.set_xlabel(r"$\beta_{{{}}}$".format(i + 1))
 
                 if (i < j) and (j < self.k - 1):
                     axe = axes[i][j]
@@ -1349,3 +1349,35 @@ class FitSolverInterface:
             fig.subplots_adjust(top=0.8, left=0.2)
 
         return axe
+
+    def dataset(self):
+        """
+        Return experimental data as a DataFrame
+
+        :return: Pandas DataFrame containing all experimental data
+        """
+
+        if self.stored(error=True):
+
+            data = pd.DataFrame(self._xdata)
+            data.columns = data.columns.map(lambda x: "x%d" % x)
+
+            extra = {"y": self._ydata}
+            if self._sigma is not None:
+                extra["sy"] = self._sigma
+
+            if self.fitted(error=False):
+                extra["yhat"] = self._yhat
+
+            extra = pd.DataFrame(extra)
+            data = pd.concat([data, extra], axis=1)
+
+            data["yerr"] = data["y"] - data["yhat"]
+            data["yrelerr"] = data["yerr"] / data["yhat"]
+
+            if self._sigma is not None and self.fitted(error=False):
+                data["chi2"] = ((data["y"] - data["yhat"]) / data["sy"])**2
+
+            data.index.name = "id"
+
+            return data

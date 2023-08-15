@@ -113,7 +113,8 @@ class GenericTestFitSolverInterface:
 
 
 class GenericTestFitSolver:
-    root_path = ".cache/media/"
+
+    root_path = ".cache/media/tests/"
 
     factory = None
     configuration = {}
@@ -133,6 +134,8 @@ class GenericTestFitSolver:
     generator = np.random.normal
     target_kwargs = {}
     sigma_factor = 10.0
+
+    format = "png"
 
     # scale_mode = "auto"
     # generator = np.random.uniform
@@ -303,7 +306,7 @@ class GenericTestFitSolver:
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         axe = self.solver.plot_fit(title=title, errors=True, squared_errors=False)
-        axe.figure.savefig("{}/{}_fit_x{}.png".format(self.media_path, name, 0))
+        axe.figure.savefig("{}/{}_fit_x{}.{}".format(self.media_path, name, 0, self.format))
         plt.close(axe.figure)
 
     def test_plot_chi_square(self):
@@ -311,13 +314,20 @@ class GenericTestFitSolver:
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         axe = self.solver.plot_chi_square(title=title)
-        axe.figure.savefig("{}/{}_chi2.png".format(self.media_path, name))
+        axe.figure.savefig("{}/{}_chi2.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
     def test_plot_loss_automatic(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        axe = self.solver.plot_loss(title=title, iterations=True)
-        axe.figure.savefig("{}/{}_loss_scatter.png".format(self.media_path, name))
+        axe = self.solver.plot_loss(title=title, iterations=False)
+        axe.figure.savefig("{}/{}_loss_scatter.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
+
+    def test_dataset(self):
+        name = self.__class__.__name__
+        self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        data = self.solver.dataset()
+        data = data.drop(["yrelerr"], axis=1)
+        data.to_csv("{}/{}.csv".format(self.media_path, name), index=True, sep=";")
