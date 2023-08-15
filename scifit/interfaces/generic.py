@@ -299,7 +299,11 @@ class FitSolverInterface:
             "status": solution[4],
         }
 
-    def minimize(self, xdata, ydata, sigma=None, x0=None, **kwargs):
+    @staticmethod
+    def minimize_callback(result):
+        pass
+
+    def minimize(self, xdata, ydata, sigma=None, p0=None, **kwargs):
         """
         Solve the fitting problem by finding a set of parameters minimizing the loss function wrt features, target and sigma.
         Return structured solution and update solver object in order to expose analysis convenience (fit, loss).
@@ -310,31 +314,46 @@ class FitSolverInterface:
         :param kwargs: Extra parameters to pass to :code:`scipy.optimize.curve_fit`
         :return: Dictionary of objects with details about the regression including regressed parameters and final covariance
         """
-        kwargs = self.configuration(**kwargs)
-        x0 = kwargs.pop("p0", None) or kwargs.pop("x0", None)
-        if x0 is None:
-            x0 = np.full((self.k,), 1.)
+        if p0 is None:
+            p0 = np.full((self.k,), 1.)
 
         def loss(p):
             return self.parametrized_loss(xdata, ydata, sigma=sigma)(*p)
 
+        def callback(result):
+            self._iterations.append(result)
+            self.minimize_callback(result)
+
+        self._iterations = []
         solution = optimize.minimize(
             loss,
-            x0=x0,
+            x0=p0,
             method="L-BFGS-B",
-            tol=1e-9,
+            jac="3-point",
+            callback=callback,
             **kwargs
         )
+        self._iterations = np.array(self._iterations)
+
+        # # From scipy: https://github.com/scipy/scipy/blob/main/scipy/optimize/_minpack_py.py#L1000C1-L1004C39
+        # _, s, VT = np.linalg.svd(solution.jac, full_matrices=False)
+        # threshold = np.finfo(float).eps * max(solution.jac.shape) * s[0]
+        # s = s[s > threshold]
+        # VT = VT[:s.size]
+        # covariance = np.dot(VT.T / s**2, VT)
+
         return {
             "success": solution.success,
             "parameters": solution.x,
-            "covariance": solution.hess_inv,
+            "covariance": 1.0,
             "info": {
                 "jac": solution.jac,
                 "nit": solution.nit,
                 "fun": solution.fun,
                 "nfev": solution.nfev,
                 "njev": solution.njev,
+                "hess_inv": solution.hess_inv,
+                "iterations": self._iterations,
             },
             "message": solution.message,
             "status": solution.status,
@@ -821,23 +840,24 @@ class FitSolverInterface:
         dataset = np.vstack([scale.ravel() for scale in space])
         return dataset.T
 
-    def parameter_domains(self, mode="lin", xmin=None, xmax=None, ratio=10.0):
+    def parameter_domains(self, parameters=None, mode="lin", xmin=None, xmax=None, ratio=10.0):
         """
         Generate parameter domains, useful for drawing scales fitting the parameters space
         """
 
-        if self.fitted():
+        if parameters is None and self.fitted(error=True):
             parameters = self._solution["parameters"]
-            if mode == "lin":
-                xmin = xmin or list(parameters - 3.0 * ratio * np.abs(parameters))
-                xmax = xmax or list(parameters + 3.0 * ratio * np.abs(parameters))
-            elif mode == "log":
-                xmin = xmin or list(parameters / (ratio**3))
-                xmax = xmax or list(parameters * (ratio**3))
-            else:
-                raise ConfigurationError(
-                    "Domain mode must be in {lin, log} got '%s' instead" % mode
-                )
+
+        if mode == "lin":
+            xmin = xmin or list(parameters - 3.0 * ratio * np.abs(parameters))
+            xmax = xmax or list(parameters + 3.0 * ratio * np.abs(parameters))
+        elif mode == "log":
+            xmin = xmin or list(parameters / (ratio**3))
+            xmax = xmax or list(parameters * (ratio**3))
+        else:
+            raise ConfigurationError(
+                "Domain mode must be in {lin, log} got '%s' instead" % mode
+            )
 
         xmin = xmin or 0.0
         if not isinstance(xmin, Iterable):
@@ -1132,6 +1152,7 @@ class FitSolverInterface:
         title="",
         levels=None,
         resolution=75,
+        iterations=False,
         add_labels=True,
         add_title=True,
     ):
@@ -1146,6 +1167,7 @@ class FitSolverInterface:
         """
 
         if self.fitted(error=True):
+
             if axe is None:
                 fig, axe = plt.subplots()
             fig = axe.figure
@@ -1171,6 +1193,13 @@ class FitSolverInterface:
                     color="black",
                     linestyle="-.",
                 )
+
+                if iterations:
+                    axe.plot(
+                        self._iterations.reshape(-1, 1), loss(self._iterations.reshape(-1, 1)),
+                        linestyle="-", marker="o", color="black", linewidth=0.75, markersize=2,
+                    )
+
                 axe.scatter(p0, loss(*p0))
                 axe.scatter(self._minimize["parameters"], loss(*self._minimize["parameters"]))
 
@@ -1210,6 +1239,13 @@ class FitSolverInterface:
                     linestyle="-.",
                 )
 
+                if iterations:
+                    axe.plot(
+                        self._iterations[:, first_index].reshape(-1, 1),
+                        self._iterations[:, second_index].reshape(-1, 1),
+                        linestyle="-", marker="o", color="black", linewidth=0.75, markersize=2,
+                    )
+
                 axe.scatter(p0[first_index], p0[second_index])
                 axe.scatter(self._minimize["parameters"][first_index], self._minimize["parameters"][second_index])
 
@@ -1239,6 +1275,7 @@ class FitSolverInterface:
         title="",
         levels=None,
         resolution=75,
+        iterations=False,
     ):
         """
         Sketch and plot full loss landscape in order to assess parameters optima convergence and uniqueness.
@@ -1265,6 +1302,7 @@ class FitSolverInterface:
                 title=title,
                 levels=levels,
                 resolution=resolution,
+                iterations=iterations,
             )
 
         else:
@@ -1292,6 +1330,7 @@ class FitSolverInterface:
                         title=title,
                         levels=levels,
                         resolution=resolution,
+                        iterations=iterations,
                         add_labels=False,
                         add_title=False,
                     )

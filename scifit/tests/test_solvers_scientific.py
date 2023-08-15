@@ -215,7 +215,7 @@ class RichardGeneralizedSigmoidRegression(GenericLinearRegression):
     xmax = +5.0
     resolution = 50
 
-    def test_model_minimize_parameters(self):
+    def test_model_minimize_against_solve(self):
         """Richardson model is not numerically stable"""
         pass
 

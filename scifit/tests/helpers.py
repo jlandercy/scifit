@@ -125,6 +125,7 @@ class GenericTestFitSolver:
     resolution = 30
     dimension = 1
     xdata = None
+    p0 = None
 
     seed = 789
     sigma = None
@@ -139,6 +140,7 @@ class GenericTestFitSolver:
     # sigma_factor = 10.
 
     def setUp(self) -> None:
+
         self.media_path = pathlib.Path(self.root_path) / format(
             self.factory.__module__.split(".")[-1]
         )
@@ -169,6 +171,10 @@ class GenericTestFitSolver:
         self.__dict__.update(
             {k: target[k] for k in ["ydata", "yref", "sigmas", "ynoise"]}
         )
+
+        domains = self.solver.parameter_domains(parameters=self.parameters)
+        if self.p0 is None:
+            self.p0 = domains.loc["max", :].values
 
     def test_signature(self):
         s = self.solver.signature
@@ -218,13 +224,17 @@ class GenericTestFitSolver:
                 )
             )
 
-    def test_model_minimize_parameters(self):
+    def test_model_minimize_against_solve(self):
+
         np.random.seed(self.seed)
         solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+
         np.random.seed(self.seed)
         minimized = self.solver.minimize(self.xdata, self.ydata, sigma=None)
+
         # Assert both solve and minimize are alike at percent level
         for i in range(self.parameters.shape[0]):
+
             self.assertTrue(
                 np.allclose(
                     solution["parameters"][i],
@@ -232,6 +242,16 @@ class GenericTestFitSolver:
                     rtol=5e-3,
                 )
             )
+
+        # Assert covariance
+        # for i in range(self.parameters.shape[0]):
+        #     self.assertTrue(
+        #         np.allclose(
+        #             solution["covariance"][i][i],
+        #             minimized["covariance"][i][i],
+        #             rtol=5e-3,
+        #         )
+        #     )
 
     def test_goodness_of_fit(self):
         """
@@ -298,6 +318,6 @@ class GenericTestFitSolver:
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        axe = self.solver.plot_loss(title=title)
+        axe = self.solver.plot_loss(title=title, iterations=True)
         axe.figure.savefig("{}/{}_loss_scatter.png".format(self.media_path, name))
         plt.close(axe.figure)
