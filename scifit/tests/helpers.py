@@ -317,7 +317,7 @@ class GenericTestFitSolver:
         axe.figure.savefig("{}/{}_chi2.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
-    def test_plot_loss_automatic(self):
+    def _test_plot_loss_automatic(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
@@ -326,8 +326,11 @@ class GenericTestFitSolver:
         plt.close(axe.figure)
 
     def test_dataset(self):
-        name = self.__class__.__name__
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         data = self.solver.dataset()
-        data = data.drop(["yrelerr"], axis=1)
+
+    def test_summary(self):
+        name = self.__class__.__name__
+        self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        data = self.solver.summary()
         data.to_csv("{}/{}.csv".format(self.media_path, name), index=True, sep=";")

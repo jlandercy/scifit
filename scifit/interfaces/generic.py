@@ -1373,11 +1373,20 @@ class FitSolverInterface:
             data = pd.concat([data, extra], axis=1)
 
             data["yerr"] = data["y"] - data["yhat"]
-            data["yrelerr"] = data["yerr"] / data["yhat"]
+            data["yerrrel"] = data["yerr"] / data["yhat"]
+            data["yerrabs"] = np.abs(data["yerr"])
+            data["yerrsqr"] = np.power(data["yerr"], 2)
 
             if self._sigma is not None and self.fitted(error=False):
                 data["chi2"] = ((data["y"] - data["yhat"]) / data["sy"])**2
 
-            data.index.name = "id"
-
             return data
+
+    def summary(self):
+        data = self.dataset()
+        data.index = data.index.values + 1
+        data.index.name = "id"
+        data.loc[r""] = data.sum()
+        data.iloc[-1, :-5] = None
+        data.iloc[-1, 5] = None
+        return data
