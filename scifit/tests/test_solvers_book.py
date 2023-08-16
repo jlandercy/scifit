@@ -1,8 +1,3 @@
-"""
-Module :mod:`scifit.tests.test_interfaces` implements test suite for the
-class :class:`scifit.interfaces.generic.GenericInterface` and its children.
-"""
-
 from unittest import TestCase
 
 import numpy as np
@@ -13,7 +8,6 @@ from scifit.tests.test_solvers_linear import GenericLinearRegression
 
 
 class BookSampleRegression(GenericLinearRegression):
-
     root_path = ".cache/media/book/"
     format = "eps"
     fake_sigma_factor = None
@@ -26,7 +20,6 @@ class BookSampleRegression(GenericLinearRegression):
 
 
 class BookLinearSample01Regression(BookSampleRegression):
-
     factory = linear.LinearFitSolver
     parameters = np.array([3.0, 2.0])
     resolution = 15

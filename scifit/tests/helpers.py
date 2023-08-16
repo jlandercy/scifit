@@ -43,12 +43,12 @@ class GenericTestFitSolverInterface:
         self.assertTrue(np.allclose(xlin.max(), +10.0))
 
     def test_logarithmic_space_generation(self):
-        xlog = self.solver.scale(mode="log", xmin=1e-10, xmax=1e+10, resolution=200)
+        xlog = self.solver.scale(mode="log", xmin=1e-10, xmax=1e10, resolution=200)
         self.assertIsInstance(xlog, np.ndarray)
         self.assertEqual(xlog.ndim, 1)
         self.assertEqual(xlog.shape[0], 200)
         self.assertTrue(np.allclose(xlog.min(), 1e-10))
-        self.assertTrue(np.allclose(xlog.max(), 1e+10))
+        self.assertTrue(np.allclose(xlog.max(), 1e10))
 
     def test_feature_scales(self):
         scales = self.solver.feature_scales(resolution=200)
@@ -113,7 +113,6 @@ class GenericTestFitSolverInterface:
 
 
 class GenericTestFitSolver:
-
     root_path = ".cache/media/tests/"
 
     factory = None
@@ -143,7 +142,6 @@ class GenericTestFitSolver:
     # sigma_factor = 10.
 
     def setUp(self) -> None:
-
         self.media_path = pathlib.Path(self.root_path) / format(
             self.factory.__module__.split(".")[-1]
         )
@@ -306,7 +304,9 @@ class GenericTestFitSolver:
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         axe = self.solver.plot_fit(title=title, errors=True, squared_errors=False)
-        axe.figure.savefig("{}/{}_fit_x{}.{}".format(self.media_path, name, 0, self.format))
+        axe.figure.savefig(
+            "{}/{}_fit_x{}.{}".format(self.media_path, name, 0, self.format)
+        )
         plt.close(axe.figure)
 
     def test_plot_chi_square(self):
@@ -322,7 +322,9 @@ class GenericTestFitSolver:
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         axe = self.solver.plot_loss(title=title, iterations=False)
-        axe.figure.savefig("{}/{}_loss_scatter.{}".format(self.media_path, name, self.format))
+        axe.figure.savefig(
+            "{}/{}_loss_scatter.{}".format(self.media_path, name, self.format)
+        )
         plt.close(axe.figure)
 
     def test_dataset(self):

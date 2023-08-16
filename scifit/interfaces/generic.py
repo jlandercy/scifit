@@ -1,6 +1,5 @@
 import inspect
 import itertools
-import pprint
 from collections.abc import Iterable
 
 import matplotlib.patches as patches
@@ -199,7 +198,7 @@ class FitSolverInterface:
         generator=np.random.normal,
         seed=None,
         full_output=False,
-        **kwargs
+        **kwargs,
     ):
         """
         Generate synthetic target for the model using features, parameters and eventually add noise to it.
@@ -288,7 +287,7 @@ class FitSolverInterface:
             full_output=True,
             check_finite=True,
             nan_policy="raise",
-            **self.configuration(**kwargs)
+            **self.configuration(**kwargs),
         )
         return {
             "success": solution[4] in {1, 2, 3, 4},
@@ -315,7 +314,7 @@ class FitSolverInterface:
         :return: Dictionary of objects with details about the regression including regressed parameters and final covariance
         """
         if p0 is None:
-            p0 = np.full((self.k,), 1.)
+            p0 = np.full((self.k,), 1.0)
 
         def loss(p):
             return self.parametrized_loss(xdata, ydata, sigma=sigma)(*p)
@@ -326,12 +325,7 @@ class FitSolverInterface:
 
         self._iterations = []
         solution = optimize.minimize(
-            loss,
-            x0=p0,
-            method="L-BFGS-B",
-            jac="3-point",
-            callback=callback,
-            **kwargs
+            loss, x0=p0, method="L-BFGS-B", jac="3-point", callback=callback, **kwargs
         )
         self._iterations = np.array(self._iterations)
 
@@ -724,8 +718,8 @@ class FitSolverInterface:
         if mode == "lin":
             return np.linspace(xmin, xmax, resolution)
         elif mode == "log":
-            xmin = np.log10(xmin)/np.log10(base)
-            xmax = np.log10(xmax)/np.log10(base)
+            xmin = np.log10(xmin) / np.log10(base)
+            xmax = np.log10(xmax) / np.log10(base)
             return np.logspace(xmin, xmax, resolution, base=base)
         else:
             raise ConfigurationError(
@@ -840,7 +834,9 @@ class FitSolverInterface:
         dataset = np.vstack([scale.ravel() for scale in space])
         return dataset.T
 
-    def parameter_domains(self, parameters=None, mode="lin", xmin=None, xmax=None, ratio=10.0):
+    def parameter_domains(
+        self, parameters=None, mode="lin", xmin=None, xmax=None, ratio=10.0
+    ):
         """
         Generate parameter domains, useful for drawing scales fitting the parameters space
         """
@@ -854,7 +850,6 @@ class FitSolverInterface:
             parameters = self._solution["parameters"]
 
         if parameters is not None:
-
             if mode == "lin":
                 xmin = xmin or list(parameters - 3.0 * ratio * np.abs(parameters))
                 xmax = xmax or list(parameters + 3.0 * ratio * np.abs(parameters))
@@ -1171,7 +1166,6 @@ class FitSolverInterface:
         """
 
         if self.fitted(error=True):
-
             if axe is None:
                 fig, axe = plt.subplots()
             fig = axe.figure
@@ -1200,14 +1194,22 @@ class FitSolverInterface:
 
                 if iterations and hasattr(self, "_iterations"):
                     axe.plot(
-                        self._iterations.reshape(-1, 1), loss(self._iterations.reshape(-1, 1)),
-                        linestyle="-", marker="o", color="black", linewidth=0.75, markersize=2,
+                        self._iterations.reshape(-1, 1),
+                        loss(self._iterations.reshape(-1, 1)),
+                        linestyle="-",
+                        marker="o",
+                        color="black",
+                        linewidth=0.75,
+                        markersize=2,
                     )
 
                 axe.scatter(p0, loss(*p0))
 
                 if hasattr(self, "_minimize"):
-                    axe.scatter(self._minimize["parameters"], loss(*self._minimize["parameters"]))
+                    axe.scatter(
+                        self._minimize["parameters"],
+                        loss(*self._minimize["parameters"]),
+                    )
 
                 if add_labels:
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index + 1))
@@ -1249,7 +1251,11 @@ class FitSolverInterface:
                     axe.plot(
                         self._iterations[:, first_index].reshape(-1, 1),
                         self._iterations[:, second_index].reshape(-1, 1),
-                        linestyle="-", marker="o", color="black", linewidth=0.75, markersize=2,
+                        linestyle="-",
+                        marker="o",
+                        color="black",
+                        linewidth=0.75,
+                        markersize=2,
                     )
 
                 axe.scatter(p0[first_index], p0[second_index])
@@ -1257,12 +1263,14 @@ class FitSolverInterface:
                 if hasattr(self, "_minimize"):
                     axe.scatter(
                         self._minimize["parameters"][first_index],
-                        self._minimize["parameters"][second_index]
+                        self._minimize["parameters"][second_index],
                     )
 
                 if add_labels:
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index + 1))
-                    axe.set_ylabel(r"Parameter, $\beta_{{{}}}$".format(second_index + 1))
+                    axe.set_ylabel(
+                        r"Parameter, $\beta_{{{}}}$".format(second_index + 1)
+                    )
 
             else:
                 raise ConfigurationError("Cannot plot loss due to configuration")
@@ -1369,7 +1377,6 @@ class FitSolverInterface:
         """
 
         if self.stored(error=True):
-
             data = pd.DataFrame(self._xdata)
             data.columns = data.columns.map(lambda x: "x%d" % x)
 
@@ -1389,7 +1396,7 @@ class FitSolverInterface:
             data["yerrsqr"] = np.power(data["yerr"], 2)
 
             if self._sigma is not None and self.fitted(error=False):
-                data["chi2"] = ((data["y"] - data["yhat"]) / data["sy"])**2
+                data["chi2"] = ((data["y"] - data["yhat"]) / data["sy"]) ** 2
 
             return data
 
