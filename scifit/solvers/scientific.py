@@ -45,7 +45,7 @@ class LogisticFitSolver(FitSolverInterface):
         :param x0: displacement or sigmoid inflexion point :math:`x_0`
         :return: Logistic function :math:`y`
         """
-        return 1.0 / (1.0 + np.exp(-k * (x[:, 0]) - x0))
+        return 1.0 / (1.0 + np.exp(-k * (x[:, 0] - x0)))
 
 
 class AlgebraicSigmoidFitSolver(FitSolverInterface):

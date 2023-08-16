@@ -19,6 +19,16 @@ class BookSampleRegression(GenericLinearRegression):
             self.sigmas *= self.fake_sigma_factor
 
 
+class BookIntroductionRegression(BookSampleRegression, TestCase):
+    factory = scientific.LogisticFitSolver
+    parameters = np.array([1.45, 5.0])
+    seed = 12345
+    resolution = 30
+    sigma = 0.125
+    xmin = 0.0
+    xmax = 10.0
+
+
 class BookLinearSample01Regression(BookSampleRegression):
     factory = linear.LinearFitSolver
     parameters = np.array([3.0, 2.0])
