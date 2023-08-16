@@ -3,9 +3,9 @@ requires = ["setuptools>=68.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 #dynamic = ["dependencies", "dev"]
 
-[tool.setuptools.dynamic]
-dependencies = {file = ["requirements.txt"]}
-optional-dependencies = {dev = { file = ["requirements_ci.txt"] }}
+#[tool.setuptools.dynamic]
+#dependencies = {file = ["requirements.txt"]}
+#optional-dependencies = {dev = { file = ["requirements_ci.txt"] }}
 
 [project]
 name = "scifit"
@@ -17,16 +17,20 @@ readme = "README.md"
 classifiers = [
     "Intended Audience :: Science/Research",
     "Intended Audience :: Education",
+    "Topic :: Education",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Utilities",
     "License :: OSI Approved :: BSD License",
     "Natural Language :: English",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
-    "Topic :: Education",
-    "Topic :: Software Development",
-    "Topic :: Utilities"
+    "Programming Language :: Python :: 3.11",
 ]
 keywords = ["scientific", "curve-fitting", "optimization"]
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 dependencies = [
     "matplotlib>=3.7.2",
     "numpy>=1.25.2",
@@ -170,6 +174,7 @@ tag = true
 push = true
 
 [tool.bumpver.file_patterns]
+# bumpver update --patch --dry
 "pyproject.toml" = [
     'version = "{version}"',
 ]
