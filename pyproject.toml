@@ -9,7 +9,7 @@ optional-dependencies = {dev = { file = ["requirements_ci.txt"] }}
 
 [project]
 name = "scifit"
-version = "0.1.0"
+version = "0.1.1"
 description = "Scientific Fit for Python"
 authors = [{ name = "Jean Landercy", email = "jeanlandercy@live.com" }]
 license = { file = "LICENSE" }
@@ -158,7 +158,7 @@ dev = [
 Homepage = "https://github.com/jlandercy/scifit"
 
 [tool.bumpver]
-current_version = "0.1.0"
+current_version = "0.1.1"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 tag_message = "{new_version}"
