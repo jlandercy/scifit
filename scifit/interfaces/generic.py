@@ -535,7 +535,7 @@ class FitSolverInterface:
         """
         return self.chi_square(xdata, ydata, sigma=sigma, parameters=parameters)
 
-    loss.name = "$\chi^2$"
+    loss.name = "$\chi^2_r$"
 
     def weighted_mean(self, ydata, wdata=None):
         """
@@ -620,7 +620,7 @@ class FitSolverInterface:
         :return: Dictionary of objects containing elements to interpret the Chi Square Test for Goodness of Fit
         """
         statistic = self.chi_square(xdata, ydata, sigma=sigma, parameters=parameters)
-        normalized = statistic / self.n
+        normalized = statistic / self.dof
         law = stats.chi2(df=self.dof)
         result = {
             "n": self.n,
@@ -707,9 +707,9 @@ class FitSolverInterface:
         self._solution = self.solve(
             self._xdata, self._ydata, sigma=self._sigma, **kwargs
         )
-        self._minimize = self.minimize(
-            self._xdata, self._ydata, sigma=self._sigma, **kwargs
-        )
+        # self._minimize = self.minimize(
+        #     self._xdata, self._ydata, sigma=self._sigma, **kwargs
+        # )
         self._yhat = self.predict(self._xdata)
         self._loss = self.loss(self._xdata, self._ydata, sigma=self._sigma)
         self._score = self.score(self._xdata, self._ydata, sigma=self._sigma)
@@ -845,19 +845,23 @@ class FitSolverInterface:
         Generate parameter domains, useful for drawing scales fitting the parameters space
         """
 
-        if parameters is None and self.fitted(error=True):
-            parameters = self._solution["parameters"]
-
-        if mode == "lin":
-            xmin = xmin or list(parameters - 3.0 * ratio * np.abs(parameters))
-            xmax = xmax or list(parameters + 3.0 * ratio * np.abs(parameters))
-        elif mode == "log":
-            xmin = xmin or list(parameters / (ratio**3))
-            xmax = xmax or list(parameters * (ratio**3))
-        else:
+        if mode not in {"lin", "log"}:
             raise ConfigurationError(
                 "Domain mode must be in {lin, log} got '%s' instead" % mode
             )
+
+        if parameters is None and self.fitted(error=True):
+            parameters = self._solution["parameters"]
+
+        if parameters is not None:
+
+            if mode == "lin":
+                xmin = xmin or list(parameters - 3.0 * ratio * np.abs(parameters))
+                xmax = xmax or list(parameters + 3.0 * ratio * np.abs(parameters))
+
+            elif mode == "log":
+                xmin = xmin or list(parameters / (ratio**3))
+                xmax = xmax or list(parameters * (ratio**3))
 
         xmin = xmin or 0.0
         if not isinstance(xmin, Iterable):
@@ -1103,7 +1107,7 @@ class FitSolverInterface:
                 statistic,
                 linestyle="-.",
                 color="black",
-                label="r$\chi^2_r = {:.3f}$".format(statistic),
+                label=r"$\chi^2_r = {:.3f}$".format(statistic),
             )
 
             alphas = [0.050, 0.025, 0.010, 0.005]
@@ -1194,14 +1198,16 @@ class FitSolverInterface:
                     linestyle="-.",
                 )
 
-                if iterations:
+                if iterations and hasattr(self, "_iterations"):
                     axe.plot(
                         self._iterations.reshape(-1, 1), loss(self._iterations.reshape(-1, 1)),
                         linestyle="-", marker="o", color="black", linewidth=0.75, markersize=2,
                     )
 
                 axe.scatter(p0, loss(*p0))
-                axe.scatter(self._minimize["parameters"], loss(*self._minimize["parameters"]))
+
+                if hasattr(self, "_minimize"):
+                    axe.scatter(self._minimize["parameters"], loss(*self._minimize["parameters"]))
 
                 if add_labels:
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index + 1))
@@ -1239,7 +1245,7 @@ class FitSolverInterface:
                     linestyle="-.",
                 )
 
-                if iterations:
+                if iterations and hasattr(self, "_iteration"):
                     axe.plot(
                         self._iterations[:, first_index].reshape(-1, 1),
                         self._iterations[:, second_index].reshape(-1, 1),
@@ -1247,7 +1253,12 @@ class FitSolverInterface:
                     )
 
                 axe.scatter(p0[first_index], p0[second_index])
-                axe.scatter(self._minimize["parameters"][first_index], self._minimize["parameters"][second_index])
+
+                if hasattr(self, "_minimize"):
+                    axe.scatter(
+                        self._minimize["parameters"][first_index],
+                        self._minimize["parameters"][second_index]
+                    )
 
                 if add_labels:
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index + 1))

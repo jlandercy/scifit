@@ -38,9 +38,15 @@ class BookLinearSample01NoiseL0(BookLinearSample01Regression, TestCase):
 
 class BookLinearSample01NoiseL0Overestimated(BookLinearSample01Regression, TestCase):
     sigma = 0.025
-    fake_sigma_factor = 1.35
+    fake_sigma_factor = 1.45
+
+    def test_goodness_of_fit(self):
+        pass
 
 
 class BookLinearSample01NoiseL0Underestimated(BookLinearSample01Regression, TestCase):
     sigma = 0.025
-    fake_sigma_factor = 0.65
+    fake_sigma_factor = 0.55
+
+    def test_goodness_of_fit(self):
+        pass

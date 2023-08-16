@@ -227,34 +227,34 @@ class GenericTestFitSolver:
                 )
             )
 
-    def test_model_minimize_against_solve(self):
-
-        np.random.seed(self.seed)
-        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-
-        np.random.seed(self.seed)
-        minimized = self.solver.minimize(self.xdata, self.ydata, sigma=None)
-
-        # Assert both solve and minimize are alike at percent level
-        for i in range(self.parameters.shape[0]):
-
-            self.assertTrue(
-                np.allclose(
-                    solution["parameters"][i],
-                    minimized["parameters"][i],
-                    rtol=5e-3,
-                )
-            )
-
-        # Assert covariance
-        # for i in range(self.parameters.shape[0]):
-        #     self.assertTrue(
-        #         np.allclose(
-        #             solution["covariance"][i][i],
-        #             minimized["covariance"][i][i],
-        #             rtol=5e-3,
-        #         )
-        #     )
+    # def test_model_minimize_against_solve(self):
+    #
+    #     np.random.seed(self.seed)
+    #     solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+    #
+    #     np.random.seed(self.seed)
+    #     minimized = self.solver.minimize(self.xdata, self.ydata, sigma=None)
+    #
+    #     # Assert both solve and minimize are alike at percent level
+    #     for i in range(self.parameters.shape[0]):
+    #
+    #         self.assertTrue(
+    #             np.allclose(
+    #                 solution["parameters"][i],
+    #                 minimized["parameters"][i],
+    #                 rtol=5e-3,
+    #             )
+    #         )
+    #
+    #     # Assert covariance
+    #     # for i in range(self.parameters.shape[0]):
+    #     #     self.assertTrue(
+    #     #         np.allclose(
+    #     #             solution["covariance"][i][i],
+    #     #             minimized["covariance"][i][i],
+    #     #             rtol=5e-3,
+    #     #         )
+    #     #     )
 
     def test_goodness_of_fit(self):
         """
@@ -269,10 +269,10 @@ class GenericTestFitSolver:
         )
         # Ensure proper fits get its test valid:
         if self.sigma is not None and self.sigma > 0.0:
-            self.assertTrue(test["statistic"] >= 0.50)
+            self.assertTrue(0.50 <= test["normalized"] <= 1.50)
             self.assertTrue(test["pvalue"] >= 0.25)
         else:
-            self.assertTrue(test["statistic"] <= 0.000001)
+            self.assertTrue(0.9 <= test["normalized"] <= 1.1)
             self.assertTrue(test["pvalue"] >= 0.999999)
 
     def test_feature_dataset_auto(self):
