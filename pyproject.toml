@@ -171,16 +171,11 @@ push = true
 
 [tool.bumpver.file_patterns]
 "pyproject.toml" = [
-    'current_version = "{version}"',
-]
-"setup.py" = [
-    "{version}",
-    "{pep440_version}",
-]
-"README.md" = [
-    "{version}",
-    "{pep440_version}",
+    'version = "{version}"',
 ]
 "scifit/__init__.py" = [
     '__version__ = "{version}"',
+]
+"docs/source/conf.py" = [
+    'release = "{version}"',
 ]
