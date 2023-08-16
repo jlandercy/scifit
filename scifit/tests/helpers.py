@@ -328,14 +328,14 @@ class GenericTestFitSolver:
         )
         plt.close(axe.figure)
 
-    def _test_plot_loss_surface_automatic(self):
+    def test_plot_loss_surface_automatic(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
 
         for i, j in itertools.combinations(range(self.solver.k), 2):
             axe = self.solver.plot_loss_low_dimension(
-                title=title, first_index=i, second_index=j, surface=True, iterations=False
+                title=title, first_index=i, second_index=j, surface=True, add_title=False, iterations=False
             )
             axe.figure.savefig(
                 "{}/{}_loss_3D_x{}_x{}.{}".format(self.media_path, name, i+1, j+1, self.format)
