@@ -1,4 +1,4 @@
-name: Python package
+name: Pypi Workflow
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Clean & Create cache folders
+      - name: Clean & create folders
         run: |
           rm -rf dist/
           rm -rf .cache/
@@ -42,30 +42,19 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade nox build twine pip-tools
           pip-compile --extra dev pyproject.toml 
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          python -m pip install -r requirements.txt
 
       - name: Unit tests suite
         run: |
           nox --session tests
 
-# Make fail: nox package install
-#      - name: Build package
-#        run: |
-#          nox --session build
-#          ls -lh dist/
-#
-#      - name: Check package
-#        run: |
-#          twine check dist/*
+      - name: Build package
+        run: |
+          nox --session package install
 
       - name: Notebooks
         run: |
-          nox --session package install
           nox --session notebooks
-
-#      - name: Documentation
-#        run: |
-#          nox --session docs
 
       - name: Collect report artifacts
         uses: actions/upload-artifact@v3
@@ -91,9 +80,3 @@ jobs:
         with:
           name: notebooks
           path: docs/source/notebooks
-
-#      - name: Collect documentation artifacts
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: documentation
-#          path: .cache/docs
