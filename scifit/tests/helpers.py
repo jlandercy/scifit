@@ -1,3 +1,4 @@
+import itertools
 import pathlib
 
 import matplotlib.pyplot as plt
@@ -305,11 +306,11 @@ class GenericTestFitSolver:
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         axe = self.solver.plot_fit(title=title, errors=True, squared_errors=False)
         axe.figure.savefig(
-            "{}/{}_fit_x{}.{}".format(self.media_path, name, 0, self.format)
+            "{}/{}_fit.{}".format(self.media_path, name, self.format)
         )
         plt.close(axe.figure)
 
-    def test_plot_chi_square(self):
+    def _test_plot_chi_square(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
@@ -326,6 +327,20 @@ class GenericTestFitSolver:
             "{}/{}_loss_scatter.{}".format(self.media_path, name, self.format)
         )
         plt.close(axe.figure)
+
+    def _test_plot_loss_surface_automatic(self):
+        name = self.__class__.__name__
+        title = r"{} (seed={:d})".format(name, self.seed)
+        self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+
+        for i, j in itertools.combinations(range(self.solver.k), 2):
+            axe = self.solver.plot_loss_low_dimension(
+                title=title, first_index=i, second_index=j, surface=True, iterations=False
+            )
+            axe.figure.savefig(
+                "{}/{}_loss_3D_x{}_x{}.{}".format(self.media_path, name, i+1, j+1, self.format)
+            )
+            plt.close(axe.figure)
 
     def test_dataset(self):
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)

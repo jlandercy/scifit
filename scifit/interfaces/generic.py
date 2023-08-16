@@ -1151,6 +1151,7 @@ class FitSolverInterface:
         title="",
         levels=None,
         resolution=75,
+        surface=False,
         iterations=False,
         add_labels=True,
         add_title=True,
@@ -1166,6 +1167,7 @@ class FitSolverInterface:
         """
 
         if self.fitted(error=True):
+
             if axe is None:
                 fig, axe = plt.subplots()
             fig = axe.figure
@@ -1213,11 +1215,12 @@ class FitSolverInterface:
 
                 if add_labels:
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index + 1))
-                    axe.set_ylabel(r"Loss, $L(\beta_{{{}}})$".format(first_index + 1))
+                    axe.set_ylabel(r"Loss, $\rho(\beta_{{{}}})$".format(first_index + 1))
 
                 axe._pair_indices = (first_index, first_index)
 
             elif self.k == 2 or (first_index is not None and second_index is not None):
+
                 first_index = first_index or 0
                 second_index = second_index or 1
 
@@ -1233,32 +1236,46 @@ class FitSolverInterface:
                 parameters[second_index] = y
                 loss = self.parametrized_loss(sigma=self._sigma)(*parameters)
 
-                clabels = axe.contour(x, y, loss, levels or 10, cmap="jet")
-                axe.clabel(clabels, clabels.levels, inline=True, fontsize=7)
+                if surface:
 
-                axe.axvline(
-                    self._solution["parameters"][first_index],
-                    color="black",
-                    linestyle="-.",
-                )
-                axe.axhline(
-                    self._solution["parameters"][second_index],
-                    color="black",
-                    linestyle="-.",
-                )
+                    # 3D Surfaces:
+                    fig, axe = plt.subplots(subplot_kw={"projection": "3d"})
+                    axe.plot_surface(x, y, loss, cmap="jet", rstride=1, cstride=1, alpha=0.50)
+                    axe.contour(x, y, loss, zdir='z', offset=self._loss, levels=10, cmap="jet")
+                    axe.set_zlabel(r"Loss, $\rho(\beta)$")
 
-                if iterations and hasattr(self, "_iteration"):
-                    axe.plot(
-                        self._iterations[:, first_index].reshape(-1, 1),
-                        self._iterations[:, second_index].reshape(-1, 1),
-                        linestyle="-",
-                        marker="o",
+                else:
+                    # Contours
+
+                    clabels = axe.contour(x, y, loss, levels or 10, cmap="jet")
+                    axe.clabel(clabels, clabels.levels, inline=True, fontsize=7)
+
+                    axe.axvline(
+                        self._solution["parameters"][first_index],
                         color="black",
-                        linewidth=0.75,
-                        markersize=2,
+                        linestyle="-.",
+                    )
+                    axe.axhline(
+                        self._solution["parameters"][second_index],
+                        color="black",
+                        linestyle="-.",
                     )
 
-                axe.scatter(p0[first_index], p0[second_index])
+                    if iterations and hasattr(self, "_iteration"):
+                        axe.plot(
+                            self._iterations[:, first_index].reshape(-1, 1),
+                            self._iterations[:, second_index].reshape(-1, 1),
+                            linestyle="-",
+                            marker="o",
+                            color="black",
+                            linewidth=0.75,
+                            markersize=2,
+                        )
+
+                if surface:
+                    axe.scatter(p0[first_index], p0[second_index], self._loss)
+                else:
+                    axe.scatter(p0[first_index], p0[second_index])
 
                 if hasattr(self, "_minimize"):
                     axe.scatter(
@@ -1277,7 +1294,11 @@ class FitSolverInterface:
 
             if add_title:
                 axe.set_title(full_title, fontdict={"fontsize": 10})
-                fig.subplots_adjust(top=0.8, left=0.2)
+
+                if not surface:
+                    fig.subplots_adjust(top=0.8, left=0.2)
+                else:
+                    fig.subplots_adjust(top=0.8)
 
             axe.grid()
 
