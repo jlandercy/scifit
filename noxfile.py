@@ -79,7 +79,7 @@ def publish(session):
             "--user", os.getenv("TWINE_USERNAME", "jlandercy"),
             "--password", os.getenv("TWINE_PASSWORD", "secret"),
             "dist/*",
-            stdout=handler
+            stdout=handler,
         )
 
 
