@@ -46,7 +46,7 @@ jobs:
         run: |
           nox --session build
           ls -lh dist/
-          nox --session publish
+          twine upload --repository-url https://upload.pypi.org/legacy/ --user $TWINE_USER --password $TWINE_PASSWORD dist/*
 
       - name: Install package dependencies
         run: |
