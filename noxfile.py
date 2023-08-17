@@ -1,4 +1,5 @@
 import json
+import os
 import pathlib
 import re
 
@@ -64,6 +65,22 @@ def build(session):
     report = reports_path / "build.log"
     with report.open("w") as handler:
         session.run("python", "-m", "build", stdout=handler)
+
+
+@nox.session
+def publish(session):
+    """Publish package"""
+
+    report = reports_path / "publish.log"
+    with report.open("w") as handler:
+        session.run(
+            "twine", "upload",
+            "--repository-url", "https://upload.pypi.org/legacy/",
+            "--user", os.getenv("TWINE_USERNAME", "jlandercy"),
+            "--password", os.getenv("TWINE_PASSWORD", "secret"),
+            "dist/*",
+            stdout=handler
+        )
 
 
 @nox.session
@@ -229,7 +246,7 @@ def notebooks(session):
             "--ExecutePreprocessor.timeout=600",
             #"--ExecutePreprocessor.kernel_name=venv",
             "--inplace", "--clear-output", "--to", "notebook",
-            "--execute", "./docs/source/notebooks/*.ipynb",
+            "--execute", "./docs/source/notebooks/**/*.ipynb",
             stderr=handler,
             success_codes=[0, 1]
         )

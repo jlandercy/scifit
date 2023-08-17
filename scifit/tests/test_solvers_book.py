@@ -9,7 +9,7 @@ from scifit.tests.test_solvers_linear import GenericLinearRegression
 
 class BookSampleRegression(GenericLinearRegression):
     root_path = ".cache/media/book/"
-    format = "svg"
+    format = "eps"
     fake_sigma_factor = None
 
     def setUp(self):
