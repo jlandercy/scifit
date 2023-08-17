@@ -75,16 +75,19 @@ def publish(session):
     with report.open("w") as handler:
         # twine upload --repository-url https://upload.pypi.org/legacy/
         #              --username $TWINE_USERNAME --password $TWINE_PASSWORD dist/*
-        session.run(
-            "twine", "upload",
-            #"-r", "pypi",
-            "--repository-url", "https://upload.pypi.org/legacy/",
-            "--user", os.getenv("TWINE_USERNAME", "jlandercy"),
-            "--password", os.getenv("TWINE_PASSWORD", "secret"),
-            "dist/*",
-            stdout=handler,
-            success_codes=[0, 1, 2],
-        )
+        password = os.getenv("TWINE_PASSWORD")
+        if password is None:
+            session.run("twine", "upload", "-r", "pypi", "dist/*", stdout=handler)
+        else:
+            session.run(
+                "twine", "upload",
+                "--repository-url", "https://upload.pypi.org/legacy/",
+                "--user", os.getenv("TWINE_USERNAME", "jlandercy"),
+                "--password", password,
+                "dist/*",
+                stdout=handler,
+                success_codes=[0, 1, 2],
+            )
 
 
 @nox.session

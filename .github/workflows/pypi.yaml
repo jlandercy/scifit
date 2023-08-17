@@ -42,14 +42,6 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade nox build twine pip-tools lxml
 
-      - name: Publish package
-        env:
-          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-        run: |
-          nox --session build
-          nox --session publish
-
       - name: Install package dependencies
         run: |
           pip-compile --extra dev pyproject.toml 
@@ -66,6 +58,15 @@ jobs:
       - name: Notebooks
         run: |
           nox --session notebooks
+
+      - name: Publish package
+        env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+        run: |
+          nox --session build
+          ls -lh dist/
+          nox --session publish
 
       - name: Collect report artifacts
         uses: actions/upload-artifact@v3
