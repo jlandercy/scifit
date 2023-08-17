@@ -75,10 +75,10 @@ def publish(session):
     with report.open("w") as handler:
         session.run(
             "twine", "upload",
-            # "-r", "pypi",
-            "--repository-url", "https://upload.pypi.org/legacy/",
-            "--user", os.getenv("TWINE_USERNAME", "jlandercy"),
-            "--password", os.getenv("TWINE_PASSWORD", "secret"),
+            "-r", "pypi",
+            # "--repository-url", "https://upload.pypi.org/legacy/",
+            # "--user", os.getenv("TWINE_USERNAME", "jlandercy"),
+            # "--password", os.getenv("TWINE_PASSWORD", "secret"),
             "dist/*",
             stdout=handler,
         )
