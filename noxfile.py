@@ -83,6 +83,7 @@ def publish(session):
             "--password", os.getenv("TWINE_PASSWORD", "secret"),
             "dist/*",
             stdout=handler,
+            success_codes=[0, 1, 2],
         )
 
 
