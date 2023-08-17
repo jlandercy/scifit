@@ -44,6 +44,12 @@ jobs:
           pip-compile --extra dev pyproject.toml 
           python -m pip install -r requirements.txt
 
+      - name: Publish package
+        run: |
+          nox --session build
+          ls -lh dist/
+          nox --session publish
+
       - name: Unit tests suite
         run: |
           nox --session tests
@@ -55,12 +61,6 @@ jobs:
       - name: Notebooks
         run: |
           nox --session notebooks
-
-      - name: Publish package
-        run: |
-          nox --session build
-          ls -lh dist/
-          nox --session publish
 
       - name: Collect report artifacts
         uses: actions/upload-artifact@v3
