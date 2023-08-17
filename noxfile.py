@@ -73,12 +73,14 @@ def publish(session):
 
     report = reports_path / "publish.log"
     with report.open("w") as handler:
+        # twine upload --repository-url https://upload.pypi.org/legacy/
+        #              --username $TWINE_USERNAME --password $TWINE_PASSWORD dist/*
         session.run(
             "twine", "upload",
-            "-r", "pypi",
-            # "--repository-url", "https://upload.pypi.org/legacy/",
-            # "--user", os.getenv("TWINE_USERNAME", "jlandercy"),
-            # "--password", os.getenv("TWINE_PASSWORD", "secret"),
+            #"-r", "pypi",
+            "--repository-url", "https://upload.pypi.org/legacy/",
+            "--user", os.getenv("TWINE_USERNAME", "jlandercy"),
+            "--password", os.getenv("TWINE_PASSWORD", "secret"),
             "dist/*",
             stdout=handler,
         )

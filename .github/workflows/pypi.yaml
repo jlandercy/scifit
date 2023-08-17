@@ -44,12 +44,11 @@ jobs:
 
       - name: Publish package
         env:
-          TWINE_USER: ${{ secrets.TWINE_USER }}
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
           nox --session build
-          ls -lh dist/
-          twine upload --repository-url https://upload.pypi.org/legacy/ --user $TWINE_USER --password $TWINE_PASSWORD dist/*
+          nox --session publish
 
       - name: Install package dependencies
         run: |
