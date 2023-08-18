@@ -11,6 +11,7 @@
  - [x] Added special solvers: Debye Heat Capaity, Crank Diffusion, Raney Keton Dehydration
  - [x] Added log scale mode for fit and loss figures
  - [x] Updated documentation
+ - [x] Updated nox commands for building and cache
 
 ## v0.1.2
 

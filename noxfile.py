@@ -46,7 +46,7 @@ def package(session):
 @nox.session
 def install(session):
     """Package Installer"""
-    wheels = [str(file) for file in pathlib.Path("./dist").glob("*.whl")]
+    wheels = [str(file) for file in pathlib.Path("dist/").glob("*.whl")]
     if not wheels:
         session.error("No wheel found, first package then install")
     report = reports_path / "install.log"
@@ -58,9 +58,9 @@ def install(session):
 def build(session):
     """Package builder"""
 
-    report = reports_path / "requirements.txt"
+    report = reports_path / "requirements_ci.txt"
     with report.open("w") as handler:
-        session.run("pip-compile", "pyproject.toml", stdout=handler)
+        session.run("pip-compile", "pyproject.toml", "--output-file", ".cache/requirements_ci.txt", stdout=handler)
 
     report = reports_path / "build.log"
     with report.open("w") as handler:
@@ -71,9 +71,9 @@ def build(session):
 def build_dev(session):
     """Package builder (dev)"""
 
-    report = reports_path / "requirements_ci.txt"
+    report = reports_path / "requirements.txt"
     with report.open("w") as handler:
-        session.run("pip-compile", "--extra", "dev", "pyproject.toml", stdout=handler)
+        session.run("pip-compile", "--extra", "dev", "pyproject.toml", "--output-file", ".cache/requirements.txt", stdout=handler)
 
     report = reports_path / "build.log"
     with report.open("w") as handler:
