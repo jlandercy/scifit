@@ -68,6 +68,19 @@ def build(session):
 
 
 @nox.session
+def build_dev(session):
+    """Package builder (dev)"""
+
+    report = reports_path / "requirements_ci.txt"
+    with report.open("w") as handler:
+        session.run("pip-compile", "--extra", "dev", "pyproject.toml", stdout=handler)
+
+    report = reports_path / "build.log"
+    with report.open("w") as handler:
+        session.run("python", "-m", "build", stdout=handler)
+
+
+@nox.session
 def version(session):
     """Version bumper"""
 
