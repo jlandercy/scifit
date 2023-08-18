@@ -339,7 +339,7 @@ class FitSolverInterface:
         return {
             "success": solution.success,
             "parameters": solution.x,
-            "covariance": 1.0,
+            "covariance": None,
             "info": {
                 "jac": solution.jac,
                 "nit": solution.nit,
@@ -835,7 +835,7 @@ class FitSolverInterface:
         return dataset.T
 
     def parameter_domains(
-        self, parameters=None, mode="lin", xmin=None, xmax=None, ratio=10.0
+        self, parameters=None, mode="lin", xmin=None, xmax=None, ratio=10.0, factor=3.0,
     ):
         """
         Generate parameter domains, useful for drawing scales fitting the parameters space
@@ -851,12 +851,12 @@ class FitSolverInterface:
 
         if parameters is not None:
             if mode == "lin":
-                xmin = xmin or list(parameters - 3.0 * ratio * np.abs(parameters))
-                xmax = xmax or list(parameters + 3.0 * ratio * np.abs(parameters))
+                xmin = xmin or list(parameters - factor * ratio * np.abs(parameters))
+                xmax = xmax or list(parameters + factor * ratio * np.abs(parameters))
 
             elif mode == "log":
-                xmin = xmin or list(parameters / (ratio**3))
-                xmax = xmax or list(parameters * (ratio**3))
+                xmin = xmin or list(parameters / np.power(ratio, factor))
+                xmax = xmax or list(parameters * np.power(ratio, factor))
 
         xmin = xmin or 0.0
         if not isinstance(xmin, Iterable):
@@ -953,6 +953,9 @@ class FitSolverInterface:
         squared_errors=False,
         aspect="auto",
         resolution=100,
+        mode="lin",
+        log_x=False,
+        log_y=False,
     ):
         """
         Plot data and fitted function for low dimension problems (:math:`m \leq 2`)
@@ -962,10 +965,13 @@ class FitSolverInterface:
             :alt: Fit Plot
         """
 
+        if log_x:
+            mode = "log"
+
         if self.fitted(error=True):
             full_title = "Fit Plot: {}\n{}".format(title, self.get_title())
             if self.m == 1:
-                scales = self.feature_scales(resolution=resolution)
+                scales = self.feature_scales(resolution=resolution, mode=mode)
 
                 xdata = self._xdata[:, 0]
                 error = self._ydata - self._yhat
@@ -1022,6 +1028,12 @@ class FitSolverInterface:
                 axe.set_aspect(aspect)
                 axe.legend()
                 axe.grid()
+
+                if log_x:
+                    axe.set_xscale("log")
+
+                if log_y:
+                    axe.set_yscale("log")
 
                 fig.subplots_adjust(top=0.8, left=0.2)
 
@@ -1155,6 +1167,9 @@ class FitSolverInterface:
         iterations=False,
         add_labels=True,
         add_title=True,
+        log_x=False,
+        log_y=False,
+        log_loss=False,
     ):
         """
         Sketch and plot loss function for low dimensional space (complete for :math:`k \leq 2`) or sub-space.
@@ -1169,7 +1184,10 @@ class FitSolverInterface:
         if self.fitted(error=True):
 
             if axe is None:
-                fig, axe = plt.subplots()
+                if surface:
+                    fig, axe = plt.subplots(subplot_kw={"projection": "3d"})
+                else:
+                    fig, axe = plt.subplots()
             fig = axe.figure
 
             full_title = "Fit Loss Plot: {}\n{}".format(title, self.get_title())
@@ -1184,6 +1202,9 @@ class FitSolverInterface:
                 parameters = list(p0)
                 parameters[first_index] = scales[first_index]
                 loss = self.parametrized_loss(sigma=self._sigma)
+
+                if log_loss:
+                    loss = np.log10(loss)
 
                 fig, axe = plt.subplots()
 
@@ -1215,12 +1236,14 @@ class FitSolverInterface:
 
                 if add_labels:
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index + 1))
-                    axe.set_ylabel(r"Loss, $\rho(\beta_{{{}}})$".format(first_index + 1))
+                    label = r"Loss, $\rho(\beta_{{{}}})$".format(first_index + 1)
+                    if log_loss:
+                        label = "Log-" + label
+                    axe.set_ylabel(label)
 
                 axe._pair_indices = (first_index, first_index)
 
             elif self.k == 2 or (first_index is not None and second_index is not None):
-
                 first_index = first_index or 0
                 second_index = second_index or 1
 
@@ -1236,17 +1259,26 @@ class FitSolverInterface:
                 parameters[second_index] = y
                 loss = self.parametrized_loss(sigma=self._sigma)(*parameters)
 
+                if log_loss:
+                    loss = np.log10(loss)
+                    ploss = np.log10(self._loss)
+                else:
+                    ploss = self._loss
+
                 if surface:
 
                     # 3D Surfaces:
-                    fig, axe = plt.subplots(subplot_kw={"projection": "3d"})
-                    axe.plot_surface(x, y, loss, cmap="jet", rstride=1, cstride=1, alpha=0.50)
-                    axe.contour(x, y, loss, zdir='z', offset=self._loss, levels=10, cmap="jet")
+                    axe.plot_surface(
+                        x, y, loss, cmap="jet", rstride=1, cstride=1, alpha=0.50
+                    )
+                    axe.contour(
+                        x, y, loss, zdir="z", offset=ploss, levels=10, cmap="jet"
+                    )
                     axe.set_zlabel(r"Loss, $\rho(\beta)$")
 
                 else:
-                    # Contours
 
+                    # Contours
                     clabels = axe.contour(x, y, loss, levels or 10, cmap="jet")
                     axe.clabel(clabels, clabels.levels, inline=True, fontsize=7)
 
@@ -1273,7 +1305,7 @@ class FitSolverInterface:
                         )
 
                 if surface:
-                    axe.scatter(p0[first_index], p0[second_index], self._loss)
+                    axe.scatter(p0[first_index], p0[second_index], ploss)
                 else:
                     axe.scatter(p0[first_index], p0[second_index])
 
@@ -1300,6 +1332,12 @@ class FitSolverInterface:
                 else:
                     fig.subplots_adjust(top=0.8)
 
+            if not surface and log_x:
+                axe.set_xscale("log")
+
+            if not surface and log_y:
+                axe.set_yscale("log")
+
             axe.grid()
 
             axe._pair_indices = (first_index, second_index)
@@ -1316,6 +1354,9 @@ class FitSolverInterface:
         levels=None,
         resolution=75,
         iterations=False,
+        log_x=False,
+        log_y=False,
+        log_loss=False,
     ):
         """
         Sketch and plot full loss landscape in order to assess parameters optima convergence and uniqueness.
@@ -1343,6 +1384,9 @@ class FitSolverInterface:
                 levels=levels,
                 resolution=resolution,
                 iterations=iterations,
+                log_x=log_x,
+                log_y=log_y,
+                log_loss=log_loss,
             )
 
         else:
@@ -1371,6 +1415,9 @@ class FitSolverInterface:
                         levels=levels,
                         resolution=resolution,
                         iterations=iterations,
+                        log_x=log_x,
+                        log_y=log_y,
+                        log_loss=log_loss,
                         add_labels=False,
                         add_title=False,
                     )

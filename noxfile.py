@@ -46,25 +46,47 @@ def package(session):
 @nox.session
 def install(session):
     """Package Installer"""
-    wheels = [str(file) for file in pathlib.Path("./dist").glob("*.whl")]
+    wheels = [str(file) for file in pathlib.Path("dist/").glob("*.whl")]
     if not wheels:
         session.error("No wheel found, first package then install")
     report = reports_path / "install.log"
     with report.open("w") as handler:
-        session.run("python", "-m", "pip", "install", *wheels, stdout=handler)
+        session.run("python", "-m", "pip", "install", "--user", "--upgrade", *wheels, stdout=handler)
 
 
 @nox.session
 def build(session):
     """Package builder"""
 
-    report = reports_path / "requirements.txt"
+    report = reports_path / "requirements_ci.txt"
     with report.open("w") as handler:
-        session.run("pip-compile", "pyproject.toml", stdout=handler)
+        session.run("pip-compile", "pyproject.toml", "--output-file", ".cache/requirements_ci.txt", stdout=handler)
 
     report = reports_path / "build.log"
     with report.open("w") as handler:
         session.run("python", "-m", "build", stdout=handler)
+
+
+@nox.session
+def build_dev(session):
+    """Package builder (dev)"""
+
+    report = reports_path / "requirements.txt"
+    with report.open("w") as handler:
+        session.run("pip-compile", "--extra", "dev", "pyproject.toml", "--output-file", ".cache/requirements.txt", stdout=handler)
+
+    report = reports_path / "build.log"
+    with report.open("w") as handler:
+        session.run("python", "-m", "build", stdout=handler)
+
+
+@nox.session
+def version(session):
+    """Version bumper"""
+
+    report = reports_path / "version.log"
+    with report.open("w") as handler:
+        session.run("bumpver", "update", "--patch", "--dry", stdout=handler)
 
 
 @nox.session

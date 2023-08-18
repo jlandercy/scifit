@@ -52,6 +52,7 @@ class GenericKineticRegression(GenericTestFitSolver):
 class MichaelisMentenKineticRegression(GenericKineticRegression):
     factory = scientific.MichaelisMentenKineticFitSolver
     parameters = np.array([4.1e-3, 2.5e-5])
+    configuration = {"p0": np.array([1e2, 1e2])}
 
 
 class MichaelisMentenKineticRegressionNoiseL0(
@@ -259,7 +260,7 @@ class SmoothstepSigmoidRegressionNoiseL2(SmoothstepSigmoidRegression, TestCase):
 
 class InverseBoxCoxRegression(GenericLinearRegression):
     factory = scientific.InverseBoxCoxFitSolver
-    configuration = {"p0": (0.75,)}
+    configuration = {"p0": (0.50,)}
     parameters = np.array([0.38])
     xmin = 0.0
     xmax = 1.0

@@ -135,6 +135,13 @@ class GenericTestFitSolver:
     target_kwargs = {}
     sigma_factor = 10.0
 
+    log_x = False
+    log_y = False
+    loss_log_x = False
+    loss_log_y = False
+    log_loss = False
+    loss_resolution = 75
+
     format = "png"
 
     # scale_mode = "auto"
@@ -226,34 +233,32 @@ class GenericTestFitSolver:
                 )
             )
 
-    # def test_model_minimize_against_solve(self):
-    #
-    #     np.random.seed(self.seed)
-    #     solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-    #
-    #     np.random.seed(self.seed)
-    #     minimized = self.solver.minimize(self.xdata, self.ydata, sigma=None)
-    #
-    #     # Assert both solve and minimize are alike at percent level
-    #     for i in range(self.parameters.shape[0]):
-    #
-    #         self.assertTrue(
-    #             np.allclose(
-    #                 solution["parameters"][i],
-    #                 minimized["parameters"][i],
-    #                 rtol=5e-3,
-    #             )
-    #         )
-    #
-    #     # Assert covariance
-    #     # for i in range(self.parameters.shape[0]):
-    #     #     self.assertTrue(
-    #     #         np.allclose(
-    #     #             solution["covariance"][i][i],
-    #     #             minimized["covariance"][i][i],
-    #     #             rtol=5e-3,
-    #     #         )
-    #     #     )
+    def _test_model_minimize_against_solve(self):
+        np.random.seed(self.seed)
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+
+        np.random.seed(self.seed)
+        minimized = self.solver.minimize(self.xdata, self.ydata, sigma=None)
+
+        # Assert both solve and minimize are alike at percent level
+        for i in range(self.parameters.shape[0]):
+            self.assertTrue(
+                np.allclose(
+                    solution["parameters"][i],
+                    minimized["parameters"][i],
+                    rtol=5e-3,
+                )
+            )
+
+        # Assert covariance
+        # for i in range(self.parameters.shape[0]):
+        #     self.assertTrue(
+        #         np.allclose(
+        #             solution["covariance"][i][i],
+        #             minimized["covariance"][i][i],
+        #             rtol=5e-3,
+        #         )
+        #     )
 
     def test_goodness_of_fit(self):
         """
@@ -304,13 +309,18 @@ class GenericTestFitSolver:
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        axe = self.solver.plot_fit(title=title, errors=True, squared_errors=False)
-        axe.figure.savefig(
-            "{}/{}_fit.{}".format(self.media_path, name, self.format)
+        axe = self.solver.plot_fit(
+            title=title,
+            errors=True,
+            squared_errors=False,
+            mode=self.mode,
+            log_x=self.log_x,
+            log_y=self.log_y,
         )
+        axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
-    def _test_plot_chi_square(self):
+    def test_plot_chi_square(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
@@ -318,11 +328,18 @@ class GenericTestFitSolver:
         axe.figure.savefig("{}/{}_chi2.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
-    def _test_plot_loss_automatic(self):
+    def test_plot_loss_automatic(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        axe = self.solver.plot_loss(title=title, iterations=False)
+        axe = self.solver.plot_loss(
+            title=title,
+            iterations=False,
+            mode=self.mode,
+            log_x=self.loss_log_x,
+            log_y=self.loss_log_y,
+            log_loss=self.log_loss,
+        )
         axe.figure.savefig(
             "{}/{}_loss_scatter.{}".format(self.media_path, name, self.format)
         )
@@ -335,10 +352,21 @@ class GenericTestFitSolver:
 
         for i, j in itertools.combinations(range(self.solver.k), 2):
             axe = self.solver.plot_loss_low_dimension(
-                title=title, first_index=i, second_index=j, surface=True, add_title=False, iterations=False
+                title=title,
+                first_index=i,
+                second_index=j,
+                surface=True,
+                add_title=False,
+                iterations=False,
+                resolution=self.loss_resolution,
+                log_x=False,
+                log_y=False,
+                log_loss=False,
             )
             axe.figure.savefig(
-                "{}/{}_loss_surface_b{}_b{}.{}".format(self.media_path, name, i+1, j+1, self.format)
+                "{}/{}_loss_surface_b{}_b{}.{}".format(
+                    self.media_path, name, i + 1, j + 1, self.format
+                )
             )
             plt.close(axe.figure)
 

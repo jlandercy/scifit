@@ -29,3 +29,12 @@ solving system of equations, and so on).
 .. automodule:: scifit.solvers.scientific
    :members:
 
+
+Special models
+--------------
+
+Special models are all scientific models but with an extra complexity in the
+problem to solver and its implementation.
+
+.. automodule:: scifit.solvers.specials
+   :members:
