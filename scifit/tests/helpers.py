@@ -114,7 +114,9 @@ class GenericTestFitSolverInterface:
 
 
 class GenericTestFitSolver:
+
     root_path = ".cache/media/tests/"
+    data_path = None
 
     factory = None
     configuration = {}
@@ -150,6 +152,7 @@ class GenericTestFitSolver:
     # sigma_factor = 10.
 
     def setUp(self) -> None:
+
         self.media_path = pathlib.Path(self.root_path) / format(
             self.factory.__module__.split(".")[-1]
         )
@@ -157,29 +160,38 @@ class GenericTestFitSolver:
 
         self.solver = self.factory(**self.configuration)
 
-        if self.xdata is None:
-            self.xdata = self.solver.feature_dataset(
-                mode=self.mode,
-                xmin=self.xmin,
-                xmax=self.xmax,
-                dimension=self.dimension,
-                resolution=self.resolution,
+        if self.data_path is None:
+
+            if self.xdata is None:
+                self.xdata = self.solver.feature_dataset(
+                    mode=self.mode,
+                    xmin=self.xmin,
+                    xmax=self.xmax,
+                    dimension=self.dimension,
+                    resolution=self.resolution,
+                )
+
+            target = self.solver.target_dataset(
+                self.xdata,
+                *self.parameters,
+                sigma=self.sigma,
+                scale_mode=self.scale_mode,
+                generator=self.generator,
+                seed=self.seed,
+                **self.target_kwargs,
+                full_output=True,
             )
 
-        target = self.solver.target_dataset(
-            self.xdata,
-            *self.parameters,
-            sigma=self.sigma,
-            scale_mode=self.scale_mode,
-            generator=self.generator,
-            seed=self.seed,
-            **self.target_kwargs,
-            full_output=True,
-        )
+            self.__dict__.update(
+                {k: target[k] for k in ["ydata", "yref", "sigmas", "ynoise"]}
+            )
 
-        self.__dict__.update(
-            {k: target[k] for k in ["ydata", "yref", "sigmas", "ynoise"]}
-        )
+        else:
+
+            data = pd.read_csv(self.data_path, sep=";")
+            self.xdata = data.filter(regex="X").values
+            self.ydata = data["y"]
+            self.sigmas = data["s"]
 
         domains = self.solver.parameter_domains(parameters=self.parameters)
         if self.p0 is None:

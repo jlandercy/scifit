@@ -6,6 +6,7 @@ class :class:`scifit.interfaces.generic.GenericInterface` and its children.
 from unittest import TestCase
 
 import numpy as np
+import pandas as pd
 
 from scifit.solvers import specials
 from scifit.tests.helpers import GenericTestFitSolver
@@ -53,18 +54,32 @@ class CrankDiffusionRegression(GenericLinearRegression):
 #     sigma = 5e-2
 
 
-# class RaneyKetonDehydrogenationRegression(GenericLinearRegression):
-#     factory = specials.RaneyKetonDehydrogenationFitSolver
-#     parameters = np.array([4.75360716e-02, 7.80055896e+01])
-#     configuration = {"p0": np.array([1e-2, 1e2])}
-#     sigma = None
-#     xmin = 0.1
-#     xmax = 1e4
+class RaneyKetonDehydrogenationRegression(GenericLinearRegression):
+    factory = specials.RaneyKetonDehydrogenationFitSolver
+    parameters = np.array([6.22066797e-02, 1.14923740e+02])
+    configuration = {"p0": np.array([1e-2, 1e2])}
+    sigma = None
+    xmin = 0
+    xmax = 0.040
+    resolution = 100
 
 
-# class RaneyKetonDehydrogenationRegressionNoiseL0(RaneyKetonDehydrogenationRegression, TestCase):
-#     sigma = 1e-6
-#
-#
-# class RaneyKetonDehydrogenationRegressionNoiseL1(RaneyKetonDehydrogenationRegression, TestCase):
-#     sigma = 5e-2
+class RaneyKetonDehydrogenationRegressionNoiseL0(RaneyKetonDehydrogenationRegression, TestCase):
+    sigma = 1e-6
+
+
+class RaneyKetonDehydrogenationRegressionNoiseL1(RaneyKetonDehydrogenationRegression, TestCase):
+    sigma = 5e-2
+
+
+class RaneyKetonDehydrogenationRealDataRegression(GenericLinearRegression):
+    factory = specials.RaneyKetonDehydrogenationFitSolver
+    data_path = "docs/source/notebooks/docs/data/RaneyKetonDehydrogenation.csv"
+    parameters = np.array([1e-2, 1e2])
+    configuration = {"p0": np.array([1e-2, 1e2])}
+    sigma = None
+
+
+class RaneyKetonDehydrogenationRealDataRegressionNoiseL0(RaneyKetonDehydrogenationRealDataRegression, TestCase):
+    sigma = 30.
+

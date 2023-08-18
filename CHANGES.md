@@ -4,14 +4,13 @@
 
  - [ ] Implement ODE Solver (special case for Kinetics) make it FitSolvable as well
  - [ ] Implement complex models (see StackOverflow 10 years feed of fit and personal website)
- - [ ] Implement specials
 
 ## v0.1.3
 
- - [x] Added special solvers: Debye Heat Capaity, Crank Diffusion, Raney Keton Dehydration
+ - [x] Added special solvers: Debye Heat Capacity, Crank Diffusion, Raney Keton Dehydrogenation
  - [x] Added log scale mode for fit and loss figures
- - [x] Updated documentation
  - [x] Updated nox commands for building and cache
+ - [x] Updated notebooks and documentation
 
 ## v0.1.2
 
