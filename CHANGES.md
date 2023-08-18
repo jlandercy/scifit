@@ -8,7 +8,7 @@
 
 ## v0.1.3
 
-   - [ ] Added special solvers:
+ - [x] Added special solvers: Debye
 
 ## v0.1.2
 

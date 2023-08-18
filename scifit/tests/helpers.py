@@ -135,6 +135,11 @@ class GenericTestFitSolver:
     target_kwargs = {}
     sigma_factor = 10.0
 
+    log_x = False
+    log_y = False
+    log_loss = False
+    loss_resolution = 75
+
     format = "png"
 
     # scale_mode = "auto"
@@ -302,11 +307,17 @@ class GenericTestFitSolver:
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        axe = self.solver.plot_fit(title=title, errors=True, squared_errors=False)
+        axe = self.solver.plot_fit(
+            title=title,
+            errors=True,
+            squared_errors=False,
+            log_x=self.log_x,
+            log_y=self.log_y,
+        )
         axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
-    def _test_plot_chi_square(self):
+    def test_plot_chi_square(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
@@ -314,17 +325,24 @@ class GenericTestFitSolver:
         axe.figure.savefig("{}/{}_chi2.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
-    def _test_plot_loss_automatic(self):
+    def test_plot_loss_automatic(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        axe = self.solver.plot_loss(title=title, iterations=False)
+        axe = self.solver.plot_loss(
+            title=title,
+            iterations=False,
+            mode=self.mode,
+            log_x=self.log_x,
+            log_y=self.log_y,
+            log_loss=self.log_loss,
+        )
         axe.figure.savefig(
             "{}/{}_loss_scatter.{}".format(self.media_path, name, self.format)
         )
         plt.close(axe.figure)
 
-    def _test_plot_loss_surface_automatic(self):
+    def test_plot_loss_surface_automatic(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
@@ -337,6 +355,10 @@ class GenericTestFitSolver:
                 surface=True,
                 add_title=False,
                 iterations=False,
+                resolution=self.loss_resolution,
+                log_x=self.log_x,
+                log_y=self.log_y,
+                log_loss=self.log_loss,
             )
             axe.figure.savefig(
                 "{}/{}_loss_surface_b{}_b{}.{}".format(

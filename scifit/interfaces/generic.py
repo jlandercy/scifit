@@ -316,8 +316,6 @@ class FitSolverInterface:
         if p0 is None:
             p0 = np.full((self.k,), 1.0)
 
-        print(p0)
-
         def loss(p):
             return self.parametrized_loss(xdata, ydata, sigma=sigma)(*p)
 
@@ -853,12 +851,12 @@ class FitSolverInterface:
 
         if parameters is not None:
             if mode == "lin":
-                xmin = xmin or list(parameters - 3.0 * ratio * np.abs(parameters))
-                xmax = xmax or list(parameters + 3.0 * ratio * np.abs(parameters))
+                xmin = xmin or list(parameters - 5.0 * ratio * np.abs(parameters))
+                xmax = xmax or list(parameters + 5.0 * ratio * np.abs(parameters))
 
             elif mode == "log":
-                xmin = xmin or list(parameters / (ratio**3))
-                xmax = xmax or list(parameters * (ratio**3))
+                xmin = xmin or list(parameters / (ratio**5))
+                xmax = xmax or list(parameters * (ratio**5))
 
         xmin = xmin or 0.0
         if not isinstance(xmin, Iterable):
@@ -955,6 +953,8 @@ class FitSolverInterface:
         squared_errors=False,
         aspect="auto",
         resolution=100,
+        log_x=False,
+        log_y=False,
     ):
         """
         Plot data and fitted function for low dimension problems (:math:`m \leq 2`)
@@ -1024,6 +1024,12 @@ class FitSolverInterface:
                 axe.set_aspect(aspect)
                 axe.legend()
                 axe.grid()
+
+                if log_x:
+                    axe.set_xscale("log")
+
+                if log_y:
+                    axe.set_yscale("log")
 
                 fig.subplots_adjust(top=0.8, left=0.2)
 
@@ -1157,6 +1163,9 @@ class FitSolverInterface:
         iterations=False,
         add_labels=True,
         add_title=True,
+        log_x=False,
+        log_y=False,
+        log_loss=False,
     ):
         """
         Sketch and plot loss function for low dimensional space (complete for :math:`k \leq 2`) or sub-space.
@@ -1216,9 +1225,10 @@ class FitSolverInterface:
 
                 if add_labels:
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index + 1))
-                    axe.set_ylabel(
-                        r"Loss, $\rho(\beta_{{{}}})$".format(first_index + 1)
-                    )
+                    label = r"Loss, $\rho(\beta_{{{}}})$".format(first_index + 1)
+                    if log_loss:
+                        label = "Log-" + label
+                    axe.set_ylabel(label)
 
                 axe._pair_indices = (first_index, first_index)
 
@@ -1237,6 +1247,9 @@ class FitSolverInterface:
                 parameters[first_index] = x
                 parameters[second_index] = y
                 loss = self.parametrized_loss(sigma=self._sigma)(*parameters)
+
+                if log_loss:
+                    loss = np.log10(loss)
 
                 if surface:
                     # 3D Surfaces:
@@ -1305,6 +1318,12 @@ class FitSolverInterface:
                 else:
                     fig.subplots_adjust(top=0.8)
 
+            if log_x:
+                axe.set_xscale("log")
+
+            if log_y:
+                axe.set_yscale("log")
+
             axe.grid()
 
             axe._pair_indices = (first_index, second_index)
@@ -1321,6 +1340,9 @@ class FitSolverInterface:
         levels=None,
         resolution=75,
         iterations=False,
+        log_x=False,
+        log_y=False,
+        log_loss=False,
     ):
         """
         Sketch and plot full loss landscape in order to assess parameters optima convergence and uniqueness.
@@ -1348,6 +1370,9 @@ class FitSolverInterface:
                 levels=levels,
                 resolution=resolution,
                 iterations=iterations,
+                log_x=log_x,
+                log_y=log_y,
+                log_loss=log_loss,
             )
 
         else:
@@ -1376,6 +1401,9 @@ class FitSolverInterface:
                         levels=levels,
                         resolution=resolution,
                         iterations=iterations,
+                        log_x=log_x,
+                        log_y=log_y,
+                        log_loss=log_loss,
                         add_labels=False,
                         add_title=False,
                     )
