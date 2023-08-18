@@ -73,7 +73,7 @@ def version(session):
 
     report = reports_path / "version.log"
     with report.open("w") as handler:
-        session.run("bumpver", "--patch", "--dry", stdout=handler)
+        session.run("bumpver", "update", "--patch", "--dry", stdout=handler)
 
 
 @nox.session

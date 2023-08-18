@@ -4,7 +4,12 @@
 
  - [ ] Implement ODE Solver (special case for Kinetics) make it FitSolvable as well
  - [ ] Implement complex models (see StackOverflow 10 years feed of fit and personal website)
- - 
+ - [ ] Implement specials
+
+## v0.1.3
+
+   - [ ] Added special solvers:
+
 ## v0.1.2
 
  - [x] Added error surface in addition with contour levels
