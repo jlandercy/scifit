@@ -835,7 +835,7 @@ class FitSolverInterface:
         return dataset.T
 
     def parameter_domains(
-        self, parameters=None, mode="lin", xmin=None, xmax=None, ratio=10.0
+        self, parameters=None, mode="lin", xmin=None, xmax=None, ratio=10.0, factor=3.0,
     ):
         """
         Generate parameter domains, useful for drawing scales fitting the parameters space
@@ -851,12 +851,12 @@ class FitSolverInterface:
 
         if parameters is not None:
             if mode == "lin":
-                xmin = xmin or list(parameters - 5.0 * ratio * np.abs(parameters))
-                xmax = xmax or list(parameters + 5.0 * ratio * np.abs(parameters))
+                xmin = xmin or list(parameters - factor * ratio * np.abs(parameters))
+                xmax = xmax or list(parameters + factor * ratio * np.abs(parameters))
 
             elif mode == "log":
-                xmin = xmin or list(parameters / (ratio**5))
-                xmax = xmax or list(parameters * (ratio**5))
+                xmin = xmin or list(parameters / np.power(ratio, factor))
+                xmax = xmax or list(parameters * np.power(ratio, factor))
 
         xmin = xmin or 0.0
         if not isinstance(xmin, Iterable):
@@ -953,6 +953,7 @@ class FitSolverInterface:
         squared_errors=False,
         aspect="auto",
         resolution=100,
+        mode="lin",
         log_x=False,
         log_y=False,
     ):
@@ -967,7 +968,7 @@ class FitSolverInterface:
         if self.fitted(error=True):
             full_title = "Fit Plot: {}\n{}".format(title, self.get_title())
             if self.m == 1:
-                scales = self.feature_scales(resolution=resolution)
+                scales = self.feature_scales(resolution=resolution, mode=mode)
 
                 xdata = self._xdata[:, 0]
                 error = self._ydata - self._yhat
@@ -1318,10 +1319,10 @@ class FitSolverInterface:
                 else:
                     fig.subplots_adjust(top=0.8)
 
-            if log_x:
+            if not surface and log_x:
                 axe.set_xscale("log")
 
-            if log_y:
+            if not surface and log_y:
                 axe.set_yscale("log")
 
             axe.grid()

@@ -311,6 +311,7 @@ class GenericTestFitSolver:
             title=title,
             errors=True,
             squared_errors=False,
+            mode=self.mode,
             log_x=self.log_x,
             log_y=self.log_y,
         )

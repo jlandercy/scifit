@@ -12,19 +12,19 @@ from scifit.tests.helpers import GenericTestFitSolver
 from scifit.tests.test_solvers_linear import GenericLinearRegression
 
 
-class DebyeRegression(GenericLinearRegression):
-    factory = specials.DebyeFitSolver
+class DebyeInternalEnergyRegression(GenericLinearRegression):
+    factory = specials.DebyeInternalEnergyFitSolver
     parameters = np.array([428.0])
     sigma = None
     xmin = 25.0
     xmax = 550.0
 
 
-class DebyeRegressionNoiseL0(DebyeRegression, TestCase):
+class DebyeInternalEnergyRegressionNoiseL0(DebyeInternalEnergyRegression, TestCase):
     sigma = 1e-6
 
 
-class DebyeRegressionNoiseL1(DebyeRegression, TestCase):
+class DebyeInternalEnergyRegressionNoiseL1(DebyeInternalEnergyRegression, TestCase):
     sigma = 5e-2
 
 
@@ -40,13 +40,29 @@ class CrankDiffusionRegression(GenericLinearRegression):
     log_x = True
     log_y = True
     log_loss = True
-    loss_resolution = 20
+    #loss_resolution = 20
 
 
 class CrankDiffusionRegressionNoiseL0(CrankDiffusionRegression, TestCase):
     sigma = 1e-6
 
 
-# class CrankDiffusionRegressionNoiseL1(CrankDiffusionRegression, TestCase):
-#     sigma = 5e-2
+class CrankDiffusionRegressionNoiseL1(CrankDiffusionRegression, TestCase):
+    sigma = 5e-2
+
+
+class RaneyKetonDehydrogenationRegression(GenericLinearRegression):
+    factory = specials.RaneyKetonDehydrogenationFitSolver
+    parameters = np.array([4.75360716e-02, 7.80055896e+01])
+    configuration = {"p0": np.array([1e-2, 1e2])}
+    sigma = None
+    xmin = 0.1
+    xmax = 1e4
 #
+#
+# class RaneyKetonDehydrogenationRegressionNoiseL0(RaneyKetonDehydrogenationRegression, TestCase):
+#     sigma = 1e-6
+#
+#
+# class RaneyKetonDehydrogenationRegressionNoiseL1(RaneyKetonDehydrogenationRegression, TestCase):
+#     sigma = 5e-2

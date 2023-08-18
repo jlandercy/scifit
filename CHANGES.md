@@ -8,7 +8,9 @@
 
 ## v0.1.3
 
- - [x] Added special solvers: Debye
+ - [x] Added special solvers: Debye Heat Capaity, Crank Diffusion, Raney Keton Dehydration
+ - [x] Added log scale mode for fit and loss figures
+ - [x] Updated documentation
 
 ## v0.1.2
 

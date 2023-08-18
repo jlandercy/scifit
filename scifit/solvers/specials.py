@@ -4,9 +4,21 @@ from scipy import integrate, optimize
 from scifit.interfaces.generic import FitSolverInterface
 
 
-class DebyeFitSolver(FitSolverInterface):
+class DebyeInternalEnergyFitSolver(FitSolverInterface):
+
     @staticmethod
-    def _integral(n):
+    def debye_integral(n):
+        """
+        Wrapper: Parametrize and integrate the Debye Integral of order n
+
+        .. math::
+
+            D_n(x) = \\frac{n}{x^n} \\int\\limits_0^x \\frac{t^n}{e^t - 1}\\,\\mathrm{d}t
+
+        :param n:
+        :return:
+        """
+
         def integrand(t):
             return t**n / (np.exp(t) - 1)
 
@@ -17,11 +29,23 @@ class DebyeFitSolver(FitSolverInterface):
         return wrapped
 
     @staticmethod
-    def model(x, theta):
-        return 3 * x[:, 0] * DebyeFitSolver._integral(3)(theta / x[:, 0])
+    def model(x, T_D):
+        """
+        Debye Heat Capacity function is defined as follows:
+
+        .. math::
+
+            \\frac{U}{Nk} = 9T \\left({T\\over T_{\\rm D}}\\right)^3\\int\\limits_0^{T_{\\rm D}/T} {x^3\\over e^x-1}\\, \\mathrm{d}x = 3T D_3 \\left({T_{\\rm D}\\over T}\\right)
+
+        :param x: Temperature
+        :param T_D: Debye Temperature
+        :return: Molecular Internal Energy
+        """
+        return 3 * x[:, 0] * DebyeInternalEnergyFitSolver.debye_integral(3)(T_D / x[:, 0])
 
 
 class CrankEquationSolver:
+
     def __init__(self, alpha):
         self.alpha = alpha
         self.roots = {}
@@ -54,7 +78,8 @@ class CrankEquationSolver:
 
 
 class CrankDiffusion:
-    def __init__(self, alpha=5, radius=1e-3, n=10):
+
+    def __init__(self, alpha=5.0, radius=1e-3, n=40):
         self.n = n
         self.alpha = alpha
         self.radius = radius
@@ -81,8 +106,82 @@ class CrankDiffusion:
 
 
 class CrankDiffusionFitSolver(FitSolverInterface):
+
     _helper = CrankDiffusion(alpha=3.9, radius=1.9e-3)
 
     @staticmethod
     def model(x, Kp, D):
+        """
+        Solve the modified Crank diffusion problem for a solid sphere
+
+        .. math::
+        
+            \\gamma(t) = \\frac{C(t,R)}{C(0,R)} = \\frac{\\alpha}{1 + \\alpha} + 6 \\alpha \\sum\\limits_{i=1}^\\infty \\frac{\\exp \\left(-\\mathcal{D}\\frac{q_n^2 t}{R^2}\\right)}{9(\\alpha + 1) + \\alpha^2q_n^2}
+
+        Where:
+
+        .. math::
+
+            \\forall q_n \\in \\mathbb{R}^+_0 \\, | \\, \\tan(q_n) = \\frac{3 q_n}{3 + \\alpha q_n^2}
+
+        And:
+
+        .. math::
+
+            \\alpha = \\frac{V_l}{V_s} \\rightarrow \\alpha' = \\frac{V_l}{V_s K_p}
+
+        :param x: Experimental time
+        :param Kp: Partition constant
+        :param D: Diffusion constant
+        :return: Percentage of concentration saturation :math:`\gamma` at the surface of the sphere
+        """
         return CrankDiffusionFitSolver._helper.objective(x[:, 0], Kp, D)
+
+
+class RaneyKetonDehydrogenationFitSolver(FitSolverInterface):
+
+    R = 8.31446261815324     # J/mol.K
+    T0 = 292.05              # K
+    p0 = 101600              # Pa
+    V = 190e-6               # m3 of isopropanol
+    m = 2.7677               # g of Raney Nickel
+    rho = 785                # kg/m³
+    M = 60.1                 # g/mol
+    n0 = 1000 * rho * V / M  # mol
+
+    @staticmethod
+    def _objective(n0, V):
+
+        def wrapped(xi, k1, k2):
+            return (1 - k2) / k1 * (xi / V) - (k2 / k1) * (n0 / V) * np.log((n0 - xi) / n0)
+
+        return wrapped
+
+    objective = _objective(n0, V)
+
+    @staticmethod
+    def model(x, k1, k2):
+        """
+
+        .. math::
+
+            r = k_1 \\theta_A = k_1\\frac{aA}{1 + aA + bB + cC}
+
+        .. math::
+
+            r = \\frac{1}{V}\\frac{\\mathrm{d}\\xi}{\\mathrm{d}t} \\simeq k_1\\frac{aA}{aA + bB} = k\\frac{a(n_0 - \\xi)}{a(n_0 - \\xi) + b\\xi}
+
+        .. math::
+
+            \\int\\limits_0^\\xi\\left(1 + \\frac{b\\xi}{a(n_0-\\xi)}\\right)\\mathrm{d}\\xi = \\int\\limits_0^t k_1V\\mathrm{d}t
+
+        .. math::
+
+            \\left(1 - \\frac{b}{a}\\right)\\xi - n_0\\frac{b}{a}\\ln\\left|\\frac{n_0 - \\xi}{n_0}\\right| = k_1Vt
+
+        :param x:
+        :param k1:
+        :param k2:
+        :return:
+        """
+        return RaneyKetonDehydrogenationFitSolver.objective(x[:, 0], k1, k2)
