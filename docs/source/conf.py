@@ -81,3 +81,8 @@ nbsphinx_execute_arguments = [
 html_scaled_image_link = False
 nbsphinx_input_prompt = '[%s]'
 nbsphinx_output_prompt = '[%s]'
+
+# https://nbsphinx.readthedocs.io/en/0.9.2/configuration.html
+suppress_warnings = [
+    'nbsphinx',
+]
