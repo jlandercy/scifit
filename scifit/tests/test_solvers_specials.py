@@ -82,21 +82,22 @@ class RaneyKetonDehydrogenationRealDataRegression(GenericLinearRegression):
     parameters = None
     configuration = {"p0": np.array([1e-2, 1e2])}
     sigma = None
+    scale_mode = "abs"
 
 
 class RaneyKetonDehydrogenationRealDataRegressionNoiseL0(
     RaneyKetonDehydrogenationRealDataRegression, TestCase
 ):
-    sigma = 35.0
+    sigma = 32.5
 
 
 class RaneyKetonDehydrogenationRealDataRegressionNoiseL1(
     RaneyKetonDehydrogenationRealDataRegression, TestCase
 ):
-    sigma = 40.0
+    sigma = 35.0
 
 
 class RaneyKetonDehydrogenationRealDataRegressionNoiseL2(
     RaneyKetonDehydrogenationRealDataRegression, TestCase
 ):
-    sigma = 45.0
+    sigma = 37.5
