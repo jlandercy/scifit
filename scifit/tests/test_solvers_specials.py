@@ -12,11 +12,18 @@ from scifit.tests.helpers import GenericTestFitSolver
 from scifit.tests.test_solvers_linear import GenericLinearRegression
 
 
-class XRegression(GenericLinearRegression):
-    #factory = scientific.GompertzFitSolver
-    parameters = np.array([2.0, 0.5, 5.0])
+class DebyeRegression(GenericLinearRegression):
+    factory = specials.DebyeFitSolver
+    parameters = np.array([428.])
     sigma = None
+    xmin = 25.
+    xmax = 550.
 
 
-class XRegressionNoiseL0(XRegression, TestCase):
+class DebyeRegressionNoiseL0(DebyeRegression, TestCase):
     sigma = 1e-6
+
+
+class DebyeRegressionNoiseL1(DebyeRegression, TestCase):
+    sigma = 1e-2
+
