@@ -9,6 +9,17 @@
    - [ ] Gradient recovery
    - [ ] Distribution fit
  - [ ] Print parameters in scientific format if too small or too large 
+ 
+SO ``curve-fitting`` tag:
+
+ - https://stackoverflow.com/questions/76603587/non-linear-data-fitting-for-kinetic-data/76702800#76702800
+ - https://stackoverflow.com/questions/47873759/how-to-fit-a-2d-ellipse-to-given-points
+ - https://stackoverflow.com/questions/73814378/scipy-curve-fit-incorrect-for-large-x-values/73817184#73817184
+ - https://stackoverflow.com/questions/73365651/instability-in-fitting-data-using-scipy-optimize-library/73369630#73369630
+ - https://stackoverflow.com/questions/68523795/fit-a-custom-function-in-python/68526879#68526879
+ - https://stackoverflow.com/questions/70278957/python-fitting-curve-with-integral-func/70694744#70694744
+ - https://stackoverflow.com/questions/73891034/how-to-estimate-confidence-intervals-beyond-the-current-simulated-step-based-on/73891943#73891943
+ - https://stackoverflow.com/questions/63637144/python-rayleigh-fit-histogram/63646040#63646040
 
 ## v0.1.4
 
