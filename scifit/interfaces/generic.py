@@ -316,6 +316,8 @@ class FitSolverInterface:
         if p0 is None:
             p0 = np.full((self.k,), 1.0)
 
+        print(p0)
+
         def loss(p):
             return self.parametrized_loss(xdata, ydata, sigma=sigma)(*p)
 
@@ -339,7 +341,7 @@ class FitSolverInterface:
         return {
             "success": solution.success,
             "parameters": solution.x,
-            "covariance": 1.0,
+            "covariance": None,
             "info": {
                 "jac": solution.jac,
                 "nit": solution.nit,
@@ -1167,7 +1169,6 @@ class FitSolverInterface:
         """
 
         if self.fitted(error=True):
-
             if axe is None:
                 fig, axe = plt.subplots()
             fig = axe.figure
@@ -1215,12 +1216,13 @@ class FitSolverInterface:
 
                 if add_labels:
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index + 1))
-                    axe.set_ylabel(r"Loss, $\rho(\beta_{{{}}})$".format(first_index + 1))
+                    axe.set_ylabel(
+                        r"Loss, $\rho(\beta_{{{}}})$".format(first_index + 1)
+                    )
 
                 axe._pair_indices = (first_index, first_index)
 
             elif self.k == 2 or (first_index is not None and second_index is not None):
-
                 first_index = first_index or 0
                 second_index = second_index or 1
 
@@ -1237,11 +1239,14 @@ class FitSolverInterface:
                 loss = self.parametrized_loss(sigma=self._sigma)(*parameters)
 
                 if surface:
-
                     # 3D Surfaces:
                     fig, axe = plt.subplots(subplot_kw={"projection": "3d"})
-                    axe.plot_surface(x, y, loss, cmap="jet", rstride=1, cstride=1, alpha=0.50)
-                    axe.contour(x, y, loss, zdir='z', offset=self._loss, levels=10, cmap="jet")
+                    axe.plot_surface(
+                        x, y, loss, cmap="jet", rstride=1, cstride=1, alpha=0.50
+                    )
+                    axe.contour(
+                        x, y, loss, zdir="z", offset=self._loss, levels=10, cmap="jet"
+                    )
                     axe.set_zlabel(r"Loss, $\rho(\beta)$")
 
                 else:

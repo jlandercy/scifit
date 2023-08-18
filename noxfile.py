@@ -68,6 +68,15 @@ def build(session):
 
 
 @nox.session
+def version(session):
+    """Version bumper"""
+
+    report = reports_path / "version.log"
+    with report.open("w") as handler:
+        session.run("bumpver", "--patch", "--dry", stdout=handler)
+
+
+@nox.session
 def publish(session):
     """Publish package"""
 

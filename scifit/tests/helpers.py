@@ -226,34 +226,32 @@ class GenericTestFitSolver:
                 )
             )
 
-    # def test_model_minimize_against_solve(self):
-    #
-    #     np.random.seed(self.seed)
-    #     solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-    #
-    #     np.random.seed(self.seed)
-    #     minimized = self.solver.minimize(self.xdata, self.ydata, sigma=None)
-    #
-    #     # Assert both solve and minimize are alike at percent level
-    #     for i in range(self.parameters.shape[0]):
-    #
-    #         self.assertTrue(
-    #             np.allclose(
-    #                 solution["parameters"][i],
-    #                 minimized["parameters"][i],
-    #                 rtol=5e-3,
-    #             )
-    #         )
-    #
-    #     # Assert covariance
-    #     # for i in range(self.parameters.shape[0]):
-    #     #     self.assertTrue(
-    #     #         np.allclose(
-    #     #             solution["covariance"][i][i],
-    #     #             minimized["covariance"][i][i],
-    #     #             rtol=5e-3,
-    #     #         )
-    #     #     )
+    def _test_model_minimize_against_solve(self):
+        np.random.seed(self.seed)
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+
+        np.random.seed(self.seed)
+        minimized = self.solver.minimize(self.xdata, self.ydata, sigma=None)
+
+        # Assert both solve and minimize are alike at percent level
+        for i in range(self.parameters.shape[0]):
+            self.assertTrue(
+                np.allclose(
+                    solution["parameters"][i],
+                    minimized["parameters"][i],
+                    rtol=5e-3,
+                )
+            )
+
+        # Assert covariance
+        # for i in range(self.parameters.shape[0]):
+        #     self.assertTrue(
+        #         np.allclose(
+        #             solution["covariance"][i][i],
+        #             minimized["covariance"][i][i],
+        #             rtol=5e-3,
+        #         )
+        #     )
 
     def test_goodness_of_fit(self):
         """
@@ -305,9 +303,7 @@ class GenericTestFitSolver:
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         axe = self.solver.plot_fit(title=title, errors=True, squared_errors=False)
-        axe.figure.savefig(
-            "{}/{}_fit.{}".format(self.media_path, name, self.format)
-        )
+        axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
     def _test_plot_chi_square(self):
@@ -335,10 +331,17 @@ class GenericTestFitSolver:
 
         for i, j in itertools.combinations(range(self.solver.k), 2):
             axe = self.solver.plot_loss_low_dimension(
-                title=title, first_index=i, second_index=j, surface=True, add_title=False, iterations=False
+                title=title,
+                first_index=i,
+                second_index=j,
+                surface=True,
+                add_title=False,
+                iterations=False,
             )
             axe.figure.savefig(
-                "{}/{}_loss_surface_b{}_b{}.{}".format(self.media_path, name, i+1, j+1, self.format)
+                "{}/{}_loss_surface_b{}_b{}.{}".format(
+                    self.media_path, name, i + 1, j + 1, self.format
+                )
             )
             plt.close(axe.figure)
 
