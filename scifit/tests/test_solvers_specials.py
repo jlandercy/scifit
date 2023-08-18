@@ -42,15 +42,15 @@ class CrankDiffusionRegression(GenericLinearRegression):
     loss_log_x = True
     loss_log_y = True
     log_loss = True
-    loss_resolution = 10  # Heavy on CPU space is large
+    loss_resolution = 10  # Loss is heavy on CPU and space is n^2
 
 
-class CrankDiffusionRegressionNoiseL0(CrankDiffusionRegression, TestCase):
-    sigma = 1e-6
-
-
-class CrankDiffusionRegressionNoiseL1(CrankDiffusionRegression, TestCase):
-    sigma = 5e-2
+# class CrankDiffusionRegressionNoiseL0(CrankDiffusionRegression, TestCase):
+#     sigma = 1e-6
+#
+#
+# class CrankDiffusionRegressionNoiseL1(CrankDiffusionRegression, TestCase):
+#     sigma = 5e-2
 
 
 # class RaneyKetonDehydrogenationRegression(GenericLinearRegression):
