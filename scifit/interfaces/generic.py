@@ -188,6 +188,57 @@ class FitSolverInterface:
         """
         return self.parameter_space_size
 
+    def generate_noise(
+            self,
+            yref,
+            sigma=None,
+            precision=1e-9,
+            scale_mode="abs",
+            generator=np.random.normal,
+            seed=None,
+            full_output=True,
+            **kwargs
+    ):
+        if seed is not None:
+            np.random.seed(seed)
+
+        if sigma is not None:
+
+            if isinstance(sigma, Iterable):
+                sigma = np.array(sigma)
+
+            else:
+                sigma = np.full(yref.shape, sigma)
+
+            if scale_mode == "abs":
+                sigma *= 1.0
+
+            elif scale_mode == "auto":
+                sigma *= (yref.max() - yref.min()) / 2.0 + precision
+
+            elif scale_mode == "rel":
+                sigma *= np.abs(yref) + precision
+
+            else:
+                raise ConfigurationError(
+                    "Scale must be in {'abs', 'rel', 'auto'}, got '%s' instead"
+                    % scale_mode
+                )
+
+            noise = sigma * generator(size=yref.shape[0], **kwargs)
+
+        else:
+
+            noise = np.full(yref.shape, 0.0)
+
+        if full_output:
+            return {
+                "noise": noise,
+                "sigmas": sigma,
+            }
+        else:
+            return noise
+
     def target_dataset(
         self,
         xdata,
@@ -225,43 +276,26 @@ class FitSolverInterface:
                  containing at least synthetic features and details about noise applied on it when :code:`full_output=True`
         """
 
-        if seed is not None:
-            np.random.seed(seed)
-
         yref = self.model(xdata, *parameters)
-
-        if sigma is not None:
-            if isinstance(sigma, Iterable):
-                sigma = np.array(sigma)
-            else:
-                sigma = np.full(yref.shape, sigma)
-
-            if scale_mode == "abs":
-                sigma *= 1.0
-            elif scale_mode == "auto":
-                sigma *= (yref.max() - yref.min()) / 2.0 + precision
-            elif scale_mode == "rel":
-                sigma *= np.abs(yref) + precision
-            else:
-                raise ConfigurationError(
-                    "Scale must be in {'abs', 'rel', 'auto'}, got '%s' instead"
-                    % scale_mode
-                )
-
-            ynoise = sigma * generator(size=yref.shape[0], **kwargs)
-
-        else:
-            ynoise = np.full(yref.shape, 0.0)
-
-        ydata = yref + ynoise
+        noise = self.generate_noise(
+            yref,
+            sigma=sigma,
+            precision=precision,
+            scale_mode=scale_mode,
+            generator=generator,
+            seed=seed,
+            full_output=True,
+            **kwargs
+        )
+        ydata = yref + noise["noise"]
 
         if full_output:
             return {
                 "xdata": xdata,
                 "parameters": np.array(parameters),
                 "yref": yref,
-                "sigmas": sigma,
-                "ynoise": ynoise,
+                "sigmas": noise["sigmas"],
+                "ynoise": noise["noise"],
                 "ydata": ydata,
             }
 
@@ -835,7 +869,13 @@ class FitSolverInterface:
         return dataset.T
 
     def parameter_domains(
-        self, parameters=None, mode="lin", xmin=None, xmax=None, ratio=10.0, factor=3.0,
+        self,
+        parameters=None,
+        mode="lin",
+        xmin=None,
+        xmax=None,
+        ratio=10.0,
+        factor=3.0,
     ):
         """
         Generate parameter domains, useful for drawing scales fitting the parameters space
@@ -1182,7 +1222,6 @@ class FitSolverInterface:
         """
 
         if self.fitted(error=True):
-
             if axe is None:
                 if surface:
                     fig, axe = plt.subplots(subplot_kw={"projection": "3d"})
@@ -1266,7 +1305,6 @@ class FitSolverInterface:
                     ploss = self._loss
 
                 if surface:
-
                     # 3D Surfaces:
                     axe.plot_surface(
                         x, y, loss, cmap="jet", rstride=1, cstride=1, alpha=0.50
@@ -1277,7 +1315,6 @@ class FitSolverInterface:
                     axe.set_zlabel(r"Loss, $\rho(\beta)$")
 
                 else:
-
                     # Contours
                     clabels = axe.contour(x, y, loss, levels or 10, cmap="jet")
                     axe.clabel(clabels, clabels.levels, inline=True, fontsize=7)

@@ -56,7 +56,7 @@ class CrankDiffusionRegression(GenericLinearRegression):
 
 class RaneyKetonDehydrogenationRegression(GenericLinearRegression):
     factory = specials.RaneyKetonDehydrogenationFitSolver
-    parameters = np.array([6.22066797e-02, 1.14923740e+02])
+    parameters = np.array([6.22066797e-02, 1.14923740e02])
     configuration = {"p0": np.array([1e-2, 1e2])}
     sigma = None
     xmin = 0
@@ -64,22 +64,39 @@ class RaneyKetonDehydrogenationRegression(GenericLinearRegression):
     resolution = 100
 
 
-class RaneyKetonDehydrogenationRegressionNoiseL0(RaneyKetonDehydrogenationRegression, TestCase):
+class RaneyKetonDehydrogenationRegressionNoiseL0(
+    RaneyKetonDehydrogenationRegression, TestCase
+):
     sigma = 1e-6
 
 
-class RaneyKetonDehydrogenationRegressionNoiseL1(RaneyKetonDehydrogenationRegression, TestCase):
+class RaneyKetonDehydrogenationRegressionNoiseL1(
+    RaneyKetonDehydrogenationRegression, TestCase
+):
     sigma = 5e-2
 
 
 class RaneyKetonDehydrogenationRealDataRegression(GenericLinearRegression):
     factory = specials.RaneyKetonDehydrogenationFitSolver
     data_path = "docs/source/notebooks/docs/data/RaneyKetonDehydrogenation.csv"
-    parameters = np.array([1e-2, 1e2])
+    parameters = None
     configuration = {"p0": np.array([1e-2, 1e2])}
     sigma = None
 
 
-class RaneyKetonDehydrogenationRealDataRegressionNoiseL0(RaneyKetonDehydrogenationRealDataRegression, TestCase):
-    sigma = 30.
+class RaneyKetonDehydrogenationRealDataRegressionNoiseL0(
+    RaneyKetonDehydrogenationRealDataRegression, TestCase
+):
+    sigma = 35.0
 
+
+class RaneyKetonDehydrogenationRealDataRegressionNoiseL1(
+    RaneyKetonDehydrogenationRealDataRegression, TestCase
+):
+    sigma = 40.0
+
+
+class RaneyKetonDehydrogenationRealDataRegressionNoiseL2(
+    RaneyKetonDehydrogenationRealDataRegression, TestCase
+):
+    sigma = 45.0

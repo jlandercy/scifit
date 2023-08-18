@@ -114,7 +114,6 @@ class GenericTestFitSolverInterface:
 
 
 class GenericTestFitSolver:
-
     root_path = ".cache/media/tests/"
     data_path = None
 
@@ -152,7 +151,6 @@ class GenericTestFitSolver:
     # sigma_factor = 10.
 
     def setUp(self) -> None:
-
         self.media_path = pathlib.Path(self.root_path) / format(
             self.factory.__module__.split(".")[-1]
         )
@@ -191,11 +189,23 @@ class GenericTestFitSolver:
             data = pd.read_csv(self.data_path, sep=";")
             self.xdata = data.filter(regex="X").values
             self.ydata = data["y"]
-            self.sigmas = data["s"]
 
-        domains = self.solver.parameter_domains(parameters=self.parameters)
-        if self.p0 is None:
-            self.p0 = domains.loc["max", :].values
+            if self.sigma is None:
+                self.sigmas = data["s"]
+
+            else:
+                self.sigmas = self.solver.generate_noise(
+                    sigma=self.sigma,
+                    scale_mode=self.scale_mode,
+                    generator=self.generator,
+                    seed=self.seed,
+                    **self.target_kwargs
+                )
+
+        if self.parameters is not None:
+            domains = self.solver.parameter_domains(parameters=self.parameters)
+            if self.p0 is None:
+                self.p0 = domains.loc["max", :].values
 
     def test_signature(self):
         s = self.solver.signature
@@ -235,42 +245,46 @@ class GenericTestFitSolver:
          - Is the right solution
          - Is it precise enough wrt standard deviation
         """
-        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        for i in range(self.parameters.shape[0]):
-            self.assertTrue(
-                np.allclose(
-                    self.parameters[i],
-                    solution["parameters"][i],
-                    atol=self.sigma_factor * np.sqrt(solution["covariance"][i][i]),
+        if self.parameters:
+            solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+            for i in range(self.parameters.shape[0]):
+                self.assertTrue(
+                    np.allclose(
+                        self.parameters[i],
+                        solution["parameters"][i],
+                        atol=self.sigma_factor * np.sqrt(solution["covariance"][i][i]),
+                    )
                 )
-            )
 
     def _test_model_minimize_against_solve(self):
-        np.random.seed(self.seed)
-        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
 
-        np.random.seed(self.seed)
-        minimized = self.solver.minimize(self.xdata, self.ydata, sigma=None)
+        if self.parameters:
 
-        # Assert both solve and minimize are alike at percent level
-        for i in range(self.parameters.shape[0]):
-            self.assertTrue(
-                np.allclose(
-                    solution["parameters"][i],
-                    minimized["parameters"][i],
-                    rtol=5e-3,
+            np.random.seed(self.seed)
+            solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+
+            np.random.seed(self.seed)
+            minimized = self.solver.minimize(self.xdata, self.ydata, sigma=None)
+
+            # Assert both solve and minimize are alike at percent level
+            for i in range(self.parameters.shape[0]):
+                self.assertTrue(
+                    np.allclose(
+                        solution["parameters"][i],
+                        minimized["parameters"][i],
+                        rtol=5e-3,
+                    )
                 )
-            )
 
-        # Assert covariance
-        # for i in range(self.parameters.shape[0]):
-        #     self.assertTrue(
-        #         np.allclose(
-        #             solution["covariance"][i][i],
-        #             minimized["covariance"][i][i],
-        #             rtol=5e-3,
-        #         )
-        #     )
+            # Assert covariance
+            # for i in range(self.parameters.shape[0]):
+            #     self.assertTrue(
+            #         np.allclose(
+            #             solution["covariance"][i][i],
+            #             minimized["covariance"][i][i],
+            #             rtol=5e-3,
+            #         )
+            #     )
 
     def test_goodness_of_fit(self):
         """

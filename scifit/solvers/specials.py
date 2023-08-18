@@ -5,7 +5,6 @@ from scifit.interfaces.generic import FitSolverInterface
 
 
 class DebyeInternalEnergyFitSolver(FitSolverInterface):
-
     @staticmethod
     def debye_integral(n):
         """
@@ -41,11 +40,12 @@ class DebyeInternalEnergyFitSolver(FitSolverInterface):
         :param T_D: Debye Temperature
         :return: Molecular Internal Energy
         """
-        return 3 * x[:, 0] * DebyeInternalEnergyFitSolver.debye_integral(3)(T_D / x[:, 0])
+        return (
+            3 * x[:, 0] * DebyeInternalEnergyFitSolver.debye_integral(3)(T_D / x[:, 0])
+        )
 
 
 class CrankEquationSolver:
-
     def __init__(self, alpha):
         self.alpha = alpha
         self.roots = {}
@@ -78,7 +78,6 @@ class CrankEquationSolver:
 
 
 class CrankDiffusion:
-
     def __init__(self, alpha=5.0, radius=1e-3, n=40):
         self.n = n
         self.alpha = alpha
@@ -106,7 +105,6 @@ class CrankDiffusion:
 
 
 class CrankDiffusionFitSolver(FitSolverInterface):
-
     _helper = CrankDiffusion()
 
     def __init__(self, alpha=3.9, radius=1.9e-3, **kwargs):
@@ -120,7 +118,7 @@ class CrankDiffusionFitSolver(FitSolverInterface):
         Solve the modified Crank diffusion problem for a solid sphere
 
         .. math::
-        
+
             \\gamma(t) = \\frac{C(t,R)}{C(0,R)} = \\frac{\\alpha}{1 + \\alpha} + 6 \\alpha \\sum\\limits_{i=1}^\\infty \\frac{\\exp \\left(-\\mathcal{D}\\frac{q_n^2 t}{R^2}\\right)}{9(\\alpha + 1) + \\alpha^2q_n^2}
 
         Where:
@@ -145,21 +143,22 @@ class CrankDiffusionFitSolver(FitSolverInterface):
 
 class RaneyKetonDehydrogenationFitSolver(FitSolverInterface):
 
-    V = 190e-6    # m3 of isopropanol
-    n0 = 2.5      # mol
+    V = None    # m3 of isopropanol
+    n0 = None   # mol
+
+    def __init__(self, n0=3.5, V=200e-6, **kwargs):
+        self.n0 = n0
+        self.V = V
+        super().__init__(**kwargs)
 
     @staticmethod
     def kinetic(n0, V):
-
         def wrapped(xi, k1, k2):
             return (1 - k2) / k1 * (xi / V) - (k2 / k1) * (n0 / V) * np.log((n0 - xi) / n0)
-
         return wrapped
 
-    target = kinetic(n0, V)
-
-    @staticmethod
-    def model(x, k1, k2):
+    @classmethod
+    def model(cls, x, k1, k2):
         """
 
         .. math::
@@ -183,4 +182,7 @@ class RaneyKetonDehydrogenationFitSolver(FitSolverInterface):
         :param k2:
         :return:
         """
-        return RaneyKetonDehydrogenationFitSolver.target(x[:, 0], k1, k2)
+        return RaneyKetonDehydrogenationFitSolver.kinetic(
+            cls.n0,
+            cls.V,
+        )(x[:, 0], k1, k2)
