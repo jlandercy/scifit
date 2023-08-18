@@ -359,7 +359,7 @@ class GenericTestFitSolver:
                 resolution=self.loss_resolution,
                 log_x=self.log_x,
                 log_y=self.log_y,
-                log_loss=self.log_loss,
+                log_loss=False,
             )
             axe.figure.savefig(
                 "{}/{}_loss_surface_b{}_b{}.{}".format(

@@ -40,7 +40,7 @@ class CrankDiffusionRegression(GenericLinearRegression):
     log_x = True
     log_y = True
     log_loss = True
-    #loss_resolution = 20
+    loss_resolution = 120
 
 
 class CrankDiffusionRegressionNoiseL0(CrankDiffusionRegression, TestCase):

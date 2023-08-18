@@ -835,7 +835,7 @@ class FitSolverInterface:
         return dataset.T
 
     def parameter_domains(
-        self, parameters=None, mode="lin", xmin=None, xmax=None, ratio=10.0, factor=3.0,
+        self, parameters=None, mode="lin", xmin=None, xmax=None, ratio=10.0, factor=2.0,
     ):
         """
         Generate parameter domains, useful for drawing scales fitting the parameters space
@@ -1196,6 +1196,9 @@ class FitSolverInterface:
                 parameters[first_index] = scales[first_index]
                 loss = self.parametrized_loss(sigma=self._sigma)
 
+                if log_loss:
+                    loss = np.log10(loss)
+
                 fig, axe = plt.subplots()
 
                 axe.plot(scales[first_index], loss(*parameters))
@@ -1251,6 +1254,9 @@ class FitSolverInterface:
 
                 if log_loss:
                     loss = np.log10(loss)
+                    ploss = np.log10(self._loss)
+                else:
+                    ploss = self._loss
 
                 if surface:
                     # 3D Surfaces:
@@ -1259,7 +1265,7 @@ class FitSolverInterface:
                         x, y, loss, cmap="jet", rstride=1, cstride=1, alpha=0.50
                     )
                     axe.contour(
-                        x, y, loss, zdir="z", offset=self._loss, levels=10, cmap="jet"
+                        x, y, loss, zdir="z", offset=ploss, levels=10, cmap="jet"
                     )
                     axe.set_zlabel(r"Loss, $\rho(\beta)$")
 
@@ -1292,7 +1298,7 @@ class FitSolverInterface:
                         )
 
                 if surface:
-                    axe.scatter(p0[first_index], p0[second_index], self._loss)
+                    axe.scatter(p0[first_index], p0[second_index], ploss)
                 else:
                     axe.scatter(p0[first_index], p0[second_index])
 
