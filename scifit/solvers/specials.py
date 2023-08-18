@@ -107,7 +107,12 @@ class CrankDiffusion:
 
 class CrankDiffusionFitSolver(FitSolverInterface):
 
-    _helper = CrankDiffusion(alpha=3.9, radius=1.9e-3)
+    _helper = CrankDiffusion()
+
+    def __init__(self, alpha=3.9, radius=1.9e-3, **kwargs):
+        self._helper.alpha = alpha
+        self._helper.radius = radius
+        super().__init__(**kwargs)
 
     @staticmethod
     def model(x, Kp, D):
@@ -137,51 +142,51 @@ class CrankDiffusionFitSolver(FitSolverInterface):
         """
         return CrankDiffusionFitSolver._helper.objective(x[:, 0], Kp, D)
 
-
-class RaneyKetonDehydrogenationFitSolver(FitSolverInterface):
-
-    R = 8.31446261815324     # J/mol.K
-    T0 = 292.05              # K
-    p0 = 101600              # Pa
-    V = 190e-6               # m3 of isopropanol
-    m = 2.7677               # g of Raney Nickel
-    rho = 785                # kg/m³
-    M = 60.1                 # g/mol
-    n0 = 1000 * rho * V / M  # mol
-
-    @staticmethod
-    def _objective(n0, V):
-
-        def wrapped(xi, k1, k2):
-            return (1 - k2) / k1 * (xi / V) - (k2 / k1) * (n0 / V) * np.log((n0 - xi) / n0)
-
-        return wrapped
-
-    objective = _objective(n0, V)
-
-    @staticmethod
-    def model(x, k1, k2):
-        """
-
-        .. math::
-
-            r = k_1 \\theta_A = k_1\\frac{aA}{1 + aA + bB + cC}
-
-        .. math::
-
-            r = \\frac{1}{V}\\frac{\\mathrm{d}\\xi}{\\mathrm{d}t} \\simeq k_1\\frac{aA}{aA + bB} = k\\frac{a(n_0 - \\xi)}{a(n_0 - \\xi) + b\\xi}
-
-        .. math::
-
-            \\int\\limits_0^\\xi\\left(1 + \\frac{b\\xi}{a(n_0-\\xi)}\\right)\\mathrm{d}\\xi = \\int\\limits_0^t k_1V\\mathrm{d}t
-
-        .. math::
-
-            \\left(1 - \\frac{b}{a}\\right)\\xi - n_0\\frac{b}{a}\\ln\\left|\\frac{n_0 - \\xi}{n_0}\\right| = k_1Vt
-
-        :param x:
-        :param k1:
-        :param k2:
-        :return:
-        """
-        return RaneyKetonDehydrogenationFitSolver.objective(x[:, 0], k1, k2)
+#
+# class RaneyKetonDehydrogenationFitSolver(FitSolverInterface):
+#
+#     R = 8.31446261815324     # J/mol.K
+#     T0 = 292.05              # K
+#     p0 = 101600              # Pa
+#     V = 190e-6               # m3 of isopropanol
+#     m = 2.7677               # g of Raney Nickel
+#     rho = 785                # kg/m³
+#     M = 60.1                 # g/mol
+#     n0 = 1000 * rho * V / M  # mol
+#
+#     @staticmethod
+#     def _objective(n0, V):
+#
+#         def wrapped(xi, k1, k2):
+#             return (1 - k2) / k1 * (xi / V) - (k2 / k1) * (n0 / V) * np.log((n0 - xi) / n0)
+#
+#         return wrapped
+#
+#     objective = _objective(n0, V)
+#
+#     @staticmethod
+#     def model(x, k1, k2):
+#         """
+#
+#         .. math::
+#
+#             r = k_1 \\theta_A = k_1\\frac{aA}{1 + aA + bB + cC}
+#
+#         .. math::
+#
+#             r = \\frac{1}{V}\\frac{\\mathrm{d}\\xi}{\\mathrm{d}t} \\simeq k_1\\frac{aA}{aA + bB} = k\\frac{a(n_0 - \\xi)}{a(n_0 - \\xi) + b\\xi}
+#
+#         .. math::
+#
+#             \\int\\limits_0^\\xi\\left(1 + \\frac{b\\xi}{a(n_0-\\xi)}\\right)\\mathrm{d}\\xi = \\int\\limits_0^t k_1V\\mathrm{d}t
+#
+#         .. math::
+#
+#             \\left(1 - \\frac{b}{a}\\right)\\xi - n_0\\frac{b}{a}\\ln\\left|\\frac{n_0 - \\xi}{n_0}\\right| = k_1Vt
+#
+#         :param x:
+#         :param k1:
+#         :param k2:
+#         :return:
+#         """
+#         return RaneyKetonDehydrogenationFitSolver.objective(x[:, 0], k1, k2)

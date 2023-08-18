@@ -39,25 +39,27 @@ class CrankDiffusionRegression(GenericLinearRegression):
     mode = "log"
     log_x = True
     log_y = True
-    log_loss = False
-    loss_resolution = 90  # Heavy on CPU but space is large
+    loss_log_x = True
+    loss_log_y = True
+    log_loss = True
+    loss_resolution = 10  # Heavy on CPU space is large
 
-#
-# class CrankDiffusionRegressionNoiseL0(CrankDiffusionRegression, TestCase):
-#     sigma = 1e-6
+
+class CrankDiffusionRegressionNoiseL0(CrankDiffusionRegression, TestCase):
+    sigma = 1e-6
 
 
 class CrankDiffusionRegressionNoiseL1(CrankDiffusionRegression, TestCase):
     sigma = 5e-2
 
 
-class RaneyKetonDehydrogenationRegression(GenericLinearRegression):
-    factory = specials.RaneyKetonDehydrogenationFitSolver
-    parameters = np.array([4.75360716e-02, 7.80055896e+01])
-    configuration = {"p0": np.array([1e-2, 1e2])}
-    sigma = None
-    xmin = 0.1
-    xmax = 1e4
+# class RaneyKetonDehydrogenationRegression(GenericLinearRegression):
+#     factory = specials.RaneyKetonDehydrogenationFitSolver
+#     parameters = np.array([4.75360716e-02, 7.80055896e+01])
+#     configuration = {"p0": np.array([1e-2, 1e2])}
+#     sigma = None
+#     xmin = 0.1
+#     xmax = 1e4
 
 
 # class RaneyKetonDehydrogenationRegressionNoiseL0(RaneyKetonDehydrogenationRegression, TestCase):

@@ -835,7 +835,7 @@ class FitSolverInterface:
         return dataset.T
 
     def parameter_domains(
-        self, parameters=None, mode="lin", xmin=None, xmax=None, ratio=10.0, factor=2.0,
+        self, parameters=None, mode="lin", xmin=None, xmax=None, ratio=10.0, factor=3.0,
     ):
         """
         Generate parameter domains, useful for drawing scales fitting the parameters space
@@ -964,6 +964,9 @@ class FitSolverInterface:
             :width: 560
             :alt: Fit Plot
         """
+
+        if log_x:
+            mode = "log"
 
         if self.fitted(error=True):
             full_title = "Fit Plot: {}\n{}".format(title, self.get_title())
@@ -1179,8 +1182,12 @@ class FitSolverInterface:
         """
 
         if self.fitted(error=True):
+
             if axe is None:
-                fig, axe = plt.subplots()
+                if surface:
+                    fig, axe = plt.subplots(subplot_kw={"projection": "3d"})
+                else:
+                    fig, axe = plt.subplots()
             fig = axe.figure
 
             full_title = "Fit Loss Plot: {}\n{}".format(title, self.get_title())
@@ -1259,8 +1266,8 @@ class FitSolverInterface:
                     ploss = self._loss
 
                 if surface:
+
                     # 3D Surfaces:
-                    fig, axe = plt.subplots(subplot_kw={"projection": "3d"})
                     axe.plot_surface(
                         x, y, loss, cmap="jet", rstride=1, cstride=1, alpha=0.50
                     )
@@ -1270,8 +1277,8 @@ class FitSolverInterface:
                     axe.set_zlabel(r"Loss, $\rho(\beta)$")
 
                 else:
-                    # Contours
 
+                    # Contours
                     clabels = axe.contour(x, y, loss, levels or 10, cmap="jet")
                     axe.clabel(clabels, clabels.levels, inline=True, fontsize=7)
 

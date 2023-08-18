@@ -51,7 +51,7 @@ def install(session):
         session.error("No wheel found, first package then install")
     report = reports_path / "install.log"
     with report.open("w") as handler:
-        session.run("python", "-m", "pip", "install", *wheels, stdout=handler)
+        session.run("python", "-m", "pip", "install", "--user", "--upgrade", *wheels, stdout=handler)
 
 
 @nox.session
