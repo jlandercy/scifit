@@ -195,12 +195,14 @@ class GenericTestFitSolver:
 
             else:
                 self.sigmas = self.solver.generate_noise(
+                    self.ydata,
                     sigma=self.sigma,
                     scale_mode=self.scale_mode,
                     generator=self.generator,
                     seed=self.seed,
+                    full_output=True,
                     **self.target_kwargs
-                )
+                )["sigmas"]
 
         if self.parameters is not None:
             domains = self.solver.parameter_domains(parameters=self.parameters)
@@ -213,9 +215,10 @@ class GenericTestFitSolver:
         self.assertEqual(len(s.parameters) - 1, n)
 
     def test_model_implementation(self):
-        yhat = self.solver.model(self.xdata, *self.parameters)
-        self.assertTrue(np.allclose(yhat, self.yref))
-        self.assertTrue(np.allclose(yhat + self.ynoise, self.ydata))
+        if self.parameters is not None:
+            yhat = self.solver.model(self.xdata, *self.parameters)
+            self.assertTrue(np.allclose(yhat, self.yref))
+            self.assertTrue(np.allclose(yhat + self.ynoise, self.ydata))
 
     def test_model_fit_stored_fields(self):
         solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
@@ -245,7 +248,7 @@ class GenericTestFitSolver:
          - Is the right solution
          - Is it precise enough wrt standard deviation
         """
-        if self.parameters:
+        if self.parameters is not None:
             solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
             for i in range(self.parameters.shape[0]):
                 self.assertTrue(
@@ -258,7 +261,7 @@ class GenericTestFitSolver:
 
     def _test_model_minimize_against_solve(self):
 
-        if self.parameters:
+        if self.parameters is not None:
 
             np.random.seed(self.seed)
             solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
