@@ -137,6 +137,8 @@ class GenericTestFitSolver:
 
     log_x = False
     log_y = False
+    loss_log_x = False
+    loss_log_y = False
     log_loss = False
     loss_resolution = 75
 
@@ -334,8 +336,8 @@ class GenericTestFitSolver:
             title=title,
             iterations=False,
             mode=self.mode,
-            log_x=self.log_x,
-            log_y=self.log_y,
+            log_x=self.loss_log_x,
+            log_y=self.loss_log_y,
             log_loss=self.log_loss,
         )
         axe.figure.savefig(
@@ -357,8 +359,8 @@ class GenericTestFitSolver:
                 add_title=False,
                 iterations=False,
                 resolution=self.loss_resolution,
-                log_x=self.log_x,
-                log_y=self.log_y,
+                log_x=False,
+                log_y=False,
                 log_loss=False,
             )
             axe.figure.savefig(

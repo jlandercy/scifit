@@ -39,8 +39,8 @@ class CrankDiffusionRegression(GenericLinearRegression):
     mode = "log"
     log_x = True
     log_y = True
-    log_loss = True
-    loss_resolution = 200  # Heavy on CPU but space is large
+    log_loss = False
+    loss_resolution = 90  # Heavy on CPU but space is large
 
 #
 # class CrankDiffusionRegressionNoiseL0(CrankDiffusionRegression, TestCase):
