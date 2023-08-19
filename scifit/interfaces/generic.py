@@ -1646,22 +1646,24 @@ class FitSolverInterface:
         """
         Dump dataset into CSV
         :param file_or_frame:
+        :param data:
         :param summary:
         :return:
         """
         if data is None:
-            if summary:
-                data = self.summary()
-            else:
-                data = self.dataset()
+            data = self.dataset()
+        if summary:
+            data = self.summary(data=data)
         data.to_csv(file_or_frame, sep=";", index=True)
 
-    def summary(self):
+    def summary(self, data=None):
         """
         Add summary row for LaTeX display
+        :param data:
         :return: DataFrame
         """
-        data = self.dataset()
+        if data is None:
+            data = self.dataset()
         data.loc[r""] = data.sum()
         data.iloc[-1, :-5] = None
         data.iloc[-1, 5] = None

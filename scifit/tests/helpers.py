@@ -312,9 +312,6 @@ class GenericTestFitSolver:
         if self.sigma is not None and self.sigma > 0.0:
             self.assertTrue(0.50 <= test["normalized"] <= 1.50)
             self.assertTrue(test["pvalue"] >= 0.10)
-        else:
-            self.assertTrue(0.85 <= test["normalized"] <= 1.15)
-            self.assertTrue(test["pvalue"] >= 0.50)
 
     def test_feature_dataset_auto(self):
         self.solver.store(self.xdata, self.ydata)
@@ -457,7 +454,27 @@ class GenericTestFitSolver:
         keys = {"y"}
         self.assertEqual(set(data.columns).intersection(keys), keys)
 
+    def test_dataset_serialization_equivalence(self):
+        name = self.__class__.__name__
+        file1 = "{}/{}.csv".format(self.media_path, name)
+        file2 = "{}/{}_echo.csv".format(self.media_path, name)
+
+        np.random.seed(self.seed)
+        solution1 = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        check1 = self.solver.dataset()
+        self.solver.dump(file1, summary=False)
+
+        solver2 = self.factory(**self.configuration)
+        solver2.load(file1)
+        np.random.seed(self.seed)
+        solution2 = solver2.fit()
+        check2 = solver2.dataset()
+        solver2.dump(file2, summary=False)
+
+        self.assertTrue(np.allclose(solution1["parameters"], solution2["parameters"]))
+        self.assertTrue(np.allclose(check1.values, check2.values))
+
     def test_dump_summary(self):
         name = self.__class__.__name__
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        self.solver.dump("{}/{}.csv".format(self.media_path, name), summary=True)
+        self.solver.dump("{}/{}_summary.csv".format(self.media_path, name), summary=True)

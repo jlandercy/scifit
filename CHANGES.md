@@ -10,6 +10,7 @@
    - [ ] Distribution fit
  - [ ] Print parameters in scientific format if too small or too large
  - [ ] Take time to refactor load and store to make it compliant with workflow
+ - [ ] Solve why CSV import differs in solution
  
 SO ``curve-fitting`` tag:
 
