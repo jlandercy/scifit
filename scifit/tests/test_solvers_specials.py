@@ -88,16 +88,16 @@ class RaneyKetonDehydrogenationRealDataRegression(GenericLinearRegression):
 class RaneyKetonDehydrogenationRealDataRegressionNoiseL0(
     RaneyKetonDehydrogenationRealDataRegression, TestCase
 ):
-    sigma = 32.5
+    sigma = 30.0
 
 
 class RaneyKetonDehydrogenationRealDataRegressionNoiseL1(
     RaneyKetonDehydrogenationRealDataRegression, TestCase
 ):
-    sigma = 35.0
+    sigma = 32.5
 
 
 class RaneyKetonDehydrogenationRealDataRegressionNoiseL2(
     RaneyKetonDehydrogenationRealDataRegression, TestCase
 ):
-    sigma = 37.5
+    sigma = 35.0

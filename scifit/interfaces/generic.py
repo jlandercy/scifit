@@ -189,21 +189,20 @@ class FitSolverInterface:
         return self.parameter_space_size
 
     def generate_noise(
-            self,
-            yref,
-            sigma=None,
-            precision=1e-9,
-            scale_mode="abs",
-            generator=np.random.normal,
-            seed=None,
-            full_output=True,
-            **kwargs
+        self,
+        yref,
+        sigma=None,
+        precision=1e-9,
+        scale_mode="abs",
+        generator=np.random.normal,
+        seed=None,
+        full_output=True,
+        **kwargs,
     ):
         if seed is not None:
             np.random.seed(seed)
 
         if sigma is not None:
-
             if isinstance(sigma, Iterable):
                 sigma = np.array(sigma)
 
@@ -228,7 +227,6 @@ class FitSolverInterface:
             noise = sigma * generator(size=yref.shape[0], **kwargs)
 
         else:
-
             noise = np.full(yref.shape, 0.0)
 
         if full_output:
@@ -285,7 +283,7 @@ class FitSolverInterface:
             generator=generator,
             seed=seed,
             full_output=True,
-            **kwargs
+            **kwargs,
         )
         ydata = yref + noise["noise"]
 
@@ -1482,6 +1480,7 @@ class FitSolverInterface:
         """
 
         if self.stored(error=True):
+
             data = pd.DataFrame(self._xdata)
             data.columns = data.columns.map(lambda x: "x%d" % x)
 
@@ -1495,20 +1494,22 @@ class FitSolverInterface:
             extra = pd.DataFrame(extra)
             data = pd.concat([data, extra], axis=1)
 
-            data["yerr"] = data["y"] - data["yhat"]
-            data["yerrrel"] = data["yerr"] / data["yhat"]
-            data["yerrabs"] = np.abs(data["yerr"])
-            data["yerrsqr"] = np.power(data["yerr"], 2)
+            if self.fitted(error=False):
+                data["yerr"] = data["y"] - data["yhat"]
+                data["yerrrel"] = data["yerr"] / data["yhat"]
+                data["yerrabs"] = np.abs(data["yerr"])
+                data["yerrsqr"] = np.power(data["yerr"], 2)
 
             if self._sigma is not None and self.fitted(error=False):
                 data["chi2"] = ((data["y"] - data["yhat"]) / data["sy"]) ** 2
+
+            data.index = data.index.values + 1
+            data.index.name = "id"
 
             return data
 
     def summary(self):
         data = self.dataset()
-        data.index = data.index.values + 1
-        data.index.name = "id"
         data.loc[r""] = data.sum()
         data.iloc[-1, :-5] = None
         data.iloc[-1, 5] = None

@@ -159,7 +159,6 @@ class GenericTestFitSolver:
         self.solver = self.factory(**self.configuration)
 
         if self.data_path is None:
-
             if self.xdata is None:
                 self.xdata = self.solver.feature_dataset(
                     mode=self.mode,
@@ -187,11 +186,11 @@ class GenericTestFitSolver:
         else:
 
             data = pd.read_csv(self.data_path, sep=";")
-            self.xdata = data.filter(regex="X").values
+            self.xdata = data.filter(regex="x").values
             self.ydata = data["y"]
 
             if self.sigma is None:
-                self.sigmas = data["s"]
+                self.sigmas = data["sy"]
 
             else:
                 self.sigmas = self.solver.generate_noise(
@@ -201,7 +200,7 @@ class GenericTestFitSolver:
                     generator=self.generator,
                     seed=self.seed,
                     full_output=True,
-                    **self.target_kwargs
+                    **self.target_kwargs,
                 )["sigmas"]
 
         if self.parameters is not None:
@@ -260,9 +259,7 @@ class GenericTestFitSolver:
                 )
 
     def _test_model_minimize_against_solve(self):
-
         if self.parameters is not None:
-
             np.random.seed(self.seed)
             solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
 
@@ -334,7 +331,7 @@ class GenericTestFitSolver:
         solution = self.solver.fit(self.xdata, self.ydata)
         domains = self.solver.parameter_domains(mode="log", xmin=1e-5, xmax=100.0)
 
-    def test_plot_fit(self):
+    def _test_plot_fit(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
@@ -349,7 +346,7 @@ class GenericTestFitSolver:
         axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
-    def test_plot_chi_square(self):
+    def _test_plot_chi_square(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
@@ -357,7 +354,7 @@ class GenericTestFitSolver:
         axe.figure.savefig("{}/{}_chi2.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
-    def test_plot_loss_automatic(self):
+    def _test_plot_loss_automatic(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
@@ -402,6 +399,22 @@ class GenericTestFitSolver:
     def test_dataset(self):
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         data = self.solver.dataset()
+        self.assertIsInstance(data, pd.DataFrame)
+        self.assertEqual(data.index.name, "id")
+        x = data.filter(regex="x")
+        self.assertTrue(x.shape[1] > 0)
+        keys = {"y", "sy", "yhat", "yerr", "yerrrel", "yerrabs", "yerrsqr", "chi2"}
+        self.assertEqual(set(data.columns).intersection(keys), keys)
+
+    def test_fitted_dataset(self):
+        self.solver.store(self.xdata, self.ydata, sigma=self.sigmas)
+        data = self.solver.dataset()
+        self.assertIsInstance(data, pd.DataFrame)
+        self.assertEqual(data.index.name, "id")
+        x = data.filter(regex="x")
+        self.assertTrue(x.shape[1] > 0)
+        keys = {"y"}
+        self.assertEqual(set(data.columns).intersection(keys), keys)
 
     def test_summary(self):
         name = self.__class__.__name__

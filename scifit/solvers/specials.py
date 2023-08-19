@@ -105,7 +105,6 @@ class CrankDiffusion:
 
 
 class CrankDiffusionFitSolver(FitSolverInterface):
-
     _helper = CrankDiffusion()
 
     def __init__(self, alpha=3.9, radius=1.9e-3, **kwargs):
@@ -143,10 +142,9 @@ class CrankDiffusionFitSolver(FitSolverInterface):
 
 
 class RaneyKetonDehydrogenationFitSolver(FitSolverInterface):
-
     def __init__(self, n0=3.5, V=200e-6, **kwargs):
-        self.n0 = n0   # m3 of isopropanol
-        self.V = V     # mol
+        self.n0 = n0  # m3 of isopropanol
+        self.V = V  # mol
         super().__init__(**kwargs)
 
     def model(self, x, k1, k2):
@@ -173,4 +171,6 @@ class RaneyKetonDehydrogenationFitSolver(FitSolverInterface):
         :param k2:
         :return:
         """
-        return (1 - k2) / k1 * (x[:, 0] / self.V) - (k2 / k1) * (self.n0 / self.V) * np.log((self.n0 - x[:, 0]) / self.n0)
+        return (1 - k2) / k1 * (x[:, 0] / self.V) - (k2 / k1) * (
+            self.n0 / self.V
+        ) * np.log((self.n0 - x[:, 0]) / self.n0)
