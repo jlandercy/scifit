@@ -1,5 +1,7 @@
 import inspect
 import itertools
+import logging
+import numbers
 from collections.abc import Iterable
 
 import matplotlib.patches as patches
@@ -9,6 +11,8 @@ import pandas as pd
 from scipy import optimize, stats
 
 from scifit.errors.base import *
+
+logger = logging.getLogger(__name__)
 
 
 class FitSolverInterface:
@@ -114,7 +118,7 @@ class FitSolverInterface:
                 raise InputDataError("Sigma as array must have the same shape as ydata")
             if not np.all(sigma > 0.0):
                 raise InputDataError("All sigma must be strictly positive")
-        elif isinstance(sigma, np.number):
+        elif isinstance(sigma, numbers.Number):
             if sigma <= 0.0:
                 raise InputDataError("Sigma must be strictly positive")
         elif sigma is None:
@@ -125,6 +129,11 @@ class FitSolverInterface:
         self._xdata = xdata
         self._ydata = ydata
         self._sigma = sigma
+
+        logger.info(
+            "Stored data into solver: X%s, y%s, s=%s"
+            % (xdata.shape, ydata.shape, sigma is not None)
+        )
 
     @staticmethod
     def model(x, *parameters):
@@ -188,10 +197,64 @@ class FitSolverInterface:
         """
         return self.parameter_space_size
 
+    def generate_noise(
+        self,
+        yref,
+        sigma=None,
+        precision=1e-9,
+        scale_mode="abs",
+        generator=np.random.normal,
+        seed=None,
+        full_output=True,
+        **kwargs,
+    ):
+        if seed is not None:
+            np.random.seed(seed)
+
+        if sigma is not None:
+            if isinstance(sigma, Iterable):
+                sigma = np.array(sigma)
+
+            else:
+                sigma = np.full(yref.shape, sigma)
+
+            if scale_mode == "abs":
+                sigma *= 1.0
+
+            elif scale_mode == "auto":
+                sigma *= (yref.max() - yref.min()) / 2.0 + precision
+
+            elif scale_mode == "rel":
+                sigma *= np.abs(yref) + precision
+
+            else:
+                raise ConfigurationError(
+                    "Scale must be in {'abs', 'rel', 'auto'}, got '%s' instead"
+                    % scale_mode
+                )
+
+            noise = sigma * generator(size=yref.shape[0], **kwargs)
+
+        else:
+            noise = np.full(yref.shape, 0.0)
+
+        if full_output:
+            return {
+                "noise": noise,
+                "sigmas": sigma,
+            }
+        else:
+            return noise
+
     def target_dataset(
         self,
-        xdata,
-        *parameters,
+        xdata=None,
+        parameters=None,
+        dimension=1,
+        mode="lin",
+        xmin=-1.0,
+        xmax=1.0,
+        resolution=30,
         sigma=None,
         precision=1e-9,
         scale_mode="abs",
@@ -212,8 +275,13 @@ class FitSolverInterface:
         Pseudo Random Generator (PRG) is defined by the object :code:`generator` which must be a PRG
         coming from :py:mod:`numpy.random` by default it is a Standard Normal distribution :class:`numpy.random.normal`.
 
-        :param x: Features (variables) as :code:`(n,m)` matrix
+        :param xdata: Features (variables) as :code:`(n,m)` matrix
         :param parameters: Sequence of :code:`k` parameters with explicit names
+        :param dimension:
+        :param mode:
+        :param xmin:
+        :param xmax:
+        :param resolution:
         :param sigma: Shape (scale) parameter for noise if any (default :code:`None`)
         :param precision: Tiny :code:`float` added in noise generation to enforce numerical stability
         :param scale_mode: Type of noise added to target
@@ -225,44 +293,39 @@ class FitSolverInterface:
                  containing at least synthetic features and details about noise applied on it when :code:`full_output=True`
         """
 
-        if seed is not None:
-            np.random.seed(seed)
+        if xdata is None:
+            xdata = self.feature_dataset(
+                mode=mode,
+                xmin=xmin,
+                xmax=xmax,
+                dimension=dimension,
+                resolution=resolution,
+            )
+
+        if parameters is None:
+            parameters = np.power(np.random.uniform(size=(self.k,)), 2) + 1.0
 
         yref = self.model(xdata, *parameters)
-
-        if sigma is not None:
-            if isinstance(sigma, Iterable):
-                sigma = np.array(sigma)
-            else:
-                sigma = np.full(yref.shape, sigma)
-
-            if scale_mode == "abs":
-                sigma *= 1.0
-            elif scale_mode == "auto":
-                sigma *= (yref.max() - yref.min()) / 2.0 + precision
-            elif scale_mode == "rel":
-                sigma *= np.abs(yref) + precision
-            else:
-                raise ConfigurationError(
-                    "Scale must be in {'abs', 'rel', 'auto'}, got '%s' instead"
-                    % scale_mode
-                )
-
-            ynoise = sigma * generator(size=yref.shape[0], **kwargs)
-
-        else:
-            ynoise = np.full(yref.shape, 0.0)
-
-        ydata = yref + ynoise
+        noise = self.generate_noise(
+            yref,
+            sigma=sigma,
+            precision=precision,
+            scale_mode=scale_mode,
+            generator=generator,
+            seed=seed,
+            full_output=True,
+            **kwargs,
+        )
+        ydata = yref + noise["noise"]
 
         if full_output:
             return {
-                "xdata": xdata,
                 "parameters": np.array(parameters),
+                "x": xdata,
+                "y": ydata,
+                "sy": noise["sigmas"],
                 "yref": yref,
-                "sigmas": sigma,
-                "ynoise": ynoise,
-                "ydata": ydata,
+                "ynoise": noise["noise"],
             }
 
         return ydata
@@ -278,6 +341,11 @@ class FitSolverInterface:
         :param kwargs: Extra parameters to pass to :code:`scipy.optimize.curve_fit`
         :return: Dictionary of objects with details about the regression including regressed parameters and final covariance
         """
+
+        # Adapt signature for single number:
+        if isinstance(sigma, numbers.Number):
+            sigma = np.full(ydata.shape, float(sigma))
+
         solution = optimize.curve_fit(
             self.model,
             xdata,
@@ -289,6 +357,7 @@ class FitSolverInterface:
             nan_policy="raise",
             **self.configuration(**kwargs),
         )
+
         return {
             "success": solution[4] in {1, 2, 3, 4},
             "parameters": solution[0],
@@ -313,9 +382,16 @@ class FitSolverInterface:
         :param kwargs: Extra parameters to pass to :code:`scipy.optimize.curve_fit`
         :return: Dictionary of objects with details about the regression including regressed parameters and final covariance
         """
+
+        # Adapt default parameters as curve_fit
         if p0 is None:
             p0 = np.full((self.k,), 1.0)
 
+        # Adapt signature for single number:
+        if isinstance(sigma, numbers.Number):
+            sigma = np.full(ydata.shape, sigma)
+
+        # Adapt loss function signature:
         def loss(p):
             return self.parametrized_loss(xdata, ydata, sigma=sigma)(*p)
 
@@ -684,7 +760,7 @@ class FitSolverInterface:
 
         return wrapped
 
-    def fit(self, xdata, ydata, sigma=None, **kwargs):
+    def fit(self, xdata=None, ydata=None, sigma=None, **kwargs):
         """
         Fully solve the fitting problem for the given model and input data.
         This method stores input data and fit results. It assesses loss function over parameter neighborhoods,
@@ -697,17 +773,22 @@ class FitSolverInterface:
         :return: Dictionary of values related to fit solution
 
         """
-        self.store(xdata, ydata, sigma=sigma)
+
+        if not self.stored(error=False):
+            self.store(xdata, ydata, sigma=sigma)
+
         self._solution = self.solve(
             self._xdata, self._ydata, sigma=self._sigma, **kwargs
         )
         # self._minimize = self.minimize(
         #     self._xdata, self._ydata, sigma=self._sigma, **kwargs
         # )
+
         self._yhat = self.predict(self._xdata)
         self._loss = self.loss(self._xdata, self._ydata, sigma=self._sigma)
         self._score = self.score(self._xdata, self._ydata, sigma=self._sigma)
         self._gof = self.goodness_of_fit(self._xdata, self._ydata, sigma=self._sigma)
+
         return self._solution
 
     @staticmethod
@@ -835,7 +916,13 @@ class FitSolverInterface:
         return dataset.T
 
     def parameter_domains(
-        self, parameters=None, mode="lin", xmin=None, xmax=None, ratio=10.0, factor=3.0,
+        self,
+        parameters=None,
+        mode="lin",
+        xmin=None,
+        xmax=None,
+        ratio=10.0,
+        factor=3.0,
     ):
         """
         Generate parameter domains, useful for drawing scales fitting the parameters space
@@ -1182,7 +1269,6 @@ class FitSolverInterface:
         """
 
         if self.fitted(error=True):
-
             if axe is None:
                 if surface:
                     fig, axe = plt.subplots(subplot_kw={"projection": "3d"})
@@ -1266,7 +1352,6 @@ class FitSolverInterface:
                     ploss = self._loss
 
                 if surface:
-
                     # 3D Surfaces:
                     axe.plot_surface(
                         x, y, loss, cmap="jet", rstride=1, cstride=1, alpha=0.50
@@ -1277,7 +1362,6 @@ class FitSolverInterface:
                     axe.set_zlabel(r"Loss, $\rho(\beta)$")
 
                 else:
-
                     # Contours
                     clabels = axe.contour(x, y, loss, levels or 10, cmap="jet")
                     axe.clabel(clabels, clabels.levels, inline=True, fontsize=7)
@@ -1458,20 +1542,126 @@ class FitSolverInterface:
             extra = pd.DataFrame(extra)
             data = pd.concat([data, extra], axis=1)
 
-            data["yerr"] = data["y"] - data["yhat"]
-            data["yerrrel"] = data["yerr"] / data["yhat"]
-            data["yerrabs"] = np.abs(data["yerr"])
-            data["yerrsqr"] = np.power(data["yerr"], 2)
+            if self.fitted(error=False):
+                data["yerr"] = data["y"] - data["yhat"]
+                data["yerrrel"] = data["yerr"] / data["yhat"]
+                data["yerrabs"] = np.abs(data["yerr"])
+                data["yerrsqr"] = np.power(data["yerr"], 2)
 
             if self._sigma is not None and self.fitted(error=False):
                 data["chi2"] = ((data["y"] - data["yhat"]) / data["sy"]) ** 2
 
+            data.index = data.index.values + 1
+            data.index.name = "id"
+
             return data
 
-    def summary(self):
-        data = self.dataset()
+    def synthetic_dataset(
+        self,
+        xdata=None,
+        parameters=None,
+        dimension=1,
+        mode="lin",
+        xmin=-1.0,
+        xmax=1.0,
+        resolution=30,
+        sigma=None,
+        scale_mode="abs",
+        generator=np.random.normal,
+        seed=1234,
+        **kwargs,
+    ):
+        target = self.target_dataset(
+            xdata=xdata,
+            parameters=parameters,
+            dimension=dimension,
+            mode=mode,
+            xmin=xmin,
+            xmax=xmax,
+            resolution=resolution,
+            sigma=sigma,
+            scale_mode=scale_mode,
+            generator=generator,
+            seed=seed,
+            **kwargs,
+            full_output=True,
+        )
+
+        x = target.pop("x")
+        data = pd.DataFrame(x)
+        data.columns = data.columns.map(lambda x: "x%d" % x)
+
+        p = target.pop("parameters")
+        target = pd.DataFrame(target)
+
+        data = pd.concat([data, target], axis=1)
         data.index = data.index.values + 1
         data.index.name = "id"
+
+        return data
+
+    def load(self, file_or_frame, sep=";", store=True):
+        """
+        Load and store data from frame or CSV file
+        :param file_or_frame:
+        :param mode:
+        :param sep:
+        :param store:
+        :return:
+        """
+
+        if isinstance(file_or_frame, pd.DataFrame):
+            data = file_or_frame
+        else:
+            data = pd.read_csv(file_or_frame, sep=sep)
+
+        subset = data.filter(regex="^x")
+        if subset.shape[1] == 0:
+            raise ConfigurationError("Data must contains at least one 'x' column")
+
+        subset = data.filter(regex="^y$")
+        if subset.shape[1] != 1:
+            raise ConfigurationError("Data must contains a single 'y' column")
+
+        if "id" in data.columns:
+            data = data.set_index("id")
+        else:
+            if data.index.name != "id":
+                data.index = data.index.values + 1
+                data.index.name = "id"
+
+        logger.info("Loaded file '%s' with shape %s" % (file_or_frame, data.shape))
+
+        if store:
+            if "sy" in data.columns:
+                sigma = data["sy"]
+            else:
+                sigma = None
+
+            self.store(data.filter(regex="x").values, data["y"], sigma=sigma)
+
+        return data
+
+    def dump(self, file_or_frame, data=None, summary=False):
+        """
+        Dump dataset into CSV
+        :param file_or_frame:
+        :param summary:
+        :return:
+        """
+        if data is None:
+            if summary:
+                data = self.summary()
+            else:
+                data = self.dataset()
+        data.to_csv(file_or_frame, sep=";", index=True)
+
+    def summary(self):
+        """
+        Add summary row for LaTeX display
+        :return: DataFrame
+        """
+        data = self.dataset()
         data.loc[r""] = data.sum()
         data.iloc[-1, :-5] = None
         data.iloc[-1, 5] = None

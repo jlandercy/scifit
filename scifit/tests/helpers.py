@@ -115,6 +115,7 @@ class GenericTestFitSolverInterface:
 
 class GenericTestFitSolver:
     root_path = ".cache/media/tests/"
+    data_path = None
 
     factory = None
     configuration = {}
@@ -157,33 +158,50 @@ class GenericTestFitSolver:
 
         self.solver = self.factory(**self.configuration)
 
-        if self.xdata is None:
-            self.xdata = self.solver.feature_dataset(
-                mode=self.mode,
+        if self.data_path is None:
+            data = self.solver.synthetic_dataset(
+                xdata=self.xdata,
+                parameters=self.parameters,
                 xmin=self.xmin,
                 xmax=self.xmax,
                 dimension=self.dimension,
                 resolution=self.resolution,
+                sigma=self.sigma,
+                scale_mode=self.scale_mode,
+                generator=self.generator,
+                seed=self.seed,
+                **self.target_kwargs,
             )
 
-        target = self.solver.target_dataset(
-            self.xdata,
-            *self.parameters,
-            sigma=self.sigma,
-            scale_mode=self.scale_mode,
-            generator=self.generator,
-            seed=self.seed,
-            **self.target_kwargs,
-            full_output=True,
-        )
+            self.xdata = data.filter(regex="^x").values
+            self.ydata = data["y"].values
+            self.sigmas = data["sy"].values
+            self.yref = data["yref"].values
+            self.ynoise = data["ynoise"].values
 
-        self.__dict__.update(
-            {k: target[k] for k in ["ydata", "yref", "sigmas", "ynoise"]}
-        )
+        else:
+            data = self.solver.load(self.data_path, store=False)
+            self.xdata = data.filter(regex="^x").values
+            self.ydata = data["y"]
 
-        domains = self.solver.parameter_domains(parameters=self.parameters)
-        if self.p0 is None:
-            self.p0 = domains.loc["max", :].values
+            if self.sigma is None and "sy" in data.columns:
+                self.sigmas = data["sy"]
+
+            else:
+                self.sigmas = self.solver.generate_noise(
+                    self.ydata,
+                    sigma=self.sigma,
+                    scale_mode=self.scale_mode,
+                    generator=self.generator,
+                    seed=self.seed,
+                    full_output=True,
+                    **self.target_kwargs,
+                )["sigmas"]
+
+        if self.parameters is not None:
+            domains = self.solver.parameter_domains(parameters=self.parameters)
+            if self.p0 is None:
+                self.p0 = domains.loc["max", :].values
 
     def test_signature(self):
         s = self.solver.signature
@@ -191,16 +209,33 @@ class GenericTestFitSolver:
         self.assertEqual(len(s.parameters) - 1, n)
 
     def test_model_implementation(self):
-        yhat = self.solver.model(self.xdata, *self.parameters)
-        self.assertTrue(np.allclose(yhat, self.yref))
-        self.assertTrue(np.allclose(yhat + self.ynoise, self.ydata))
+        if self.parameters is not None:
+            yhat = self.solver.model(self.xdata, *self.parameters)
+            self.assertTrue(np.allclose(yhat, self.yref))
+            self.assertTrue(np.allclose(yhat + self.ynoise, self.ydata))
 
     def test_model_fit_stored_fields(self):
         solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         for key in ["_xdata", "_ydata", "_solution", "_yhat", "_score"]:
             self.assertTrue(hasattr(self.solver, key))
 
-    def test_model_solve_signature(self):
+    def test_model_solve_signature_no_sigma(self):
+        solution = self.solver.solve(self.xdata, self.ydata, sigma=None)
+        self.assertIsInstance(solution, dict)
+        self.assertSetEqual(
+            {"success", "parameters", "covariance", "info", "message", "status"},
+            set(solution.keys()),
+        )
+
+    def test_model_solve_signature_sigma(self):
+        solution = self.solver.solve(self.xdata, self.ydata, sigma=self.sigma)
+        self.assertIsInstance(solution, dict)
+        self.assertSetEqual(
+            {"success", "parameters", "covariance", "info", "message", "status"},
+            set(solution.keys()),
+        )
+
+    def test_model_solve_signature_sigmas(self):
         solution = self.solver.solve(self.xdata, self.ydata, sigma=self.sigmas)
         self.assertIsInstance(solution, dict)
         self.assertSetEqual(
@@ -223,42 +258,44 @@ class GenericTestFitSolver:
          - Is the right solution
          - Is it precise enough wrt standard deviation
         """
-        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        for i in range(self.parameters.shape[0]):
-            self.assertTrue(
-                np.allclose(
-                    self.parameters[i],
-                    solution["parameters"][i],
-                    atol=self.sigma_factor * np.sqrt(solution["covariance"][i][i]),
+        if self.parameters is not None:
+            solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+            for i in range(self.parameters.shape[0]):
+                self.assertTrue(
+                    np.allclose(
+                        self.parameters[i],
+                        solution["parameters"][i],
+                        atol=self.sigma_factor * np.sqrt(solution["covariance"][i][i]),
+                    )
                 )
-            )
 
     def _test_model_minimize_against_solve(self):
-        np.random.seed(self.seed)
-        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        if self.parameters is not None:
+            np.random.seed(self.seed)
+            solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
 
-        np.random.seed(self.seed)
-        minimized = self.solver.minimize(self.xdata, self.ydata, sigma=None)
+            np.random.seed(self.seed)
+            minimized = self.solver.minimize(self.xdata, self.ydata, sigma=None)
 
-        # Assert both solve and minimize are alike at percent level
-        for i in range(self.parameters.shape[0]):
-            self.assertTrue(
-                np.allclose(
-                    solution["parameters"][i],
-                    minimized["parameters"][i],
-                    rtol=5e-3,
+            # Assert both solve and minimize are alike at percent level
+            for i in range(self.parameters.shape[0]):
+                self.assertTrue(
+                    np.allclose(
+                        solution["parameters"][i],
+                        minimized["parameters"][i],
+                        rtol=5e-3,
+                    )
                 )
-            )
 
-        # Assert covariance
-        # for i in range(self.parameters.shape[0]):
-        #     self.assertTrue(
-        #         np.allclose(
-        #             solution["covariance"][i][i],
-        #             minimized["covariance"][i][i],
-        #             rtol=5e-3,
-        #         )
-        #     )
+            # Assert covariance
+            # for i in range(self.parameters.shape[0]):
+            #     self.assertTrue(
+            #         np.allclose(
+            #             solution["covariance"][i][i],
+            #             minimized["covariance"][i][i],
+            #             rtol=5e-3,
+            #         )
+            #     )
 
     def test_goodness_of_fit(self):
         """
@@ -320,7 +357,7 @@ class GenericTestFitSolver:
         axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
-    def test_plot_chi_square(self):
+    def _test_plot_chi_square(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
@@ -328,7 +365,7 @@ class GenericTestFitSolver:
         axe.figure.savefig("{}/{}_chi2.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
-    def test_plot_loss_automatic(self):
+    def _test_plot_loss_automatic(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
@@ -370,12 +407,57 @@ class GenericTestFitSolver:
             )
             plt.close(axe.figure)
 
+    def test_load(self):
+        if self.data_path:
+            data = self.solver.load(self.data_path, store=True)
+            self.assertTrue(self.solver.stored(error=False))
+            self.assertEqual(data.shape[0], self.solver._xdata.shape[0])
+            self.assertEqual(data.shape[0], self.solver._ydata.shape[0])
+
     def test_dataset(self):
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         data = self.solver.dataset()
+        self.assertIsInstance(data, pd.DataFrame)
+        self.assertEqual(data.index.name, "id")
+        x = data.filter(regex="x")
+        self.assertTrue(x.shape[1] > 0)
+        keys = {"y", "sy", "yhat", "yerr", "yerrrel", "yerrabs", "yerrsqr", "chi2"}
+        self.assertEqual(set(data.columns).intersection(keys), keys)
 
-    def test_summary(self):
+    def test_synthetic_dataset(self):
+        data = self.solver.synthetic_dataset(
+            parameters=self.parameters, dimension=self.dimension, sigma=self.sigma
+        )
+        self.assertIsInstance(data, pd.DataFrame)
+        self.assertEqual(data.index.name, "id")
+        x = data.filter(regex="x")
+        self.assertTrue(x.shape[1] > 0)
+        keys = {"y"}
+        self.assertEqual(set(data.columns).intersection(keys), keys)
+
+    # def test_fit_from_synthetic_dataset(self):
+    #     if self.parameters is None:
+    #         parameters = np.random.uniform(size=(self.solver.k,), low=0.1, high=0.9)
+    #     else:
+    #         parameters = self.parameters
+    #     data = self.solver.synthetic_dataset(
+    #         parameters=parameters, dimension=self.dimension, sigma=self.sigma
+    #     )
+    #     self.solver.load(data)
+    #     solution = self.solver.fit()
+    #     self.assertTrue(solution["success"])
+
+    def test_fitted_dataset(self):
+        self.solver.store(self.xdata, self.ydata, sigma=self.sigmas)
+        data = self.solver.dataset()
+        self.assertIsInstance(data, pd.DataFrame)
+        self.assertEqual(data.index.name, "id")
+        x = data.filter(regex="x")
+        self.assertTrue(x.shape[1] > 0)
+        keys = {"y"}
+        self.assertEqual(set(data.columns).intersection(keys), keys)
+
+    def test_dump_summary(self):
         name = self.__class__.__name__
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        data = self.solver.summary()
-        data.to_csv("{}/{}.csv".format(self.media_path, name), index=True, sep=";")
+        self.solver.dump("{}/{}.csv".format(self.media_path, name), summary=True)

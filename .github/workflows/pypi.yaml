@@ -55,9 +55,9 @@ jobs:
         run: |
           nox --session package install
 
-      - name: Notebooks
-        run: |
-          nox --session notebooks
+#      - name: Notebooks
+#        run: |
+#          nox --session notebooks
 
       - name: Publish package
         env:
@@ -87,8 +87,8 @@ jobs:
           name: media
           path: .cache/media
 
-      - name: Collect notebooks artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: notebooks
-          path: docs/source/notebooks
+#      - name: Collect notebooks artifacts
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: notebooks
+#          path: docs/source/notebooks

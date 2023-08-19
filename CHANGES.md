@@ -4,14 +4,38 @@
 
  - [ ] Implement ODE Solver (special case for Kinetics) make it FitSolvable as well
  - [ ] Implement complex models (see StackOverflow 10 years feed of fit and personal website)
- - [ ] Implement specials
+   - [ ] Kinetics
+   - [ ] Mechanics
+   - [ ] Gradient recovery
+   - [ ] Distribution fit
+ - [ ] Print parameters in scientific format if too small or too large
+ - [ ] Take time to refactor load and store to make it compliant with workflow
+ 
+SO ``curve-fitting`` tag:
+
+ - https://stackoverflow.com/questions/76603587/non-linear-data-fitting-for-kinetic-data/76702800#76702800
+ - https://stackoverflow.com/questions/47873759/how-to-fit-a-2d-ellipse-to-given-points
+ - https://stackoverflow.com/questions/73814378/scipy-curve-fit-incorrect-for-large-x-values/73817184#73817184
+ - https://stackoverflow.com/questions/73365651/instability-in-fitting-data-using-scipy-optimize-library/73369630#73369630
+ - https://stackoverflow.com/questions/68523795/fit-a-custom-function-in-python/68526879#68526879
+ - https://stackoverflow.com/questions/70278957/python-fitting-curve-with-integral-func/70694744#70694744
+ - https://stackoverflow.com/questions/73891034/how-to-estimate-confidence-intervals-beyond-the-current-simulated-step-based-on/73891943#73891943
+ - https://stackoverflow.com/questions/63637144/python-rayleigh-fit-histogram/63646040#63646040
+
+## v0.1.4
+
+ - [x] Added real data based test as well as pure synthetic
+ - [x] Added load and dump function to exchange standardized CSV
+ - [x] Corrected sigma management when only scalar or None are used inplace of array
+ - [x] Added synthetic dataset generation, bound for unit test operations
+ - [x] Started test with real dataset 
 
 ## v0.1.3
 
- - [x] Added special solvers: Debye Heat Capaity, Crank Diffusion, Raney Keton Dehydration
+ - [x] Added special solvers: Debye Heat Capacity, Crank Diffusion, Raney Keton Dehydrogenation
  - [x] Added log scale mode for fit and loss figures
- - [x] Updated documentation
  - [x] Updated nox commands for building and cache
+ - [x] Updated notebooks and documentation
 
 ## v0.1.2
 
