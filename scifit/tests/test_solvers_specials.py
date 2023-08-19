@@ -78,7 +78,7 @@ class RaneyKetonDehydrogenationRegressionNoiseL1(
 
 class RaneyKetonDehydrogenationRealDataRegression(GenericLinearRegression):
     factory = specials.RaneyKetonDehydrogenationFitSolver
-    data_path = "docs/source/notebooks/docs/data/RaneyKetonDehydrogenation.csv"
+    data_path = "./scifit/tests/features/specials/RaneyKetonDehydrogenation.csv"
     parameters = None
     configuration = {"p0": np.array([1e-2, 1e2])}
     sigma = None

@@ -2,6 +2,7 @@ import inspect
 import itertools
 from collections.abc import Iterable
 import numbers
+import logging
 
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
@@ -10,6 +11,9 @@ import pandas as pd
 from scipy import optimize, stats
 
 from scifit.errors.base import *
+
+
+logger = logging.getLogger(__name__)
 
 
 class FitSolverInterface:
@@ -126,6 +130,8 @@ class FitSolverInterface:
         self._xdata = xdata
         self._ydata = ydata
         self._sigma = sigma
+
+        logger.info("Stored data into solver: X%s, y%s, s=%s" % (xdata.shape, ydata.shape, sigma is not None))
 
     @staticmethod
     def model(x, *parameters):
@@ -730,7 +736,7 @@ class FitSolverInterface:
 
         return wrapped
 
-    def fit(self, xdata, ydata, sigma=None, **kwargs):
+    def fit(self, xdata=None, ydata=None, sigma=None, **kwargs):
         """
         Fully solve the fitting problem for the given model and input data.
         This method stores input data and fit results. It assesses loss function over parameter neighborhoods,
@@ -743,17 +749,22 @@ class FitSolverInterface:
         :return: Dictionary of values related to fit solution
 
         """
-        self.store(xdata, ydata, sigma=sigma)
+
+        if not self.stored(error=False):
+            self.store(xdata, ydata, sigma=sigma)
+
         self._solution = self.solve(
             self._xdata, self._ydata, sigma=self._sigma, **kwargs
         )
         # self._minimize = self.minimize(
         #     self._xdata, self._ydata, sigma=self._sigma, **kwargs
         # )
+
         self._yhat = self.predict(self._xdata)
         self._loss = self.loss(self._xdata, self._ydata, sigma=self._sigma)
         self._score = self.score(self._xdata, self._ydata, sigma=self._sigma)
         self._gof = self.goodness_of_fit(self._xdata, self._ydata, sigma=self._sigma)
+
         return self._solution
 
     @staticmethod
@@ -1522,7 +1533,65 @@ class FitSolverInterface:
 
             return data
 
+    def load(self, file_or_buffer, mode="csv", sep=";", store=True):
+        """Load data from CSV file and store"""
+
+        modes = {"csv"}
+        if mode not in modes:
+            raise ConfigurationError("Mode must be in %s, got '%s' instead" % (modes, mode))
+
+        if mode == "csv":
+            data = pd.read_csv(file_or_buffer, sep=sep)
+
+        subset = data.filter(regex="^x")
+        if subset.shape[1] == 0:
+            raise ConfigurationError("Data must contains at least one 'x' column")
+
+        subset = data.filter(regex="^y$")
+        if subset.shape[1] != 1:
+            raise ConfigurationError("Data must contains a single 'y' column")
+
+        if "id" in data.columns:
+            data = data.set_index("id")
+        else:
+            data.index = data.index.values + 1
+            data.index.name = "id"
+
+        logger.info("Loaded file '%s' with shape %s" % (file_or_buffer, data.shape))
+
+        if store:
+
+            if "sy" in data.columns:
+                sigma = data["sy"]
+            else:
+                sigma = None
+
+            self.store(
+                data.filter(regex="x").values,
+                data["y"],
+                sigma=sigma
+            )
+
+        return data
+
+    def dump(self, file_or_buffer, summary=False):
+        """
+        Dump dataset into CSV
+        :param file_or_buffer:
+        :param summary:
+        :return:
+        """
+        if summary:
+            data = self.summary()
+        else:
+            data = self.dataset()
+        data.to_csv(file_or_buffer, sep=";", index=True)
+
     def summary(self):
+        """
+        Add summary row for LaTeX display
+        :return: DataFrame
+        """
         data = self.dataset()
         data.loc[r""] = data.sum()
         data.iloc[-1, :-5] = None

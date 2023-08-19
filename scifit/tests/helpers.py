@@ -185,11 +185,11 @@ class GenericTestFitSolver:
 
         else:
 
-            data = pd.read_csv(self.data_path, sep=";")
-            self.xdata = data.filter(regex="x").values
+            data = self.solver.load(self.data_path, store=False)
+            self.xdata = data.filter(regex="^x").values
             self.ydata = data["y"]
 
-            if self.sigma is None:
+            if self.sigma is None and "sy" in data.columns:
                 self.sigmas = data["sy"]
 
             else:
@@ -233,7 +233,6 @@ class GenericTestFitSolver:
         )
 
     def test_model_solve_signature_sigma(self):
-        print(self.sigma)
         solution = self.solver.solve(self.xdata, self.ydata, sigma=self.sigma)
         self.assertIsInstance(solution, dict)
         self.assertSetEqual(
@@ -413,6 +412,13 @@ class GenericTestFitSolver:
             )
             plt.close(axe.figure)
 
+    def test_load(self):
+        if self.data_path:
+            data = self.solver.load(self.data_path, store=True)
+            self.assertTrue(self.solver.stored(error=False))
+            self.assertEqual(data.shape[0], self.solver._xdata.shape[0])
+            self.assertEqual(data.shape[0], self.solver._ydata.shape[0])
+
     def test_dataset(self):
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         data = self.solver.dataset()
@@ -433,8 +439,7 @@ class GenericTestFitSolver:
         keys = {"y"}
         self.assertEqual(set(data.columns).intersection(keys), keys)
 
-    def test_summary(self):
+    def test_dump_summary(self):
         name = self.__class__.__name__
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        data = self.solver.summary()
-        data.to_csv("{}/{}.csv".format(self.media_path, name), index=True, sep=";")
+        self.solver.dump("{}/{}.csv".format(self.media_path, name), summary=True)
