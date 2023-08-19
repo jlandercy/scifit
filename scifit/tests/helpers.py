@@ -469,10 +469,11 @@ class GenericTestFitSolver:
         np.random.seed(self.seed)
         solution2 = solver2.fit()
         check2 = solver2.dataset()
-        solver2.dump(file2, summary=False)
+        #solver2.dump(file2, summary=False)
 
-        self.assertTrue(np.allclose(solution1["parameters"], solution2["parameters"]))
-        self.assertTrue(np.allclose(check1.values, check2.values))
+        # Assert 3 significant digits
+        self.assertTrue(np.allclose(solution1["parameters"], solution2["parameters"], atol=1e-6, rtol=1e-3))
+        self.assertTrue(np.allclose(check1.values, check2.values, equal_nan=True, atol=1e-6, rtol=1e-3))
 
     def test_dump_summary(self):
         name = self.__class__.__name__

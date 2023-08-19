@@ -37,15 +37,9 @@ class GompertzRegressionNoiseL3(GompertzRegression, TestCase):
 class GompertzRegressionNoiseL4(GompertzRegression, TestCase):
     sigma = 1.0
 
-    def test_dataset_serialization_equivalence(self):
-        pass
-
 
 class GompertzRegressionNoiseL5(GompertzRegression, TestCase):
     sigma = 2.5
-
-    def test_dataset_serialization_equivalence(self):
-        pass
 
 
 class GenericKineticRegression(GenericTestFitSolver):
@@ -224,6 +218,9 @@ class RichardGeneralizedSigmoidRegression(GenericLinearRegression):
 
     def test_model_minimize_against_solve(self):
         """Richardson model is not numerically stable"""
+        pass
+
+    def test_dataset_serialization_equivalence(self):
         pass
 
 

@@ -10,8 +10,7 @@
    - [ ] Distribution fit
  - [ ] Print parameters in scientific format if too small or too large
  - [ ] Take time to refactor load and store to make it compliant with workflow
- - [ ] Solve why CSV import differs in solution
- 
+
 SO ``curve-fitting`` tag:
 
  - https://stackoverflow.com/questions/76603587/non-linear-data-fitting-for-kinetic-data/76702800#76702800
@@ -23,6 +22,12 @@ SO ``curve-fitting`` tag:
  - https://stackoverflow.com/questions/73891034/how-to-estimate-confidence-intervals-beyond-the-current-simulated-step-based-on/73891943#73891943
  - https://stackoverflow.com/questions/63637144/python-rayleigh-fit-histogram/63646040#63646040
 
+
+
+## v0.1.5
+
+ - [x] Added serialization tests to ensure solution continuity among dumps
+ 
 ## v0.1.4
 
  - [x] Added real data based test as well as pure synthetic
