@@ -151,6 +151,7 @@ class GenericTestFitSolver:
     # sigma_factor = 10.
 
     def setUp(self) -> None:
+
         self.media_path = pathlib.Path(self.root_path) / format(
             self.factory.__module__.split(".")[-1]
         )
@@ -159,29 +160,26 @@ class GenericTestFitSolver:
         self.solver = self.factory(**self.configuration)
 
         if self.data_path is None:
-            if self.xdata is None:
-                self.xdata = self.solver.feature_dataset(
-                    mode=self.mode,
-                    xmin=self.xmin,
-                    xmax=self.xmax,
-                    dimension=self.dimension,
-                    resolution=self.resolution,
-                )
 
-            target = self.solver.target_dataset(
-                self.xdata,
-                *self.parameters,
+            data = self.solver.synthetic_dataset(
+                xdata=self.xdata,
+                parameters=self.parameters,
+                xmin=self.xmin,
+                xmax=self.xmax,
+                dimension=self.dimension,
+                resolution=self.resolution,
                 sigma=self.sigma,
                 scale_mode=self.scale_mode,
                 generator=self.generator,
                 seed=self.seed,
                 **self.target_kwargs,
-                full_output=True,
             )
 
-            self.__dict__.update(
-                {k: target[k] for k in ["ydata", "yref", "sigmas", "ynoise"]}
-            )
+            self.xdata = data.filter(regex="^x").values
+            self.ydata = data["y"].values
+            self.sigmas = data["sy"].values
+            self.yref = data["yref"].values
+            self.ynoise = data["ynoise"].values
 
         else:
 
@@ -347,7 +345,7 @@ class GenericTestFitSolver:
         solution = self.solver.fit(self.xdata, self.ydata)
         domains = self.solver.parameter_domains(mode="log", xmin=1e-5, xmax=100.0)
 
-    def _test_plot_fit(self):
+    def test_plot_fit(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
@@ -427,6 +425,15 @@ class GenericTestFitSolver:
         x = data.filter(regex="x")
         self.assertTrue(x.shape[1] > 0)
         keys = {"y", "sy", "yhat", "yerr", "yerrrel", "yerrabs", "yerrsqr", "chi2"}
+        self.assertEqual(set(data.columns).intersection(keys), keys)
+
+    def test_synthetic_dataset(self):
+        data = self.solver.synthetic_dataset(parameters=self.parameters, dimension=self.dimension, sigma=self.sigma)
+        self.assertIsInstance(data, pd.DataFrame)
+        self.assertEqual(data.index.name, "id")
+        x = data.filter(regex="x")
+        self.assertTrue(x.shape[1] > 0)
+        keys = {"y"}
         self.assertEqual(set(data.columns).intersection(keys), keys)
 
     def test_fitted_dataset(self):

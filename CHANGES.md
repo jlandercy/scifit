@@ -24,7 +24,11 @@ SO ``curve-fitting`` tag:
 ## v0.1.4
 
  - [x] Added real data based test as well as pure synthetic
- 
+ - [x] Added load and dump function to exchange standardized CSV
+ - [x] Corrected sigma management when only scalar or None are used inplace of array
+ - [x] Added synthetic dataset generation
+ - [x] Started test with real dataset 
+
 ## v0.1.3
 
  - [x] Added special solvers: Debye Heat Capacity, Crank Diffusion, Raney Keton Dehydrogenation

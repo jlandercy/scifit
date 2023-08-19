@@ -1,8 +1,8 @@
 import inspect
 import itertools
-from collections.abc import Iterable
-import numbers
 import logging
+import numbers
+from collections.abc import Iterable
 
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
@@ -11,7 +11,6 @@ import pandas as pd
 from scipy import optimize, stats
 
 from scifit.errors.base import *
-
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +130,10 @@ class FitSolverInterface:
         self._ydata = ydata
         self._sigma = sigma
 
-        logger.info("Stored data into solver: X%s, y%s, s=%s" % (xdata.shape, ydata.shape, sigma is not None))
+        logger.info(
+            "Stored data into solver: X%s, y%s, s=%s"
+            % (xdata.shape, ydata.shape, sigma is not None)
+        )
 
     @staticmethod
     def model(x, *parameters):
@@ -246,8 +248,13 @@ class FitSolverInterface:
 
     def target_dataset(
         self,
-        xdata,
-        *parameters,
+        xdata=None,
+        parameters=None,
+        dimension=1,
+        mode="lin",
+        xmin=-1.0,
+        xmax=1.0,
+        resolution=30,
         sigma=None,
         precision=1e-9,
         scale_mode="abs",
@@ -281,6 +288,18 @@ class FitSolverInterface:
                  containing at least synthetic features and details about noise applied on it when :code:`full_output=True`
         """
 
+        if xdata is None:
+            xdata = self.feature_dataset(
+                mode=mode,
+                xmin=xmin,
+                xmax=xmax,
+                dimension=dimension,
+                resolution=resolution,
+            )
+
+        if parameters is None:
+            parameters = np.power(np.random.uniform(size=(self.k,)), 2) + 1.
+
         yref = self.model(xdata, *parameters)
         noise = self.generate_noise(
             yref,
@@ -296,12 +315,12 @@ class FitSolverInterface:
 
         if full_output:
             return {
-                "xdata": xdata,
                 "parameters": np.array(parameters),
+                "x": xdata,
+                "y": ydata,
+                "sy": noise["sigmas"],
                 "yref": yref,
-                "sigmas": noise["sigmas"],
                 "ynoise": noise["noise"],
-                "ydata": ydata,
             }
 
         return ydata
@@ -1505,7 +1524,6 @@ class FitSolverInterface:
         """
 
         if self.stored(error=True):
-
             data = pd.DataFrame(self._xdata)
             data.columns = data.columns.map(lambda x: "x%d" % x)
 
@@ -1533,12 +1551,59 @@ class FitSolverInterface:
 
             return data
 
+    def synthetic_dataset(
+        self,
+        xdata=None,
+        parameters=None,
+        dimension=1,
+        mode="lin",
+        xmin=-1.0,
+        xmax=1.0,
+        resolution=30,
+        sigma=None,
+        scale_mode="abs",
+        generator=np.random.normal,
+        seed=1234,
+        **kwargs,
+    ):
+
+        target = self.target_dataset(
+            xdata=xdata,
+            parameters=parameters,
+            dimension=dimension,
+            mode=mode,
+            xmin=xmin,
+            xmax=xmax,
+            resolution=30,
+            sigma=sigma,
+            scale_mode=scale_mode,
+            generator=generator,
+            seed=seed,
+            **kwargs,
+            full_output=True,
+        )
+
+        x = target.pop("x")
+        data = pd.DataFrame(x)
+        data.columns = data.columns.map(lambda x: "x%d" % x)
+
+        p = target.pop("parameters")
+        target = pd.DataFrame(target)
+
+        data = pd.concat([data, target], axis=1)
+        data.index = data.index.values + 1
+        data.index.name = "id"
+
+        return data
+
     def load(self, file_or_buffer, mode="csv", sep=";", store=True):
         """Load data from CSV file and store"""
 
         modes = {"csv"}
         if mode not in modes:
-            raise ConfigurationError("Mode must be in %s, got '%s' instead" % (modes, mode))
+            raise ConfigurationError(
+                "Mode must be in %s, got '%s' instead" % (modes, mode)
+            )
 
         if mode == "csv":
             data = pd.read_csv(file_or_buffer, sep=sep)
@@ -1560,17 +1625,12 @@ class FitSolverInterface:
         logger.info("Loaded file '%s' with shape %s" % (file_or_buffer, data.shape))
 
         if store:
-
             if "sy" in data.columns:
                 sigma = data["sy"]
             else:
                 sigma = None
 
-            self.store(
-                data.filter(regex="x").values,
-                data["y"],
-                sigma=sigma
-            )
+            self.store(data.filter(regex="x").values, data["y"], sigma=sigma)
 
         return data
 
