@@ -1,6 +1,7 @@
 import inspect
 import itertools
 from collections.abc import Iterable
+import numbers
 
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
@@ -114,7 +115,7 @@ class FitSolverInterface:
                 raise InputDataError("Sigma as array must have the same shape as ydata")
             if not np.all(sigma > 0.0):
                 raise InputDataError("All sigma must be strictly positive")
-        elif isinstance(sigma, np.number):
+        elif isinstance(sigma, numbers.Number):
             if sigma <= 0.0:
                 raise InputDataError("Sigma must be strictly positive")
         elif sigma is None:
@@ -310,6 +311,11 @@ class FitSolverInterface:
         :param kwargs: Extra parameters to pass to :code:`scipy.optimize.curve_fit`
         :return: Dictionary of objects with details about the regression including regressed parameters and final covariance
         """
+
+        # Adapt signature for single number:
+        if isinstance(sigma, numbers.Number):
+            sigma = np.full(ydata.shape, float(sigma))
+
         solution = optimize.curve_fit(
             self.model,
             xdata,
@@ -321,6 +327,7 @@ class FitSolverInterface:
             nan_policy="raise",
             **self.configuration(**kwargs),
         )
+
         return {
             "success": solution[4] in {1, 2, 3, 4},
             "parameters": solution[0],
@@ -345,9 +352,16 @@ class FitSolverInterface:
         :param kwargs: Extra parameters to pass to :code:`scipy.optimize.curve_fit`
         :return: Dictionary of objects with details about the regression including regressed parameters and final covariance
         """
+
+        # Adapt default parameters as curve_fit
         if p0 is None:
             p0 = np.full((self.k,), 1.0)
 
+        # Adapt signature for single number:
+        if isinstance(sigma, numbers.Number):
+            sigma = np.full(ydata.shape, sigma)
+
+        # Adapt loss function signature:
         def loss(p):
             return self.parametrized_loss(xdata, ydata, sigma=sigma)(*p)
 

@@ -224,7 +224,24 @@ class GenericTestFitSolver:
         for key in ["_xdata", "_ydata", "_solution", "_yhat", "_score"]:
             self.assertTrue(hasattr(self.solver, key))
 
-    def test_model_solve_signature(self):
+    def test_model_solve_signature_no_sigma(self):
+        solution = self.solver.solve(self.xdata, self.ydata, sigma=None)
+        self.assertIsInstance(solution, dict)
+        self.assertSetEqual(
+            {"success", "parameters", "covariance", "info", "message", "status"},
+            set(solution.keys()),
+        )
+
+    def test_model_solve_signature_sigma(self):
+        print(self.sigma)
+        solution = self.solver.solve(self.xdata, self.ydata, sigma=self.sigma)
+        self.assertIsInstance(solution, dict)
+        self.assertSetEqual(
+            {"success", "parameters", "covariance", "info", "message", "status"},
+            set(solution.keys()),
+        )
+
+    def test_model_solve_signature_sigmas(self):
         solution = self.solver.solve(self.xdata, self.ydata, sigma=self.sigmas)
         self.assertIsInstance(solution, dict)
         self.assertSetEqual(
