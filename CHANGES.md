@@ -8,7 +8,8 @@
    - [ ] Mechanics
    - [ ] Gradient recovery
    - [ ] Distribution fit
- - [ ] Print parameters in scientific format if too small or too large 
+ - [ ] Print parameters in scientific format if too small or too large
+ - [ ] Take time to refactor load and store to make it compliant with workflow
  
 SO ``curve-fitting`` tag:
 
@@ -26,7 +27,7 @@ SO ``curve-fitting`` tag:
  - [x] Added real data based test as well as pure synthetic
  - [x] Added load and dump function to exchange standardized CSV
  - [x] Corrected sigma management when only scalar or None are used inplace of array
- - [x] Added synthetic dataset generation
+ - [x] Added synthetic dataset generation, bound for unit test operations
  - [x] Started test with real dataset 
 
 ## v0.1.3

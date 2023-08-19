@@ -275,8 +275,13 @@ class FitSolverInterface:
         Pseudo Random Generator (PRG) is defined by the object :code:`generator` which must be a PRG
         coming from :py:mod:`numpy.random` by default it is a Standard Normal distribution :class:`numpy.random.normal`.
 
-        :param x: Features (variables) as :code:`(n,m)` matrix
+        :param xdata: Features (variables) as :code:`(n,m)` matrix
         :param parameters: Sequence of :code:`k` parameters with explicit names
+        :param dimension:
+        :param mode:
+        :param xmin:
+        :param xmax:
+        :param resolution:
         :param sigma: Shape (scale) parameter for noise if any (default :code:`None`)
         :param precision: Tiny :code:`float` added in noise generation to enforce numerical stability
         :param scale_mode: Type of noise added to target
@@ -298,7 +303,7 @@ class FitSolverInterface:
             )
 
         if parameters is None:
-            parameters = np.power(np.random.uniform(size=(self.k,)), 2) + 1.
+            parameters = np.power(np.random.uniform(size=(self.k,)), 2) + 1.0
 
         yref = self.model(xdata, *parameters)
         noise = self.generate_noise(
@@ -1566,7 +1571,6 @@ class FitSolverInterface:
         seed=1234,
         **kwargs,
     ):
-
         target = self.target_dataset(
             xdata=xdata,
             parameters=parameters,
@@ -1574,7 +1578,7 @@ class FitSolverInterface:
             mode=mode,
             xmin=xmin,
             xmax=xmax,
-            resolution=30,
+            resolution=resolution,
             sigma=sigma,
             scale_mode=scale_mode,
             generator=generator,
@@ -1596,17 +1600,20 @@ class FitSolverInterface:
 
         return data
 
-    def load(self, file_or_buffer, mode="csv", sep=";", store=True):
-        """Load data from CSV file and store"""
+    def load(self, file_or_frame, sep=";", store=True):
+        """
+        Load and store data from frame or CSV file
+        :param file_or_frame:
+        :param mode:
+        :param sep:
+        :param store:
+        :return:
+        """
 
-        modes = {"csv"}
-        if mode not in modes:
-            raise ConfigurationError(
-                "Mode must be in %s, got '%s' instead" % (modes, mode)
-            )
-
-        if mode == "csv":
-            data = pd.read_csv(file_or_buffer, sep=sep)
+        if isinstance(file_or_frame, pd.DataFrame):
+            data = file_or_frame
+        else:
+            data = pd.read_csv(file_or_frame, sep=sep)
 
         subset = data.filter(regex="^x")
         if subset.shape[1] == 0:
@@ -1619,10 +1626,11 @@ class FitSolverInterface:
         if "id" in data.columns:
             data = data.set_index("id")
         else:
-            data.index = data.index.values + 1
-            data.index.name = "id"
+            if data.index.name != "id":
+                data.index = data.index.values + 1
+                data.index.name = "id"
 
-        logger.info("Loaded file '%s' with shape %s" % (file_or_buffer, data.shape))
+        logger.info("Loaded file '%s' with shape %s" % (file_or_frame, data.shape))
 
         if store:
             if "sy" in data.columns:
@@ -1634,18 +1642,21 @@ class FitSolverInterface:
 
         return data
 
-    def dump(self, file_or_buffer, summary=False):
+    def dump(self, file_or_frame, summary=False):
         """
         Dump dataset into CSV
-        :param file_or_buffer:
+        :param file_or_frame:
         :param summary:
         :return:
         """
-        if summary:
-            data = self.summary()
+        if isinstance(file_or_frame, pd.DataFrame):
+            data = file_or_frame
         else:
-            data = self.dataset()
-        data.to_csv(file_or_buffer, sep=";", index=True)
+            if summary:
+                data = self.summary()
+            else:
+                data = self.dataset()
+        data.to_csv(file_or_frame, sep=";", index=True)
 
     def summary(self):
         """

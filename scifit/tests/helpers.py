@@ -151,7 +151,6 @@ class GenericTestFitSolver:
     # sigma_factor = 10.
 
     def setUp(self) -> None:
-
         self.media_path = pathlib.Path(self.root_path) / format(
             self.factory.__module__.split(".")[-1]
         )
@@ -160,7 +159,6 @@ class GenericTestFitSolver:
         self.solver = self.factory(**self.configuration)
 
         if self.data_path is None:
-
             data = self.solver.synthetic_dataset(
                 xdata=self.xdata,
                 parameters=self.parameters,
@@ -182,7 +180,6 @@ class GenericTestFitSolver:
             self.ynoise = data["ynoise"].values
 
         else:
-
             data = self.solver.load(self.data_path, store=False)
             self.xdata = data.filter(regex="^x").values
             self.ydata = data["y"]
@@ -428,13 +425,27 @@ class GenericTestFitSolver:
         self.assertEqual(set(data.columns).intersection(keys), keys)
 
     def test_synthetic_dataset(self):
-        data = self.solver.synthetic_dataset(parameters=self.parameters, dimension=self.dimension, sigma=self.sigma)
+        data = self.solver.synthetic_dataset(
+            parameters=self.parameters, dimension=self.dimension, sigma=self.sigma
+        )
         self.assertIsInstance(data, pd.DataFrame)
         self.assertEqual(data.index.name, "id")
         x = data.filter(regex="x")
         self.assertTrue(x.shape[1] > 0)
         keys = {"y"}
         self.assertEqual(set(data.columns).intersection(keys), keys)
+
+    # def test_fit_from_synthetic_dataset(self):
+    #     if self.parameters is None:
+    #         parameters = np.random.uniform(size=(self.solver.k,), low=0.1, high=0.9)
+    #     else:
+    #         parameters = self.parameters
+    #     data = self.solver.synthetic_dataset(
+    #         parameters=parameters, dimension=self.dimension, sigma=self.sigma
+    #     )
+    #     self.solver.load(data)
+    #     solution = self.solver.fit()
+    #     self.assertTrue(solution["success"])
 
     def test_fitted_dataset(self):
         self.solver.store(self.xdata, self.ydata, sigma=self.sigmas)
