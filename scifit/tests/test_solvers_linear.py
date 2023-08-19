@@ -99,6 +99,11 @@ class LinearRegressionNoiseL5(GenericLinearRegression, TestCase):
     sigma = 2.5
 
 
+class LinearRegressionCalibration(GenericLinearRegression, TestCase):
+    data_path = "./scifit/tests/features/linear/linear.csv"
+    parameters = None
+
+
 class GenericParabolicRegression(GenericTestFitSolver):
     factory = linear.ParabolicFitSolver
     parameters = np.array([1.0, 2.0, 3.0])
@@ -126,6 +131,11 @@ class ParabolicRegressionNoiseL4(GenericParabolicRegression, TestCase):
 
 class ParabolicRegressionNoiseL5(GenericParabolicRegression, TestCase):
     sigma = 2.5
+
+
+class ParabolicRegressionCalibration(GenericLinearRegression, TestCase):
+    data_path = "./scifit/tests/features/linear/parabolic.csv"
+    parameters = None
 
 
 class GenericCubicRegression(GenericTestFitSolver):
