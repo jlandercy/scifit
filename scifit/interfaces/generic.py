@@ -1642,16 +1642,14 @@ class FitSolverInterface:
 
         return data
 
-    def dump(self, file_or_frame, summary=False):
+    def dump(self, file_or_frame, data=None, summary=False):
         """
         Dump dataset into CSV
         :param file_or_frame:
         :param summary:
         :return:
         """
-        if isinstance(file_or_frame, pd.DataFrame):
-            data = file_or_frame
-        else:
+        if data is None:
             if summary:
                 data = self.summary()
             else:
