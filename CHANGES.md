@@ -27,6 +27,7 @@ SO ``curve-fitting`` tag:
 ## v0.1.5
 
  - [x] Added serialization tests to ensure solution continuity among dumps
+ - [x] Added seed reproducibility for dataset generation
  
 ## v0.1.4
 

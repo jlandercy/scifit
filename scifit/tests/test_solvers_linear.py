@@ -101,7 +101,7 @@ class LinearRegressionNoiseL5(GenericLinearRegression, TestCase):
 
 class LinearRegressionCalibration(GenericLinearRegression, TestCase):
     factory = linear.LinearFitSolver
-    data_path = "./scifit/tests/features/linear/linear.csv"
+    data_path = "./scifit/tests/features/linear/LinearCalibration.csv"
     sigma = None
     parameters = None
 
@@ -137,7 +137,7 @@ class ParabolicRegressionNoiseL5(GenericParabolicRegression, TestCase):
 
 class ParabolicRegressionCalibration(GenericLinearRegression, TestCase):
     factory = linear.ParabolicFitSolver
-    data_path = "./scifit/tests/features/linear/parabolic.csv"
+    data_path = "./scifit/tests/features/linear/ParabolicCalibration.csv"
     sigma = None
     parameters = None
 

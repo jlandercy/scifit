@@ -115,13 +115,21 @@ class FitSolverInterface:
         if isinstance(sigma, Iterable):
             sigma = np.array(sigma)
             if sigma.shape != ydata.shape:
-                raise InputDataError("Sigma as array must have the same shape as ydata %s, got %s instead" % (ydata.shape, sigma.shape))
+                raise InputDataError(
+                    "Sigma as array must have the same shape as ydata %s, got %s instead"
+                    % (ydata.shape, sigma.shape)
+                )
             if not np.issubdtype(sigma.dtype, np.number):
-                raise InputDataError("All sigma must be numbers, got '%s' instead: %s" % (sigma.dtype, sigma))
+                raise InputDataError(
+                    "All sigma must be numbers, got '%s' instead: %s"
+                    % (sigma.dtype, sigma)
+                )
             if not np.all(np.isfinite(sigma)):
                 raise InputDataError("All sigma must be finite numbers: %s" % sigma)
             if not np.all(sigma > 0.0):
-                raise InputDataError("All sigma must be strictly positive numbers: %s" % sigma)
+                raise InputDataError(
+                    "All sigma must be strictly positive numbers: %s" % sigma
+                )
         elif isinstance(sigma, numbers.Number):
             if sigma <= 0.0:
                 raise InputDataError("Sigma must be strictly positive")
@@ -216,7 +224,6 @@ class FitSolverInterface:
             np.random.seed(seed)
 
         if sigma is not None:
-
             if isinstance(sigma, Iterable):
                 sigma = np.array(sigma)
             else:

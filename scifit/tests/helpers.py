@@ -445,8 +445,15 @@ class GenericTestFitSolver:
         )
         data = data.dropna(how="all", axis=1)
         self.solver.load(data)
-        solution = self.solver.fit(p0=0.75*parameters)
-        self.assertTrue(np.allclose(parameters, solution["parameters"], atol=1e-6, rtol=10*(self.sigma or 1e-4)))
+        solution = self.solver.fit(p0=0.75 * parameters)
+        self.assertTrue(
+            np.allclose(
+                parameters,
+                solution["parameters"],
+                atol=1e-6,
+                rtol=10 * (self.sigma or 1e-4),
+            )
+        )
 
     def test_fitted_dataset(self):
         self.solver.store(self.xdata, self.ydata, sigma=self.sigmas)
@@ -473,13 +480,46 @@ class GenericTestFitSolver:
         np.random.seed(self.seed)
         solution2 = solver2.fit()
         check2 = solver2.dataset()
-        #solver2.dump(file2, summary=False)
+        # solver2.dump(file2, summary=False)
 
         # Assert 3 significant digits
-        self.assertTrue(np.allclose(solution1["parameters"], solution2["parameters"], atol=1e-6, rtol=1e-3))
-        self.assertTrue(np.allclose(check1.values, check2.values, equal_nan=True, atol=1e-6, rtol=1e-3))
+        self.assertTrue(
+            np.allclose(
+                solution1["parameters"], solution2["parameters"], atol=1e-6, rtol=1e-3
+            )
+        )
+        self.assertTrue(
+            np.allclose(
+                check1.values, check2.values, equal_nan=True, atol=1e-6, rtol=1e-3
+            )
+        )
+
+    def test_random_seed_synthetic_dataset_reproducibility(self):
+        seed = np.random.randint(low=1, high=999999999, size=1)[0]
+        if self.parameters is None:
+            parameters = np.random.uniform(size=(self.solver.k,), low=0.1, high=0.9)
+        else:
+            parameters = self.parameters
+        dataset1 = self.solver.synthetic_dataset(
+            dimension=self.dimension or self.xdata.shape[1],
+            parameters=parameters,
+            resolution=250,
+            sigma=self.sigma or 0.015,
+            seed=seed,
+        ).dropna(how="all", axis=1)
+        dataset2 = self.solver.synthetic_dataset(
+            dimension=self.dimension or self.xdata.shape[1],
+            parameters=parameters,
+            resolution=250,
+            sigma=self.sigma or 0.015,
+            seed=seed,
+        ).dropna(how="all", axis=1)
+        self.assertTrue(np.allclose(dataset1.values, dataset2.values, equal_nan=True))
+        self.assertTrue(dataset1.equals(dataset2))
 
     def test_dump_summary(self):
         name = self.__class__.__name__
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        self.solver.dump("{}/{}_summary.csv".format(self.media_path, name), summary=True)
+        self.solver.dump(
+            "{}/{}_summary.csv".format(self.media_path, name), summary=True
+        )
