@@ -432,17 +432,23 @@ class GenericTestFitSolver:
         keys = {"y"}
         self.assertEqual(set(data.columns).intersection(keys), keys)
 
-    # def test_fit_from_synthetic_dataset(self):
-    #     if self.parameters is None:
-    #         parameters = np.random.uniform(size=(self.solver.k,), low=0.1, high=0.9)
-    #     else:
-    #         parameters = self.parameters
-    #     data = self.solver.synthetic_dataset(
-    #         parameters=parameters, dimension=self.dimension, sigma=self.sigma
-    #     )
-    #     self.solver.load(data)
-    #     solution = self.solver.fit()
-    #     self.assertTrue(solution["success"])
+    def test_fit_from_synthetic_dataset(self):
+        if self.parameters is None:
+            parameters = np.random.uniform(size=(self.solver.k,), low=0.1, high=0.9)
+        else:
+            parameters = self.parameters
+        data = self.solver.synthetic_dataset(
+            xdata=self.xdata,
+            parameters=parameters,
+            dimension=self.dimension,
+            sigma=self.sigma,
+        )
+        data = data.dropna(how="all", axis=1)
+        self.solver.load(data)
+        solution = self.solver.fit(p0=0.90*parameters)
+        print(parameters)
+        print(solution["parameters"])
+        self.assertTrue(np.allclose(parameters, solution["parameters"], atol=1e-6, rtol=10*(self.sigma or 1e-4)))
 
     def test_fitted_dataset(self):
         self.solver.store(self.xdata, self.ydata, sigma=self.sigmas)
