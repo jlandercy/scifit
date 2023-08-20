@@ -24,6 +24,10 @@ SO ``curve-fitting`` tag:
 
 
 
+## v0.1.6
+
+ - [ ] New feature
+
 ## v0.1.5
 
  - [x] Added serialization tests to ensure solution continuity among dumps
