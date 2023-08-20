@@ -445,9 +445,7 @@ class GenericTestFitSolver:
         )
         data = data.dropna(how="all", axis=1)
         self.solver.load(data)
-        solution = self.solver.fit(p0=0.90*parameters)
-        print(parameters)
-        print(solution["parameters"])
+        solution = self.solver.fit(p0=0.75*parameters)
         self.assertTrue(np.allclose(parameters, solution["parameters"], atol=1e-6, rtol=10*(self.sigma or 1e-4)))
 
     def test_fitted_dataset(self):
