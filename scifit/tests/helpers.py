@@ -138,6 +138,10 @@ class GenericTestFitSolver:
 
     log_x = False
     log_y = False
+
+    loss_domains = None
+    loss_scale = 10.
+    loss_factor = 3.
     loss_log_x = False
     loss_log_y = False
     log_loss = False
@@ -339,70 +343,6 @@ class GenericTestFitSolver:
         solution = self.solver.fit(self.xdata, self.ydata)
         domains = self.solver.parameter_domains(mode="log", xmin=1e-5, xmax=100.0)
 
-    def test_plot_fit(self):
-        name = self.__class__.__name__
-        title = r"{} (seed={:d})".format(name, self.seed)
-        self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        axe = self.solver.plot_fit(
-            title=title,
-            errors=True,
-            squared_errors=False,
-            mode=self.mode,
-            log_x=self.log_x,
-            log_y=self.log_y,
-        )
-        axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format))
-        plt.close(axe.figure)
-
-    def test_plot_chi_square(self):
-        name = self.__class__.__name__
-        title = r"{} (seed={:d})".format(name, self.seed)
-        self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        axe = self.solver.plot_chi_square(title=title)
-        axe.figure.savefig("{}/{}_chi2.{}".format(self.media_path, name, self.format))
-        plt.close(axe.figure)
-
-    def _test_plot_loss_automatic(self):
-        name = self.__class__.__name__
-        title = r"{} (seed={:d})".format(name, self.seed)
-        self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        axe = self.solver.plot_loss(
-            title=title,
-            iterations=False,
-            mode=self.mode,
-            log_x=self.loss_log_x,
-            log_y=self.loss_log_y,
-            log_loss=self.log_loss,
-        )
-        axe.figure.savefig(
-            "{}/{}_loss_scatter.{}".format(self.media_path, name, self.format)
-        )
-        plt.close(axe.figure)
-
-    def _test_plot_loss_surface_automatic(self):
-        name = self.__class__.__name__
-        title = r"{} (seed={:d})".format(name, self.seed)
-        self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-
-        for i, j in itertools.combinations(range(self.solver.k), 2):
-            axe = self.solver.plot_loss_low_dimension(
-                title=title,
-                first_index=i,
-                second_index=j,
-                surface=True,
-                add_title=False,
-                iterations=False,
-                resolution=self.loss_resolution,
-                log_x=False,
-                log_y=False,
-                log_loss=False,
-            )
-            axe.figure.savefig(
-                "{}/{}_loss_surface_b{}_b{}.{}".format(
-                    self.media_path, name, i + 1, j + 1, self.format
-                )
-            )
-            plt.close(axe.figure)
 
     def test_load(self):
         if self.data_path:
@@ -523,3 +463,71 @@ class GenericTestFitSolver:
         self.solver.dump(
             "{}/{}_summary.csv".format(self.media_path, name), summary=True
         )
+
+    def test_plot_fit(self):
+        name = self.__class__.__name__
+        title = r"{} (seed={:d})".format(name, self.seed)
+        self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        axe = self.solver.plot_fit(
+            title=title,
+            errors=True,
+            squared_errors=False,
+            mode=self.mode,
+            log_x=self.log_x,
+            log_y=self.log_y,
+        )
+        axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format))
+        plt.close(axe.figure)
+
+    def test_plot_chi_square(self):
+        name = self.__class__.__name__
+        title = r"{} (seed={:d})".format(name, self.seed)
+        self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        axe = self.solver.plot_chi_square(title=title)
+        axe.figure.savefig("{}/{}_chi2.{}".format(self.media_path, name, self.format))
+        plt.close(axe.figure)
+
+    def test_plot_loss_automatic(self):
+        name = self.__class__.__name__
+        title = r"{} (seed={:d})".format(name, self.seed)
+        self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        axe = self.solver.plot_loss(
+            title=title,
+            iterations=False,
+            mode=self.mode,
+            domains=self.loss_domains,
+            scale=self.loss_scale,
+            factor=self.loss_factor,
+            log_x=self.loss_log_x,
+            log_y=self.loss_log_y,
+            log_loss=self.log_loss,
+        )
+        axe.figure.savefig(
+            "{}/{}_loss_scatter.{}".format(self.media_path, name, self.format)
+        )
+        plt.close(axe.figure)
+
+    def test_plot_loss_surface_automatic(self):
+        name = self.__class__.__name__
+        title = r"{} (seed={:d})".format(name, self.seed)
+        self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+
+        for i, j in itertools.combinations(range(self.solver.k), 2):
+            axe = self.solver.plot_loss_low_dimension(
+                title=title,
+                first_index=i,
+                second_index=j,
+                surface=True,
+                add_title=True,
+                iterations=False,
+                resolution=self.loss_resolution,
+                log_x=False,
+                log_y=False,
+                log_loss=False,
+            )
+            axe.figure.savefig(
+                "{}/{}_loss_surface_b{}_b{}.{}".format(
+                    self.media_path, name, i + 1, j + 1, self.format
+                )
+            )
+            plt.close(axe.figure)

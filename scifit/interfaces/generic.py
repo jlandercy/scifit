@@ -977,14 +977,14 @@ class FitSolverInterface:
         return pd.DataFrame([xmin, xmax], index=["min", "max"])
 
     def parameter_scales(
-        self, domains=None, mode="lin", xmin=None, xmax=None, ratio=0.1, resolution=100
+        self, domains=None, mode="lin", xmin=None, xmax=None, ratio=10., factor=3., resolution=100
     ):
         """
         Generate parameter scales
         """
         if domains is None:
             domains = self.parameter_domains(
-                mode=mode, xmin=xmin, xmax=xmax, ratio=ratio
+                mode=mode, xmin=xmin, xmax=xmax, ratio=ratio, factor=factor
             )
         return self.scales(domains=domains, resolution=resolution)
 
@@ -1004,6 +1004,155 @@ class FitSolverInterface:
                 resolution=resolution,
             )
         )
+
+
+    def dataset(self):
+        """
+        Return experimental data as a DataFrame
+
+        :return: Pandas DataFrame containing all experimental data
+        """
+
+        if self.stored(error=True):
+            data = pd.DataFrame(self._xdata)
+            data.columns = data.columns.map(lambda x: "x%d" % x)
+
+            extra = {"y": self._ydata}
+            if self._sigma is not None:
+                extra["sy"] = self._sigma
+
+            if self.fitted(error=False):
+                extra["yhat"] = self._yhat
+
+            extra = pd.DataFrame(extra)
+            data = pd.concat([data, extra], axis=1)
+
+            if self.fitted(error=False):
+                data["yerr"] = data["y"] - data["yhat"]
+                data["yerrrel"] = data["yerr"] / data["yhat"]
+                data["yerrabs"] = np.abs(data["yerr"])
+                data["yerrsqr"] = np.power(data["yerr"], 2)
+
+            if self._sigma is not None and self.fitted(error=False):
+                data["chi2"] = ((data["y"] - data["yhat"]) / data["sy"]) ** 2
+
+            data.index = data.index.values + 1
+            data.index.name = "id"
+
+            return data
+
+    def synthetic_dataset(
+        self,
+        xdata=None,
+        parameters=None,
+        dimension=1,
+        mode="lin",
+        xmin=-1.0,
+        xmax=1.0,
+        resolution=30,
+        sigma=None,
+        scale_mode="abs",
+        generator=np.random.normal,
+        seed=1234,
+        **kwargs,
+    ):
+        target = self.target_dataset(
+            xdata=xdata,
+            parameters=parameters,
+            dimension=dimension,
+            mode=mode,
+            xmin=xmin,
+            xmax=xmax,
+            resolution=resolution,
+            sigma=sigma,
+            scale_mode=scale_mode,
+            generator=generator,
+            seed=seed,
+            **kwargs,
+            full_output=True,
+        )
+
+        x = target.pop("x")
+        data = pd.DataFrame(x)
+        data.columns = data.columns.map(lambda x: "x%d" % x)
+
+        p = target.pop("parameters")
+        target = pd.DataFrame(target)
+
+        data = pd.concat([data, target], axis=1)
+        data.index = data.index.values + 1
+        data.index.name = "id"
+
+        return data
+
+    def load(self, file_or_frame, sep=";", store=True):
+        """
+        Load and store data from frame or CSV file
+        :param file_or_frame:
+        :param mode:
+        :param sep:
+        :param store:
+        :return:
+        """
+
+        if isinstance(file_or_frame, pd.DataFrame):
+            data = file_or_frame
+        else:
+            data = pd.read_csv(file_or_frame, sep=sep)
+
+        subset = data.filter(regex="^x")
+        if subset.shape[1] == 0:
+            raise ConfigurationError("Data must contains at least one 'x' column")
+
+        subset = data.filter(regex="^y$")
+        if subset.shape[1] != 1:
+            raise ConfigurationError("Data must contains a single 'y' column")
+
+        if "id" in data.columns:
+            data = data.set_index("id")
+        else:
+            if data.index.name != "id":
+                data.index = data.index.values + 1
+                data.index.name = "id"
+
+        logger.info("Loaded file '%s' with shape %s" % (file_or_frame, data.shape))
+
+        if store:
+            if "sy" in data.columns:
+                sigma = data["sy"]
+            else:
+                sigma = None
+
+            self.store(data.filter(regex="x").values, data["y"], sigma=sigma)
+
+        return data
+
+    def dump(self, file_or_frame, data=None, summary=False):
+        """
+        Dump dataset into CSV
+        :param file_or_frame:
+        :param data:
+        :param summary:
+        :return:
+        """
+        if data is None:
+            data = self.dataset()
+        if summary:
+            data = self.summary(data=data)
+        data.to_csv(file_or_frame, sep=";", index=True)
+
+    def summary(self, data=None):
+        """
+        Add summary row for LaTeX display
+        :param data:
+        :return: DataFrame
+        """
+        if data is None:
+            data = self.dataset()
+        data.loc[r""] = data.sum()
+        data.iloc[-1, :-5] = None
+        data.iloc[-1, 5] = None
+        return data
 
     def get_latex_parameters(self, show_sigma=True, precision=3, mode="f"):
         """
@@ -1174,7 +1323,7 @@ class FitSolverInterface:
             else:
                 pass
 
-    def plot_chi_square(self, title="", resolution=100):
+    def plot_chi_square(self, title="", resolution=120):
         """
         Plot Chi Square Goodness of Fit figure, summarizes all critical thresholds and p-value
 
@@ -1192,8 +1341,10 @@ class FitSolverInterface:
 
             law = self._gof["law"]
             statistic = self._gof["statistic"]
-            xlin = np.linspace(law.ppf(0.0001), law.ppf(0.9999), resolution)
-            xarea = np.linspace(statistic, law.ppf(0.9999), resolution)
+            xmin = min(law.ppf(0.0001), statistic-1)
+            xmax = max(law.ppf(0.9999), statistic+1)
+            xlin = np.linspace(xmin, xmax, resolution)
+            xarea = np.linspace(statistic, xmax, resolution)
 
             fig, axe = plt.subplots()
 
@@ -1255,7 +1406,9 @@ class FitSolverInterface:
         second_index=None,
         axe=None,
         mode="lin",
-        ratio=0.1,
+        domains=None,
+        ratio=10.,
+        factor=3.,
         xmin=None,
         xmax=None,
         title="",
@@ -1290,7 +1443,7 @@ class FitSolverInterface:
             full_title = "Fit Loss Plot: {}\n{}".format(title, self.get_title())
 
             scales = self.parameter_scales(
-                mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, resolution=resolution
+                mode=mode, domains=domains, ratio=ratio, factor=factor, xmin=xmin, xmax=xmax, resolution=resolution
             )
 
             if self.k == 1 or (first_index is not None and second_index is None):
@@ -1368,7 +1521,7 @@ class FitSolverInterface:
                         x, y, loss, cmap="jet", rstride=1, cstride=1, alpha=0.50
                     )
                     axe.contour(
-                        x, y, loss, zdir="z", offset=ploss, levels=10, cmap="jet"
+                        x, y, loss, zdir="z", offset=ploss, levels=levels or 10, cmap="jet"
                     )
                     axe.set_zlabel(r"Loss, $\rho(\beta)$")
 
@@ -1420,6 +1573,7 @@ class FitSolverInterface:
                 raise ConfigurationError("Cannot plot loss due to configuration")
 
             if add_title:
+
                 axe.set_title(full_title, fontdict={"fontsize": 10})
 
                 if not surface:
@@ -1442,7 +1596,9 @@ class FitSolverInterface:
     def plot_loss(
         self,
         mode="lin",
+        domains=None,
         ratio=0.1,
+        factor=3.0,
         xmin=None,
         xmax=None,
         title="",
@@ -1472,7 +1628,9 @@ class FitSolverInterface:
         if self.k <= 2:
             axe = self.plot_loss_low_dimension(
                 mode=mode,
+                domains=domains,
                 ratio=ratio,
+                factor=factor,
                 xmin=xmin,
                 xmax=xmax,
                 title=title,
@@ -1503,7 +1661,9 @@ class FitSolverInterface:
                         second_index=j,
                         axe=axe,
                         mode=mode,
+                        domains=domains,
                         ratio=ratio,
+                        factor=factor,
                         xmin=xmin,
                         xmax=xmax,
                         title=title,
@@ -1531,151 +1691,3 @@ class FitSolverInterface:
             fig.subplots_adjust(top=0.8, left=0.2)
 
         return axe
-
-    def dataset(self):
-        """
-        Return experimental data as a DataFrame
-
-        :return: Pandas DataFrame containing all experimental data
-        """
-
-        if self.stored(error=True):
-            data = pd.DataFrame(self._xdata)
-            data.columns = data.columns.map(lambda x: "x%d" % x)
-
-            extra = {"y": self._ydata}
-            if self._sigma is not None:
-                extra["sy"] = self._sigma
-
-            if self.fitted(error=False):
-                extra["yhat"] = self._yhat
-
-            extra = pd.DataFrame(extra)
-            data = pd.concat([data, extra], axis=1)
-
-            if self.fitted(error=False):
-                data["yerr"] = data["y"] - data["yhat"]
-                data["yerrrel"] = data["yerr"] / data["yhat"]
-                data["yerrabs"] = np.abs(data["yerr"])
-                data["yerrsqr"] = np.power(data["yerr"], 2)
-
-            if self._sigma is not None and self.fitted(error=False):
-                data["chi2"] = ((data["y"] - data["yhat"]) / data["sy"]) ** 2
-
-            data.index = data.index.values + 1
-            data.index.name = "id"
-
-            return data
-
-    def synthetic_dataset(
-        self,
-        xdata=None,
-        parameters=None,
-        dimension=1,
-        mode="lin",
-        xmin=-1.0,
-        xmax=1.0,
-        resolution=30,
-        sigma=None,
-        scale_mode="abs",
-        generator=np.random.normal,
-        seed=1234,
-        **kwargs,
-    ):
-        target = self.target_dataset(
-            xdata=xdata,
-            parameters=parameters,
-            dimension=dimension,
-            mode=mode,
-            xmin=xmin,
-            xmax=xmax,
-            resolution=resolution,
-            sigma=sigma,
-            scale_mode=scale_mode,
-            generator=generator,
-            seed=seed,
-            **kwargs,
-            full_output=True,
-        )
-
-        x = target.pop("x")
-        data = pd.DataFrame(x)
-        data.columns = data.columns.map(lambda x: "x%d" % x)
-
-        p = target.pop("parameters")
-        target = pd.DataFrame(target)
-
-        data = pd.concat([data, target], axis=1)
-        data.index = data.index.values + 1
-        data.index.name = "id"
-
-        return data
-
-    def load(self, file_or_frame, sep=";", store=True):
-        """
-        Load and store data from frame or CSV file
-        :param file_or_frame:
-        :param mode:
-        :param sep:
-        :param store:
-        :return:
-        """
-
-        if isinstance(file_or_frame, pd.DataFrame):
-            data = file_or_frame
-        else:
-            data = pd.read_csv(file_or_frame, sep=sep)
-
-        subset = data.filter(regex="^x")
-        if subset.shape[1] == 0:
-            raise ConfigurationError("Data must contains at least one 'x' column")
-
-        subset = data.filter(regex="^y$")
-        if subset.shape[1] != 1:
-            raise ConfigurationError("Data must contains a single 'y' column")
-
-        if "id" in data.columns:
-            data = data.set_index("id")
-        else:
-            if data.index.name != "id":
-                data.index = data.index.values + 1
-                data.index.name = "id"
-
-        logger.info("Loaded file '%s' with shape %s" % (file_or_frame, data.shape))
-
-        if store:
-            if "sy" in data.columns:
-                sigma = data["sy"]
-            else:
-                sigma = None
-
-            self.store(data.filter(regex="x").values, data["y"], sigma=sigma)
-
-        return data
-
-    def dump(self, file_or_frame, data=None, summary=False):
-        """
-        Dump dataset into CSV
-        :param file_or_frame:
-        :param data:
-        :param summary:
-        :return:
-        """
-        if data is None:
-            data = self.dataset()
-        if summary:
-            data = self.summary(data=data)
-        data.to_csv(file_or_frame, sep=";", index=True)
-
-    def summary(self, data=None):
-        """
-        Add summary row for LaTeX display
-        :param data:
-        :return: DataFrame
-        """
-        if data is None:
-            data = self.dataset()
-        data.loc[r""] = data.sum()
-        data.iloc[-1, :-5] = None
-        data.iloc[-1, 5] = None
-        return data

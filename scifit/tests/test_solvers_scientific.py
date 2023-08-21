@@ -16,6 +16,8 @@ class GompertzRegression(GenericLinearRegression):
     factory = scientific.GompertzFitSolver
     parameters = np.array([2.0, 0.5, 5.0])
     sigma = None
+    loss_xmin = 0.01
+    loss_xmax = 30.
 
 
 class GompertzRegressionNoiseL0(GompertzRegression, TestCase):

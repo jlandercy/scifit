@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 import numpy as np
+import pandas as pd
 
 from scifit.solvers import linear, scientific
 from scifit.tests.helpers import GenericTestFitSolver
@@ -27,6 +28,7 @@ class BookIntroduction2DigitsRegression(BookSampleRegression, TestCase):
     sigma = 0.125
     xmin = 0.0
     xmax = 10.0
+    loss_domains = pd.DataFrame({"min": [0.25, 2.0], "max": [0.1, 10.]}).T
 
 
 class BookIntroduction3DigitsRegression(BookIntroduction2DigitsRegression):

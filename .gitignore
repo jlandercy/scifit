@@ -111,3 +111,4 @@ venv.bak/
 .nox/
 /media/
 /.pypirc
+/docs/source/notebooks/checks/figures/
