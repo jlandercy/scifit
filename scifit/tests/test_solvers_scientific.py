@@ -6,6 +6,7 @@ class :class:`scifit.interfaces.generic.GenericInterface` and its children.
 from unittest import TestCase
 
 import numpy as np
+import pandas as pd
 
 from scifit.solvers import scientific
 from scifit.tests.helpers import GenericTestFitSolver
@@ -16,8 +17,7 @@ class GompertzRegression(GenericLinearRegression):
     factory = scientific.GompertzFitSolver
     parameters = np.array([2.0, 0.5, 5.0])
     sigma = None
-    loss_xmin = 0.01
-    loss_xmax = 30.
+    loss_domains = pd.DataFrame({"min": [0.25, 0.05, 2.5], "max": [2.5, 1., 7.5]}).T
 
 
 class GompertzRegressionNoiseL0(GompertzRegression, TestCase):
