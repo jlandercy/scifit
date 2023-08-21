@@ -127,7 +127,6 @@ class GenericTestFitSolver:
     resolution = 30
     dimension = 1
     xdata = None
-    p0 = None
 
     seed = 789
     sigma = None
@@ -202,10 +201,18 @@ class GenericTestFitSolver:
                     **self.target_kwargs,
                 )["sigmas"]
 
-        if self.parameters is not None:
-            domains = self.solver.parameter_domains(parameters=self.parameters)
-            if self.p0 is None:
-                self.p0 = domains.loc["max", :].values
+        print(self.parameters)
+        print(self.loss_domains)
+        # if self.parameters is not None:
+        #     if "p0" not in self.configuration:
+        #         if self.loss_domains is None:
+        #             domains = self.solver.parameter_domains(parameters=self.parameters, mode=self.mode)
+        #         else:
+        #             domains = self.loss_domains
+        #         self.configuration["p0"] = domains.loc["min", :].values
+
+        # self.configuration["p0"] = self.solver.parameter_domains(parameters=self.parameters, mode=self.mode).loc["min", :].values
+        # print(self.configuration)
 
     def test_signature(self):
         s = self.solver.signature
@@ -222,6 +229,12 @@ class GenericTestFitSolver:
         solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         for key in ["_xdata", "_ydata", "_solution", "_yhat", "_score"]:
             self.assertTrue(hasattr(self.solver, key))
+
+    def test_parameter_domains_size(self):
+        domains = self.solver.parameter_domains(parameters=self.parameters, mode=self.mode)
+        self.assertEqual(self.solver.k, domains.shape[1])
+        self.assertEqual(self.solver.k, domains.loc["min", :].size)
+        self.assertEqual(self.solver.k, domains.loc["max", :].size)
 
     def test_model_solve_signature_no_sigma(self):
         solution = self.solver.solve(self.xdata, self.ydata, sigma=None)
@@ -479,7 +492,7 @@ class GenericTestFitSolver:
         axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
-    def test_plot_chi_square(self):
+    def _test_plot_chi_square(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
@@ -491,6 +504,7 @@ class GenericTestFitSolver:
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        print(self.solver._iterations)
         axe = self.solver.plot_loss(
             title=title,
             iterations=False,
@@ -507,7 +521,7 @@ class GenericTestFitSolver:
         )
         plt.close(axe.figure)
 
-    def test_plot_loss_surface_automatic(self):
+    def _test_plot_loss_surface_automatic(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)

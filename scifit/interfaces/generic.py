@@ -357,6 +357,8 @@ class FitSolverInterface:
         if isinstance(sigma, numbers.Number):
             sigma = np.full(ydata.shape, float(sigma))
 
+        print(self.k)
+        print(self.configuration(**kwargs))
         solution = optimize.curve_fit(
             self.model,
             xdata,
@@ -791,9 +793,11 @@ class FitSolverInterface:
         self._solution = self.solve(
             self._xdata, self._ydata, sigma=self._sigma, **kwargs
         )
-        # self._minimize = self.minimize(
-        #     self._xdata, self._ydata, sigma=self._sigma, **kwargs
-        # )
+
+        # Check and regression pathway
+        self._minimize = self.minimize(
+            self._xdata, self._ydata, sigma=self._sigma, **kwargs
+        )
 
         self._yhat = self.predict(self._xdata)
         self._loss = self.loss(self._xdata, self._ydata, sigma=self._sigma)
@@ -934,6 +938,7 @@ class FitSolverInterface:
         xmax=None,
         ratio=10.0,
         factor=3.0,
+        precision=1e-9,
     ):
         """
         Generate parameter domains, useful for drawing scales fitting the parameters space
@@ -956,7 +961,7 @@ class FitSolverInterface:
                 xmin = xmin or list(parameters / np.power(ratio, factor))
                 xmax = xmax or list(parameters * np.power(ratio, factor))
 
-        xmin = xmin or 0.0
+        xmin = xmin or precision
         if not isinstance(xmin, Iterable):
             xmin = [xmin] * self.k
 
