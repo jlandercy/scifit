@@ -201,16 +201,21 @@ class GenericTestFitSolver:
                     **self.target_kwargs,
                 )["sigmas"]
 
-        print(self.parameters)
-        print(self.loss_domains)
-        if self.parameters is not None:
-            if self.loss_domains is None:
-                domains = self.solver.parameter_domains(parameters=self.parameters)
-            else:
-                domains = self.loss_domains
-            #self.configuration["p0"] = 0.5 * np.array(self.parameters)
-            self.configuration["p0"] = domains.loc["min", :] + 0.25 * (domains.loc["max", :] - domains.loc["min", :])
-        print(self.configuration)
+        # Problem: Minimize & CurveFit does not beahve the same and cruvefit might also guess p0 or bar1 is better
+        # Tu essayes de faire deux choses en même temps:
+        # - faire que minimize & curve_fit se ressemble pour avoir l'accès au callback
+        # - créer un p0 qui est bien pour l'affichage en mélangeant avec p0 qui sert au deux minimize et curve_fit
+
+        # print(self.parameters)
+        # print(self.loss_domains)
+        # if self.parameters is not None:
+        #     if self.loss_domains is None:
+        #         domains = self.solver.parameter_domains(parameters=self.parameters)
+        #     else:
+        #         domains = self.loss_domains
+        #     #self.configuration["p0"] = 0.5 * np.array(self.parameters)
+        #     self.configuration["p0"] = domains.loc["min", :] + 0.25 * (domains.loc["max", :] - domains.loc["min", :])
+        # print(self.configuration)
 
     def test_signature(self):
         s = self.solver.signature

@@ -214,6 +214,7 @@ class AlgebraicSigmoidRegression(GenericLinearRegression):
     xmax = +5.0
 
 
+
 class AlgebraicSigmoidRegressionNoiseL0(AlgebraicSigmoidRegression, TestCase):
     sigma = 1e-6
 
