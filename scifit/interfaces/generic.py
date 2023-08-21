@@ -384,7 +384,7 @@ class FitSolverInterface:
     def minimize_callback(result):
         pass
 
-    def minimize(self, xdata, ydata, sigma=None, p0=None, **kwargs):
+    def minimize(self, xdata, ydata, sigma=None, **kwargs):
         """
         Solve the fitting problem by finding a set of parameters minimizing the loss function wrt features, target and sigma.
         Return structured solution and update solver object in order to expose analysis convenience (fit, loss).
@@ -396,7 +396,10 @@ class FitSolverInterface:
         :return: Dictionary of objects with details about the regression including regressed parameters and final covariance
         """
 
+        kwargs = self.configuration(**kwargs)
+
         # Adapt default parameters as curve_fit
+        p0 = kwargs.pop("p0", None)
         if p0 is None:
             p0 = np.full((self.k,), 1.0)
 
@@ -412,7 +415,7 @@ class FitSolverInterface:
             self._iterations.append(result)
             self.minimize_callback(result)
 
-        self._iterations = []
+        self._iterations = [p0]
         solution = optimize.minimize(
             loss, x0=p0, method="L-BFGS-B", jac="3-point", callback=callback, **kwargs
         )
@@ -794,7 +797,7 @@ class FitSolverInterface:
             self._xdata, self._ydata, sigma=self._sigma, **kwargs
         )
 
-        # Check and regression pathway
+        # Check and regression pathway:
         self._minimize = self.minimize(
             self._xdata, self._ydata, sigma=self._sigma, **kwargs
         )
@@ -1471,14 +1474,15 @@ class FitSolverInterface:
                 )
 
                 if iterations and hasattr(self, "_iterations"):
+                    xiter = self._iterations.reshape(-1, 1)
                     axe.plot(
-                        self._iterations.reshape(-1, 1),
-                        loss(self._iterations.reshape(-1, 1)),
+                        xiter,
+                        loss(xiter),
                         linestyle="-",
                         marker="o",
                         color="black",
                         linewidth=0.75,
-                        markersize=2,
+                        markersize=3,
                     )
 
                 axe.scatter(p0, loss(*p0))
@@ -1544,7 +1548,8 @@ class FitSolverInterface:
                         linestyle="-.",
                     )
 
-                    if iterations and hasattr(self, "_iteration"):
+                    if iterations and hasattr(self, "_iterations"):
+
                         axe.plot(
                             self._iterations[:, first_index].reshape(-1, 1),
                             self._iterations[:, second_index].reshape(-1, 1),
@@ -1552,7 +1557,7 @@ class FitSolverInterface:
                             marker="o",
                             color="black",
                             linewidth=0.75,
-                            markersize=2,
+                            markersize=3,
                         )
 
                 if surface:
