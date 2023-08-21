@@ -17,7 +17,7 @@ class GompertzRegression(GenericLinearRegression):
     factory = scientific.GompertzFitSolver
     parameters = np.array([2.0, 0.5, 5.0])
     sigma = None
-    loss_domains = pd.DataFrame({"min": [0.25, 0.05, 2.5], "max": [2.5, 1., 7.5]}).T
+    loss_domains = pd.DataFrame({"min": [0.25, 0.05, 2.5], "max": [2.5, 10., 25.]}).T
 
 
 class GompertzRegressionNoiseL0(GompertzRegression, TestCase):
