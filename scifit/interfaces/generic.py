@@ -1482,7 +1482,7 @@ class FitSolverInterface:
                         marker="o",
                         color="black",
                         linewidth=0.75,
-                        markersize=3,
+                        markersize=2,
                     )
 
                 axe.scatter(p0, loss(*p0))
@@ -1557,7 +1557,7 @@ class FitSolverInterface:
                             marker="o",
                             color="black",
                             linewidth=0.75,
-                            markersize=3,
+                            markersize=2,
                         )
 
                 if surface:

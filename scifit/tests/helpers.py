@@ -139,7 +139,7 @@ class GenericTestFitSolver:
     log_y = False
 
     loss_domains = None
-    loss_ratio = 0.1
+    loss_ratio = 10
     loss_factor = 3.
     loss_log_x = False
     loss_log_y = False
@@ -203,15 +203,13 @@ class GenericTestFitSolver:
 
         print(self.parameters)
         print(self.loss_domains)
-        # if self.parameters is not None:
-        #     if "p0" not in self.configuration:
-        #         if self.loss_domains is None:
-        #             domains = self.solver.parameter_domains(parameters=self.parameters, mode=self.mode)
-        #         else:
-        #             domains = self.loss_domains
-        #         self.configuration["p0"] = domains.loc["min", :].values
-
-        #self.configuration["p0"] = self.solver.parameter_domains(parameters=self.parameters, mode=self.mode).loc["max", :].values
+        if self.parameters is not None:
+            if self.loss_domains is None:
+                domains = self.solver.parameter_domains(parameters=self.parameters)
+            else:
+                domains = self.loss_domains
+            #self.configuration["p0"] = 0.5 * np.array(self.parameters)
+            self.configuration["p0"] = domains.loc["min", :] + 0.25 * (domains.loc["max", :] - domains.loc["min", :])
         print(self.configuration)
 
     def test_signature(self):
