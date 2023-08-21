@@ -1440,7 +1440,7 @@ class FitSolverInterface:
                     fig, axe = plt.subplots()
             fig = axe.figure
 
-            full_title = "Fit Loss Plot: {}\n{}".format(title, self.get_title())
+            full_title = "Fit {}Loss Plot: {}\n{}".format("Log-" if log_loss else "", title, self.get_title())
 
             scales = self.parameter_scales(
                 mode=mode, domains=domains, ratio=ratio, factor=factor, xmin=xmin, xmax=xmax, resolution=resolution
@@ -1486,9 +1486,7 @@ class FitSolverInterface:
 
                 if add_labels:
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index + 1))
-                    label = r"Loss, $\rho(\beta_{{{}}})$".format(first_index + 1)
-                    if log_loss:
-                        label = "Log-" + label
+                    label = r"{}Loss, $\rho(\beta_{{{}}})$".format("Log-" if log_loss else "", first_index + 1)
                     axe.set_ylabel(label)
 
                 axe._pair_indices = (first_index, first_index)
@@ -1523,7 +1521,7 @@ class FitSolverInterface:
                     axe.contour(
                         x, y, loss, zdir="z", offset=ploss, levels=levels or 10, cmap="jet"
                     )
-                    axe.set_zlabel(r"Loss, $\rho(\beta)$")
+                    axe.set_zlabel(r"{}Loss, $\rho(\beta)$".format("Log-" if log_loss else ""))
 
                 else:
                     # Contours
@@ -1643,7 +1641,7 @@ class FitSolverInterface:
             )
 
         else:
-            full_title = "Fit Loss Plot: {}\n{}".format(title, self.get_title())
+            full_title = "Fit {}Loss Plot: {}\n{}".format("Log-" if log_loss else "", title, self.get_title())
 
             fig, axes = plt.subplots(
                 ncols=self.k - 1,

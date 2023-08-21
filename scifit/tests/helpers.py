@@ -140,7 +140,7 @@ class GenericTestFitSolver:
     log_y = False
 
     loss_domains = None
-    loss_scale = 10.
+    loss_ratio = 10.
     loss_factor = 3.
     loss_log_x = False
     loss_log_y = False
@@ -496,7 +496,7 @@ class GenericTestFitSolver:
             iterations=False,
             mode=self.mode,
             domains=self.loss_domains,
-            scale=self.loss_scale,
+            ratio=self.loss_ratio,
             factor=self.loss_factor,
             log_x=self.loss_log_x,
             log_y=self.loss_log_y,
@@ -521,6 +521,9 @@ class GenericTestFitSolver:
                 add_title=True,
                 iterations=False,
                 resolution=self.loss_resolution,
+                domains=self.loss_domains,
+                ratio=self.loss_ratio,
+                factor=self.loss_factor,
                 log_x=False,
                 log_y=False,
                 log_loss=False,

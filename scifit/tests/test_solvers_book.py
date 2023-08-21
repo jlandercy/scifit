@@ -28,7 +28,8 @@ class BookIntroduction2DigitsRegression(BookSampleRegression, TestCase):
     sigma = 0.125
     xmin = 0.0
     xmax = 10.0
-    loss_domains = pd.DataFrame({"min": [0.25, 2.0], "max": [0.1, 10.]}).T
+    #mode = "log"
+    loss_domains = pd.DataFrame({"min": [0.10, 0.1], "max": [2.5, 10.]}).T
 
 
 class BookIntroduction3DigitsRegression(BookIntroduction2DigitsRegression):
