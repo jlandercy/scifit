@@ -954,7 +954,7 @@ class FitSolverInterface:
         mode="lin",
         xmin=None,
         xmax=None,
-        ratio=10.0,
+        ratio=None,
         factor=3.0,
         precision=1e-9,
     ):
@@ -966,6 +966,8 @@ class FitSolverInterface:
             raise ConfigurationError(
                 "Domain mode must be in {lin, log} got '%s' instead" % mode
             )
+
+        ratio = ratio or (1.0 if mode == "lin" else 10.0)
 
         if parameters is None and self.fitted(error=True):
             parameters = self._solution["parameters"]
@@ -1005,7 +1007,7 @@ class FitSolverInterface:
         mode="lin",
         xmin=None,
         xmax=None,
-        ratio=10.0,
+        ratio=None,
         factor=3.0,
         resolution=100,
     ):
@@ -1431,7 +1433,7 @@ class FitSolverInterface:
         axe=None,
         mode="lin",
         domains=None,
-        ratio=10.0,
+        ratio=None,
         factor=3.0,
         xmin=None,
         xmax=None,
@@ -1637,7 +1639,7 @@ class FitSolverInterface:
         self,
         mode="lin",
         domains=None,
-        ratio=0.1,
+        ratio=None,
         factor=3.0,
         xmin=None,
         xmax=None,
