@@ -1517,6 +1517,7 @@ class FitSolverInterface:
             )
 
             if self.k == 1 or (first_index is not None and second_index is None):
+
                 first_index = first_index or 0
                 p0 = self._solution["parameters"]
                 parameters = list(p0)
@@ -1540,11 +1541,11 @@ class FitSolverInterface:
                     axe.plot(
                         xiter,
                         loss(xiter),
-                        linestyle="-",
+                        linestyle=":",
                         marker="o",
-                        color="black",
-                        linewidth=0.75,
-                        markersize=2,
+                        color="darkgray",
+                        #linewidth=0.75,
+                        markersize=4,
                     )
 
                 axe.scatter(p0, loss(*p0))
@@ -1562,9 +1563,13 @@ class FitSolverInterface:
                     )
                     axe.set_ylabel(label)
 
+                if domains is not None:
+                    axe.set_xlim(domains.loc[["min", "max"], first_index])
+
                 axe._pair_indices = (first_index, first_index)
 
             elif self.k == 2 or (first_index is not None and second_index is not None):
+
                 first_index = first_index or 0
                 second_index = second_index or 1
 
@@ -1624,11 +1629,11 @@ class FitSolverInterface:
                         axe.plot(
                             self._iterations[:, first_index].reshape(-1, 1),
                             self._iterations[:, second_index].reshape(-1, 1),
-                            linestyle="-",
+                            linestyle=":",
                             marker="o",
-                            color="black",
-                            linewidth=0.75,
-                            markersize=2,
+                            color="darkgray",
+                            #linewidth=0.75,
+                            markersize=4,
                         )
 
                 if surface:
@@ -1647,6 +1652,10 @@ class FitSolverInterface:
                     axe.set_ylabel(
                         r"Parameter, $\beta_{{{}}}$".format(second_index + 1)
                     )
+
+                if domains is not None:
+                    axe.set_xlim(domains.loc[["min", "max"], first_index])
+                    axe.set_ylim(domains.loc[["min", "max"], second_index])
 
             else:
                 raise ConfigurationError("Cannot plot loss due to configuration")
