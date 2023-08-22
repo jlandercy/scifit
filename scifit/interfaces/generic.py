@@ -955,8 +955,10 @@ class FitSolverInterface:
         xmin=None,
         xmax=None,
         ratio=None,
-        factor=3.0,
+        factor=None,
         precision=1e-9,
+        include_origin=True,
+        include_unit=True,
     ):
         """
         Generate parameter domains, useful for drawing scales fitting the parameters space
@@ -967,7 +969,8 @@ class FitSolverInterface:
                 "Domain mode must be in {lin, log} got '%s' instead" % mode
             )
 
-        ratio = ratio or (1.0 if mode == "lin" else 10.0)
+        ratio = ratio or (0.1 if mode == "lin" else 10.0)
+        factor = factor or (5.0 if mode == "lin" else 2.0)
 
         if parameters is None and self.fitted(error=True):
             parameters = self._solution["parameters"]
@@ -985,6 +988,10 @@ class FitSolverInterface:
         if not isinstance(xmin, Iterable):
             xmin = [xmin] * self.k
 
+        xmin = np.array(xmin)
+        if include_origin:
+            xmin[xmin >= 0.0] = 0.0
+
         if len(xmin) != self.k:
             raise ConfigurationError(
                 "Domain lower boundaries must have the same dimension as parameter space"
@@ -993,6 +1000,10 @@ class FitSolverInterface:
         xmax = xmax or 1.0
         if not isinstance(xmax, Iterable):
             xmax = [xmax] * self.k
+
+        xmax = np.array(xmax)
+        if include_unit:
+            xmax[xmax <= 1.0] = 1.0
 
         if len(xmax) != self.k:
             raise ConfigurationError(
@@ -1008,7 +1019,9 @@ class FitSolverInterface:
         xmin=None,
         xmax=None,
         ratio=None,
-        factor=3.0,
+        factor=None,
+        include_origin=True,
+        include_unit=True,
         resolution=100,
     ):
         """
@@ -1016,7 +1029,13 @@ class FitSolverInterface:
         """
         if domains is None:
             domains = self.parameter_domains(
-                mode=mode, xmin=xmin, xmax=xmax, ratio=ratio, factor=factor
+                mode=mode,
+                xmin=xmin,
+                xmax=xmax,
+                ratio=ratio,
+                factor=factor,
+                include_origin=include_origin,
+                include_unit=include_unit,
             )
         return self.scales(domains=domains, resolution=resolution)
 
@@ -1434,7 +1453,7 @@ class FitSolverInterface:
         mode="lin",
         domains=None,
         ratio=None,
-        factor=3.0,
+        factor=None,
         xmin=None,
         xmax=None,
         title="",
@@ -1442,6 +1461,8 @@ class FitSolverInterface:
         resolution=75,
         surface=False,
         iterations=False,
+        include_origin=True,
+        include_unit=True,
         add_labels=True,
         add_title=True,
         log_x=False,
@@ -1478,6 +1499,8 @@ class FitSolverInterface:
                 xmin=xmin,
                 xmax=xmax,
                 resolution=resolution,
+                include_origin=include_origin,
+                include_unit=include_unit,
             )
 
             if self.k == 1 or (first_index is not None and second_index is None):
@@ -1513,7 +1536,7 @@ class FitSolverInterface:
 
                 axe.scatter(p0, loss(*p0))
 
-                if hasattr(self, "_minimize"):
+                if iterations and hasattr(self, "_minimize"):
                     axe.scatter(
                         self._minimize["parameters"],
                         loss(*self._minimize["parameters"]),
@@ -1600,7 +1623,7 @@ class FitSolverInterface:
                 else:
                     axe.scatter(p0[first_index], p0[second_index])
 
-                if hasattr(self, "_minimize"):
+                if iterations and hasattr(self, "_minimize"):
                     axe.scatter(
                         self._minimize["parameters"][first_index],
                         self._minimize["parameters"][second_index],
@@ -1640,13 +1663,15 @@ class FitSolverInterface:
         mode="lin",
         domains=None,
         ratio=None,
-        factor=3.0,
+        factor=None,
         xmin=None,
         xmax=None,
         title="",
         levels=None,
         resolution=75,
         iterations=False,
+        include_origin=True,
+        include_unit=True,
         log_x=False,
         log_y=False,
         log_loss=False,
@@ -1679,6 +1704,8 @@ class FitSolverInterface:
                 levels=levels,
                 resolution=resolution,
                 iterations=iterations,
+                include_origin=include_origin,
+                include_unit=include_unit,
                 log_x=log_x,
                 log_y=log_y,
                 log_loss=log_loss,
@@ -1714,6 +1741,8 @@ class FitSolverInterface:
                         levels=levels,
                         resolution=resolution,
                         iterations=iterations,
+                        include_origin=include_origin,
+                        include_unit=include_unit,
                         log_x=log_x,
                         log_y=log_y,
                         log_loss=log_loss,
