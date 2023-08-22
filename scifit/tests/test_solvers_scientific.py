@@ -17,7 +17,7 @@ class GompertzRegression(GenericLinearRegression):
     factory = scientific.GompertzFitSolver
     parameters = np.array([2.0, 0.5, 5.0])
     sigma = None
-    loss_domains = pd.DataFrame({"min": [0.25, 0.05, 2.5], "max": [2.5, 10., 25.]}).T
+    loss_domains = pd.DataFrame({"min": [0.25, 0.05, 2.5], "max": [2.5, 10.0, 25.0]}).T
 
 
 class GompertzRegressionNoiseL0(GompertzRegression, TestCase):
@@ -144,8 +144,8 @@ class CooperativeHillEquationRegressionNoiseL5(
 class CompetitiveHillEquationRegression(GenericKineticRegression):
     factory = scientific.HillEquationFitSolver
     parameters = np.array([0.32, 2.5e-1])
-    loss_ratio = 2.
-    loss_factor = 3.
+    loss_ratio = 2.0
+    loss_factor = 3.0
 
 
 class CompetitiveHillEquationRegressionNoiseL0(
@@ -214,11 +214,11 @@ class AlgebraicSigmoidRegression(GenericLinearRegression):
     parameters = np.array([4.1])
     xmin = -5.0
     xmax = +5.0
-    #loss_ratio = 5.
-    #loss_factor = 3.
-    #log_loss = True      # log10(vectorize) ?
-    #loss_resolution = 350
-    #loss_domains = pd.DataFrame({"min": [3.], "max": [4.]}).T
+    # loss_ratio = 5.
+    # loss_factor = 3.
+    # log_loss = True      # log10(vectorize) ?
+    # loss_resolution = 350
+    # loss_domains = pd.DataFrame({"min": [3.], "max": [4.]}).T
 
 
 class AlgebraicSigmoidRegressionNoiseL0(AlgebraicSigmoidRegression, TestCase):

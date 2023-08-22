@@ -140,7 +140,7 @@ class GenericTestFitSolver:
 
     loss_domains = None
     loss_ratio = 10
-    loss_factor = 3.
+    loss_factor = 3.0
     loss_log_x = False
     loss_log_y = False
     log_loss = False
@@ -234,7 +234,9 @@ class GenericTestFitSolver:
             self.assertTrue(hasattr(self.solver, key))
 
     def test_parameter_domains_size(self):
-        domains = self.solver.parameter_domains(parameters=self.parameters, mode=self.mode)
+        domains = self.solver.parameter_domains(
+            parameters=self.parameters, mode=self.mode
+        )
         self.assertEqual(self.solver.k, domains.shape[1])
         self.assertEqual(self.solver.k, domains.loc["min", :].size)
         self.assertEqual(self.solver.k, domains.loc["max", :].size)
@@ -358,7 +360,6 @@ class GenericTestFitSolver:
     def test_parameters_domain_logarithmic_fixed(self):
         solution = self.solver.fit(self.xdata, self.ydata)
         domains = self.solver.parameter_domains(mode="log", xmin=1e-5, xmax=100.0)
-
 
     def test_load(self):
         if self.data_path:

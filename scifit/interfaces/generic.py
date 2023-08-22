@@ -353,12 +353,12 @@ class FitSolverInterface:
         :return: Dictionary of objects with details about the regression including regressed parameters and final covariance
         """
 
+        kwargs = self.configuration(**kwargs)
+
         # Adapt signature for single number:
         if isinstance(sigma, numbers.Number):
             sigma = np.full(ydata.shape, float(sigma))
 
-        print(self.k)
-        print(self.configuration(**kwargs))
         solution = optimize.curve_fit(
             self.model,
             xdata,
@@ -368,7 +368,7 @@ class FitSolverInterface:
             full_output=True,
             check_finite=True,
             nan_policy="raise",
-            **self.configuration(**kwargs),
+            **kwargs,
         )
 
         return {
@@ -985,7 +985,14 @@ class FitSolverInterface:
         return pd.DataFrame([xmin, xmax], index=["min", "max"])
 
     def parameter_scales(
-        self, domains=None, mode="lin", xmin=None, xmax=None, ratio=10., factor=3., resolution=100
+        self,
+        domains=None,
+        mode="lin",
+        xmin=None,
+        xmax=None,
+        ratio=10.0,
+        factor=3.0,
+        resolution=100,
     ):
         """
         Generate parameter scales
@@ -1012,7 +1019,6 @@ class FitSolverInterface:
                 resolution=resolution,
             )
         )
-
 
     def dataset(self):
         """
@@ -1349,8 +1355,8 @@ class FitSolverInterface:
 
             law = self._gof["law"]
             statistic = self._gof["statistic"]
-            xmin = min(law.ppf(0.0001), statistic-1)
-            xmax = max(law.ppf(0.9999), statistic+1)
+            xmin = min(law.ppf(0.0001), statistic - 1)
+            xmax = max(law.ppf(0.9999), statistic + 1)
             xlin = np.linspace(xmin, xmax, resolution)
             xarea = np.linspace(statistic, xmax, resolution)
 
@@ -1415,8 +1421,8 @@ class FitSolverInterface:
         axe=None,
         mode="lin",
         domains=None,
-        ratio=10.,
-        factor=3.,
+        ratio=10.0,
+        factor=3.0,
         xmin=None,
         xmax=None,
         title="",
@@ -1448,10 +1454,18 @@ class FitSolverInterface:
                     fig, axe = plt.subplots()
             fig = axe.figure
 
-            full_title = "Fit {}Loss Plot: {}\n{}".format("Log-" if log_loss else "", title, self.get_title())
+            full_title = "Fit {}Loss Plot: {}\n{}".format(
+                "Log-" if log_loss else "", title, self.get_title()
+            )
 
             scales = self.parameter_scales(
-                mode=mode, domains=domains, ratio=ratio, factor=factor, xmin=xmin, xmax=xmax, resolution=resolution
+                mode=mode,
+                domains=domains,
+                ratio=ratio,
+                factor=factor,
+                xmin=xmin,
+                xmax=xmax,
+                resolution=resolution,
             )
 
             if self.k == 1 or (first_index is not None and second_index is None):
@@ -1495,7 +1509,9 @@ class FitSolverInterface:
 
                 if add_labels:
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index + 1))
-                    label = r"{}Loss, $\rho(\beta_{{{}}})$".format("Log-" if log_loss else "", first_index + 1)
+                    label = r"{}Loss, $\rho(\beta_{{{}}})$".format(
+                        "Log-" if log_loss else "", first_index + 1
+                    )
                     axe.set_ylabel(label)
 
                 axe._pair_indices = (first_index, first_index)
@@ -1528,9 +1544,17 @@ class FitSolverInterface:
                         x, y, loss, cmap="jet", rstride=1, cstride=1, alpha=0.50
                     )
                     axe.contour(
-                        x, y, loss, zdir="z", offset=ploss, levels=levels or 10, cmap="jet"
+                        x,
+                        y,
+                        loss,
+                        zdir="z",
+                        offset=ploss,
+                        levels=levels or 10,
+                        cmap="jet",
                     )
-                    axe.set_zlabel(r"{}Loss, $\rho(\beta)$".format("Log-" if log_loss else ""))
+                    axe.set_zlabel(
+                        r"{}Loss, $\rho(\beta)$".format("Log-" if log_loss else "")
+                    )
 
                 else:
                     # Contours
@@ -1549,7 +1573,6 @@ class FitSolverInterface:
                     )
 
                     if iterations and hasattr(self, "_iterations"):
-
                         axe.plot(
                             self._iterations[:, first_index].reshape(-1, 1),
                             self._iterations[:, second_index].reshape(-1, 1),
@@ -1581,7 +1604,6 @@ class FitSolverInterface:
                 raise ConfigurationError("Cannot plot loss due to configuration")
 
             if add_title:
-
                 axe.set_title(full_title, fontdict={"fontsize": 10})
 
                 if not surface:
@@ -1651,7 +1673,9 @@ class FitSolverInterface:
             )
 
         else:
-            full_title = "Fit {}Loss Plot: {}\n{}".format("Log-" if log_loss else "", title, self.get_title())
+            full_title = "Fit {}Loss Plot: {}\n{}".format(
+                "Log-" if log_loss else "", title, self.get_title()
+            )
 
             fig, axes = plt.subplots(
                 ncols=self.k - 1,
