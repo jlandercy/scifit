@@ -272,9 +272,8 @@ def notebooks(session):
         session.run(
             "python", "-m",
             "jupyter", "nbconvert",  # "--debug",
-            "--ExecutePreprocessor.timeout=600",
+            "--ExecutePreprocessor.timeout=1200",
             #"--ExecutePreprocessor.kernel_name=venv",
-            "--ExecutePreprocessor.timeout=600",
             "--inplace", "--clear-output", "--allow-errors", "--warnings", "ignore", "--to", "notebook",
             "--execute", "./docs/source/notebooks/**/*.ipynb",
             stderr=handler,
