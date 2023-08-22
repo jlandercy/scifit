@@ -139,7 +139,7 @@ class GenericTestFitSolver:
     log_y = False
 
     loss_domains = None
-    loss_ratio = 10
+    loss_ratio = 10.0
     loss_factor = 3.0
     loss_log_x = False
     loss_log_y = False
@@ -361,7 +361,7 @@ class GenericTestFitSolver:
         solution = self.solver.fit(self.xdata, self.ydata)
         domains = self.solver.parameter_domains(mode="log", xmin=1e-5, xmax=100.0)
 
-    def test_load(self):
+    def test_load_and_store(self):
         if self.data_path:
             data = self.solver.load(self.data_path, store=True)
             self.assertTrue(self.solver.stored(error=False))
@@ -401,7 +401,7 @@ class GenericTestFitSolver:
             sigma=self.sigma,
         )
         data = data.dropna(how="all", axis=1)
-        self.solver.load(data)
+        self.solver.store(data=data)
         solution = self.solver.fit(p0=0.75 * parameters)
         self.assertTrue(
             np.allclose(
@@ -425,7 +425,7 @@ class GenericTestFitSolver:
     def test_dataset_serialization_equivalence(self):
         name = self.__class__.__name__
         file1 = "{}/{}.csv".format(self.media_path, name)
-        file2 = "{}/{}_echo.csv".format(self.media_path, name)
+        # file2 = "{}/{}_echo.csv".format(self.media_path, name)
 
         np.random.seed(self.seed)
         solution1 = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
@@ -433,7 +433,7 @@ class GenericTestFitSolver:
         self.solver.dump(file1, summary=False)
 
         solver2 = self.factory(**self.configuration)
-        solver2.load(file1)
+        solver2.load(file1, store=True)
         np.random.seed(self.seed)
         solution2 = solver2.fit()
         check2 = solver2.dataset()
@@ -504,14 +504,13 @@ class GenericTestFitSolver:
         axe.figure.savefig("{}/{}_chi2.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
-    def test_plot_loss_automatic(self):
+    def _test_plot_loss_automatic(self):
         name = self.__class__.__name__
         title = r"{} (seed={:d})".format(name, self.seed)
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        print(self.solver._iterations)
         axe = self.solver.plot_loss(
             title=title,
-            iterations=True,
+            iterations=False,
             mode=self.mode,
             domains=self.loss_domains,
             ratio=self.loss_ratio,

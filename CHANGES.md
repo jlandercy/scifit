@@ -26,7 +26,9 @@ SO ``curve-fitting`` tag:
 
 ## v0.1.6
 
- - [ ] New feature
+ - [ ] Changed store interface to make it more consistent with load 
+ - [ ] Adapted parameters domains to make loss figures more wide and interpretable
+ - [ ] Starting parameters iterations pathways on loss figures
 
 ## v0.1.5
 

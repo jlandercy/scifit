@@ -83,15 +83,30 @@ class FitSolverInterface:
         """
         return self._configuration | kwargs
 
-    def store(self, xdata, ydata, sigma=None):
+    def store(self, xdata=None, ydata=None, sigma=None, data=None):
         """
         Validate and store features (variables), target and target uncertainties.
 
-        :param xdata: Experimental features (variables) as a :code:`(n,m)` matrix
-        :param ydata: Experimental target as a :code:`(n,)` matrix
-        :param sigma: Experimental target uncertainties as :code:`(n,)` matrix
+        :param xdata: Features (variables) as a :code:`(n,m)` matrix
+        :param ydata: Target as a :code:`(n,)` matrix
+        :param sigma: Target uncertainties as :code:`(n,)` matrix
+        :param data: Full dataset including all xdata, ydata and sigma at once
         :raise: Exception :class:`scifit.errors.base.InputDataError` if validation fails
         """
+
+        # Partially import dataframe if provided, override with other fields
+        if data is not None:
+            if not isinstance(data, pd.DataFrame):
+                raise InputDataError(
+                    "Data must be of type DataFrame, got %s instead" % type(data)
+                )
+            if xdata is None:
+                xdata = data.filter(regex="^x[\d]+").values
+            if ydata is None:
+                ydata = data["y"].values
+            if sigma is None and "sy" in data.columns:
+                sigma = data["sy"].values
+
         xdata = np.array(xdata)
         ydata = np.array(ydata)
 
@@ -1099,7 +1114,7 @@ class FitSolverInterface:
 
         return data
 
-    def load(self, file_or_frame, sep=";", store=True):
+    def load(self, file_or_frame, sep=";", store=False):
         """
         Load and store data from frame or CSV file
         :param file_or_frame:
@@ -1132,12 +1147,7 @@ class FitSolverInterface:
         logger.info("Loaded file '%s' with shape %s" % (file_or_frame, data.shape))
 
         if store:
-            if "sy" in data.columns:
-                sigma = data["sy"]
-            else:
-                sigma = None
-
-            self.store(data.filter(regex="x").values, data["y"], sigma=sigma)
+            self.store(data=data)
 
         return data
 
