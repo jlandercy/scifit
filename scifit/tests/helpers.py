@@ -15,6 +15,7 @@ print_fit = bool(int(os.getenv("TESTS_PRINT_FIT", 1)))
 print_chi2 = bool(int(os.getenv("TESTS_PRINT_CHI2", 0)))
 print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 1)))
 print_loss_surface = bool(int(os.getenv("TESTS_PRINT_LOSS_SURFACE", 0)))
+print_loss_iterations = bool(int(os.getenv("TESTS_PRINT_LOSS_ITERATIONS", 1)))
 
 
 class GenericTestFitSolverInterface:
@@ -369,6 +370,10 @@ class GenericTestFitSolver:
         solution = self.solver.fit(self.xdata, self.ydata)
         domains = self.solver.parameter_domains(mode="log", xmin=1e-5, xmax=100.0)
 
+    def test_parameters_domain_from_iterations(self):
+        solution = self.solver.fit(self.xdata, self.ydata)
+        domains = self.solver.parameter_domains(iterations=True)
+
     def test_load_and_store(self):
         if self.data_path:
             data = self.solver.load(self.data_path, store=True)
@@ -519,11 +524,15 @@ class GenericTestFitSolver:
             name = self.__class__.__name__
             title = r"{} (seed={:d})".format(name, self.seed)
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+            if self.loss_domains is None:
+                domains = self.solver.parameter_domains(iterations=True)
+            else:
+                domains = self.loss_domains
             axe = self.solver.plot_loss(
                 title=title,
-                iterations=False,
+                iterations=print_loss_iterations,
                 mode=self.mode,
-                domains=self.loss_domains,
+                domains=domains,
                 ratio=self.loss_ratio,
                 factor=self.loss_factor,
                 log_x=self.loss_log_x,

@@ -959,6 +959,7 @@ class FitSolverInterface:
         precision=1e-9,
         include_origin=False,
         include_unit=False,
+        iterations=False,
     ):
         """
         Generate parameter domains, useful for drawing scales fitting the parameters space
@@ -972,45 +973,57 @@ class FitSolverInterface:
         ratio = ratio or (0.1 if mode == "lin" else 10.0)
         factor = factor or (5.0 if mode == "lin" else 2.0)
 
-        if parameters is None and self.fitted(error=True):
-            parameters = self._solution["parameters"]
+        if iterations:
 
-        if parameters is not None:
-            if mode == "lin":
-                xmin = xmin or list(parameters - factor * ratio * np.abs(parameters))
-                xmax = xmax or list(parameters + factor * ratio * np.abs(parameters))
+            domains = pd.DataFrame(self._iterations).describe()
+            domains.loc["extent", :] = domains.loc["max", :] - domains.loc["min", :]
+            domains.loc["min", :] -= ratio * domains.loc["extent", :]
+            domains.loc["max", :] += ratio * domains.loc["extent", :]
+            domains = domains.loc[["min", "max"], :]
 
-            elif mode == "log":
-                xmin = xmin or list(parameters / np.power(ratio, factor))
-                xmax = xmax or list(parameters * np.power(ratio, factor))
+        else:
 
-        xmin = xmin or precision
-        if not isinstance(xmin, Iterable):
-            xmin = [xmin] * self.k
+            if parameters is None and self.fitted(error=True):
+                parameters = self._solution["parameters"]
 
-        xmin = np.array(xmin)
-        if include_origin:
-            xmin[xmin >= 0.0] = 0.0
+            if parameters is not None:
+                if mode == "lin":
+                    xmin = xmin or list(parameters - factor * ratio * np.abs(parameters))
+                    xmax = xmax or list(parameters + factor * ratio * np.abs(parameters))
 
-        if len(xmin) != self.k:
-            raise ConfigurationError(
-                "Domain lower boundaries must have the same dimension as parameter space"
-            )
+                elif mode == "log":
+                    xmin = xmin or list(parameters / np.power(ratio, factor))
+                    xmax = xmax or list(parameters * np.power(ratio, factor))
 
-        xmax = xmax or 1.0
-        if not isinstance(xmax, Iterable):
-            xmax = [xmax] * self.k
+            xmin = xmin or precision
+            if not isinstance(xmin, Iterable):
+                xmin = [xmin] * self.k
 
-        xmax = np.array(xmax)
-        if include_unit:
-            xmax[xmax <= 1.0] = 1.0
+            xmin = np.array(xmin)
+            if include_origin:
+                xmin[xmin >= 0.0] = 0.0
 
-        if len(xmax) != self.k:
-            raise ConfigurationError(
-                "Domain upper boundaries must have the same dimension as parameter space"
-            )
+            if len(xmin) != self.k:
+                raise ConfigurationError(
+                    "Domain lower boundaries must have the same dimension as parameter space"
+                )
 
-        return pd.DataFrame([xmin, xmax], index=["min", "max"])
+            xmax = xmax or 1.0
+            if not isinstance(xmax, Iterable):
+                xmax = [xmax] * self.k
+
+            xmax = np.array(xmax)
+            if include_unit:
+                xmax[xmax <= 1.0] = 1.0
+
+            if len(xmax) != self.k:
+                raise ConfigurationError(
+                    "Domain upper boundaries must have the same dimension as parameter space"
+                )
+
+            domains =pd.DataFrame([xmin, xmax], index=["min", "max"])
+
+        return domains
 
     def parameter_scales(
         self,

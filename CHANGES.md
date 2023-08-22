@@ -33,6 +33,7 @@ SO ``curve-fitting`` tag:
  - [x] Adapted how automatic parameter domains are computed
  - [x] Adapted parameters domains to make loss figures more wide and interpretable
  - [x] Starting parameters iterations pathways on loss figures
+ - [x] Added parameters domain from gradient descent iterations
 
 ## v0.1.5
 
