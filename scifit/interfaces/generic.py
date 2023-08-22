@@ -957,8 +957,8 @@ class FitSolverInterface:
         ratio=None,
         factor=None,
         precision=1e-9,
-        include_origin=True,
-        include_unit=True,
+        include_origin=False,
+        include_unit=False,
     ):
         """
         Generate parameter domains, useful for drawing scales fitting the parameters space
@@ -1020,8 +1020,8 @@ class FitSolverInterface:
         xmax=None,
         ratio=None,
         factor=None,
-        include_origin=True,
-        include_unit=True,
+        include_origin=False,
+        include_unit=False,
         resolution=100,
     ):
         """
@@ -1461,8 +1461,8 @@ class FitSolverInterface:
         resolution=75,
         surface=False,
         iterations=False,
-        include_origin=True,
-        include_unit=True,
+        include_origin=False,
+        include_unit=False,
         add_labels=True,
         add_title=True,
         log_x=False,
@@ -1670,8 +1670,8 @@ class FitSolverInterface:
         levels=None,
         resolution=75,
         iterations=False,
-        include_origin=True,
-        include_unit=True,
+        include_origin=False,
+        include_unit=False,
         log_x=False,
         log_y=False,
         log_loss=False,
