@@ -218,3 +218,50 @@ class HillEquationFitSolver(FitSolverInterface):
         """
         term = k * np.power(x[:, 0], n)
         return term / (1 + term)
+
+
+class GaussianPeakFitSolver(FitSolverInterface):
+    """
+    `Gaussian function model (calculus) <https://en.wikipedia.org/wiki/Gaussian_function>`_
+    """
+
+    @staticmethod
+    def model(x, H, sigma, x0):
+        """
+        Gaussian function is defined as follows:
+
+        .. math::
+
+            y = H \\exp\\left[- \\frac{1}{2} \\cdot \\left(\\frac{(x - x_0)}{\\sigma}\\right)^2\\right]
+
+        :param x: independent variable :math:`x`
+        :param H: Peak height
+        :param sigma: Peak width factor
+        :param x0: Peak displacement :math:`x_0`
+        :return: Gaussian peak :math:`y`
+        """
+        return H*np.exp(-0.5 * np.power((x[:, 0] - x0)/sigma, 2))
+
+
+class GaussianPeakWithBaselineFitSolver(FitSolverInterface):
+    """
+    Gaussian peak with baseline
+    """
+
+    @staticmethod
+    def model(x, H, sigma, x0, a, b):
+        """
+        Gaussian function is defined as follows:
+
+        .. math::
+
+            y = a x + b + H \\exp\\left[- \\frac{1}{2} \\cdot \\left(\\frac{(x - x_0)}{\\sigma}\\right)^2\\right]
+
+        :param x: independent variable :math:`x`
+        :param H: Peak height
+        :param sigma: Peak width factor
+        :param x0: Peak displacement :math:`x_0`
+        :return: Gaussian peak :math:`y`
+        """
+        return H*np.exp(-0.5 * np.power((x[:, 0] - x0)/sigma, 2)) + a * x[:, 0] + b
+

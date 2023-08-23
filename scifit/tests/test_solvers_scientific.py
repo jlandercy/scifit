@@ -341,3 +341,65 @@ class DoubleInverseBoxCoxSigmoidRegressionNoiseL2(
     DoubleInverseBoxCoxSigmoidRegression, TestCase
 ):
     sigma = 1e-1
+
+
+class GaussianPeakRegression(GenericLinearRegression):
+    factory = scientific.GaussianPeakFitSolver
+    configuration = {"p0": (500., 5., 20.)}
+    parameters = np.array([450.3, 1.23, 15.7])
+    xmin = 0.0
+    xmax = 30.0
+    resolution = 120
+    #loss_domains = pd.DataFrame({"min": [0.1]*2, "max": [0.9]*2}).T
+
+    def test_fit_from_synthetic_dataset(self):
+        pass
+
+
+class GaussianPeakRegressionNoiseL0(
+    GaussianPeakRegression, TestCase
+):
+    sigma = 1e-6
+
+
+class GaussianPeakRegressionNoiseL1(
+    GaussianPeakRegression, TestCase
+):
+    sigma = 2.5e-2
+
+
+class GaussianPeakRegressionNoiseL2(
+    GaussianPeakRegression, TestCase
+):
+    sigma = 1e-1
+
+
+class GaussianPeakWithBaselineRegression(GenericLinearRegression):
+    factory = scientific.GaussianPeakWithBaselineFitSolver
+    configuration = {"p0": (500., 5., 20., 10, 100)}
+    parameters = np.array([450.3, 1.23, 15.7, 3.58, 89.7])
+    xmin = 0.0
+    xmax = 30.0
+    resolution = 120
+    #loss_domains = pd.DataFrame({"min": [0.1]*2, "max": [0.9]*2}).T
+
+    def test_fit_from_synthetic_dataset(self):
+        pass
+
+
+class GaussianPeakWithBaselineRegressionNoiseL0(
+    GaussianPeakWithBaselineRegression, TestCase
+):
+    sigma = 1e-6
+
+
+class GaussianPeakWithBaselineRegressionNoiseL1(
+    GaussianPeakWithBaselineRegression, TestCase
+):
+    sigma = 2.5e-2
+
+
+class GaussianPeakWithBaselineRegressionNoiseL2(
+    GaussianPeakWithBaselineRegression, TestCase
+):
+    sigma = 1e-1

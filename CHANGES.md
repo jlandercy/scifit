@@ -8,8 +8,6 @@
    - [ ] Mechanics
    - [ ] Gradient recovery
    - [ ] Distribution fit
- - [ ] Print parameters in scientific format if too small or too large
- - [ ] Take time to refactor load and store to make it compliant with workflow
 
 SO ``curve-fitting`` tag:
 
@@ -27,6 +25,7 @@ SO ``curve-fitting`` tag:
 
  - [x] Regex to adapt requirements and remove windows dev traces
  - [x] Added smart display for parameters
+ - [x] Added Gaussian Peak model
 
 ## v0.1.7-8
 

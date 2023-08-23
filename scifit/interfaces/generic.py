@@ -1225,7 +1225,7 @@ class FitSolverInterface:
                         np.sqrt(self._solution["covariance"][i][i])
                     )
                 terms.append(term)
-            return r"$\beta$ = ({})".format("; ".join(terms))
+            return r"$\beta \pm s_{{\beta}}$ = ({})".format("; ".join(terms))
 
     def get_title(self):
         """

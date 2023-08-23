@@ -13,7 +13,7 @@ from scifit.interfaces.generic import FitSolverInterface
 # Tests setup:
 print_fit = bool(int(os.getenv("TESTS_PRINT_FIT", 1)))
 print_chi2 = bool(int(os.getenv("TESTS_PRINT_CHI2", 0)))
-print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 0)))
+print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 1)))
 print_loss_surface = bool(int(os.getenv("TESTS_PRINT_LOSS_SURFACE", 0)))
 print_loss_iterations = bool(int(os.getenv("TESTS_PRINT_LOSS_ITERATIONS", 1)))
 
@@ -421,7 +421,7 @@ class GenericTestFitSolver:
                 parameters,
                 solution["parameters"],
                 atol=1e-6,
-                rtol=10 * (self.sigma or 1e-4),
+                rtol=10. * (self.sigma or 1e-4),
             )
         )
 
