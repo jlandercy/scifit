@@ -13,9 +13,9 @@ from scifit.interfaces.generic import FitSolverInterface
 # Tests setup:
 print_fit = bool(int(os.getenv("TESTS_PRINT_FIT", 1)))
 print_chi2 = bool(int(os.getenv("TESTS_PRINT_CHI2", 0)))
-print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 0)))
-print_loss_surface = bool(int(os.getenv("TESTS_PRINT_LOSS_SURFACE", 0)))
-print_loss_iterations = bool(int(os.getenv("TESTS_PRINT_LOSS_ITERATIONS", 1)))
+print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 1)))
+print_loss_surface = bool(int(os.getenv("TESTS_PRINT_LOSS_SURFACE", 1)))
+print_loss_iterations = bool(int(os.getenv("TESTS_PRINT_LOSS_ITERATIONS", 0)))
 
 
 class GenericTestFitSolverInterface:
@@ -239,8 +239,14 @@ class GenericTestFitSolver:
 
     def test_model_fit_stored_fields(self):
         solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        for key in ["_xdata", "_ydata", "_solution", "_yhat", "_score"]:
+        for key in self.solver._data_keys + self.solver._result_keys:
             self.assertTrue(hasattr(self.solver, key))
+
+    def test_clean_stored_fields(self):
+        solution = self.solver.store(self.xdata, self.ydata, sigma=self.sigmas)
+        self.solver.clean_results()
+        for key in self.solver._result_keys:
+            self.assertFalse(hasattr(self.solver, key))
 
     def test_parameter_domains_size(self):
         domains = self.solver.parameter_domains(
@@ -525,7 +531,7 @@ class GenericTestFitSolver:
             title = r"{} (seed={:d})".format(name, self.seed)
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
             if self.loss_domains is None:
-                domains = self.solver.parameter_domains(iterations=True)
+                domains = self.solver.parameter_domains(iterations=print_loss_iterations)
             else:
                 domains = self.loss_domains
             axe = self.solver.plot_loss(

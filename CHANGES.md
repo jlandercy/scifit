@@ -8,6 +8,7 @@
    - [ ] Mechanics
    - [ ] Gradient recovery
    - [ ] Distribution fit
+ - [ ] Rethink how load, store and fit should work together
 
 SO ``curve-fitting`` tag:
 
@@ -29,7 +30,8 @@ SO ``curve-fitting`` tag:
  - [x] Added Exponential Modified Gaussian Peak model
  - [x] Added Linear Squared Slope model (ill-defined)
 
-## v0.1.7-8
+## v0.1.8
+## v0.1.7
 
  - [x] Added Docker GitHub Action workflow to compile documentation
 

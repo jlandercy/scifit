@@ -65,6 +65,9 @@ class FitSolverInterface:
     Which defines a simple linear regression that can be fitted to experimental data.
     """
 
+    _data_keys = ["_xdata", "_ydata", "_sigma"]
+    _result_keys = ["_solution", "_minimize", "_yhat", "_loss", "_score", "_gof"]
+
     def __init__(self, **kwargs):
         """
         Create a new instance of :class:`FitSolverInterface` and store parameters to pass them to :py:mod:`scipy`
@@ -82,6 +85,10 @@ class FitSolverInterface:
         :return: Dictionary of parameters
         """
         return self._configuration | kwargs
+
+    def clean_results(self):
+        for key in self._result_keys:
+            self.__dict__.pop(key, None)
 
     def store(self, xdata=None, ydata=None, sigma=None, data=None):
         """
@@ -795,7 +802,7 @@ class FitSolverInterface:
 
         return wrapped
 
-    def fit(self, xdata=None, ydata=None, sigma=None, **kwargs):
+    def fit(self, xdata=None, ydata=None, sigma=None, data=None, **kwargs):
         """
         Fully solve the fitting problem for the given model and input data.
         This method stores input data and fit results. It assesses loss function over parameter neighborhoods,
@@ -810,7 +817,7 @@ class FitSolverInterface:
         """
 
         if not self.stored(error=False):
-            self.store(xdata, ydata, sigma=sigma)
+            self.store(xdata=xdata, ydata=ydata, sigma=sigma, data=data)
 
         self._solution = self.solve(
             self._xdata, self._ydata, sigma=self._sigma, **kwargs
