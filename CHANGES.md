@@ -26,6 +26,7 @@ SO ``curve-fitting`` tag:
 
 ## v0.1.7
 
+ - [x] Added Docker GitHub Action workflow to compile documentation
 
 ## v0.1.6
 

@@ -1,4 +1,4 @@
-name: Quality
+name: Quality & Docs Workflow
 
 on:
   push:
@@ -13,14 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: "jlandercy/pyqual:1.0"
-#      env:
-#        NODE_ENV: development
-#      ports:
-#        - 80
-#      volumes:
-#        - my_docker_volume:/volume_mount
-#      options: --cpus 1
-
 
     steps:
 
@@ -41,9 +33,9 @@ jobs:
 
       - name: Unit tests suite
         env:
-          TESTS_PRINT_FIT: 1
+          TESTS_PRINT_FIT: 0
           TESTS_PRINT_CHI2: 0
-          TESTS_PRINT_LOSS_CONTOUR: 1
+          TESTS_PRINT_LOSS_CONTOUR: 0
           TESTS_PRINT_LOSS_SURFACE: 0
         run: |
           nox --session tests
