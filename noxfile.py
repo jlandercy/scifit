@@ -91,7 +91,7 @@ def build_dev(session):
 
     # Clean requirements:
     file_sub(file, "==", ">=")
-    file_sub(file, "pywin32>=.*\r\n", "\r\n")
+    file_sub(file, "pywin.*\r\n", "\r\n")
 
     report = reports_path / "build.log"
     with report.open("w") as handler:
