@@ -1212,7 +1212,7 @@ class FitSolverInterface:
         data.iloc[-1, 5] = None
         return data
 
-    def get_latex_parameters(self, show_sigma=True, precision=3, mode="f"):
+    def get_latex_parameters(self, show_sigma=True, precision=3, mode="g"):
         """
         Return parameters in a compact LaTeX fashion, useful for figure title
         """
@@ -1221,13 +1221,11 @@ class FitSolverInterface:
             for i, parameter in enumerate(self._solution["parameters"]):
                 term = ("{:.%d%s}" % (precision, mode)).format(parameter)
                 if show_sigma:
-                    term += (r" \pm {:.%d%s}" % (precision, mode)).format(
+                    term += (" \xb1 {:.%d%s}" % (precision, mode)).format(
                         np.sqrt(self._solution["covariance"][i][i])
                     )
-                # if i % 4 == 0:
-                #     term += "\n"
                 terms.append(term)
-            return r"$\beta = ({})$".format(", ".join(terms))
+            return r"$\beta$ = ({})".format("; ".join(terms))
 
     def get_title(self):
         """

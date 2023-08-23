@@ -26,6 +26,7 @@ SO ``curve-fitting`` tag:
 ## v0.1.9
 
  - [x] Regex to adapt requirements and remove windows dev traces
+ - [x] Added smart display for parameters
 
 ## v0.1.7-8
 
