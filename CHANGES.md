@@ -23,8 +23,11 @@ SO ``curve-fitting`` tag:
  - https://stackoverflow.com/questions/63637144/python-rayleigh-fit-histogram/63646040#63646040
 
 
+## v0.1.9
 
-## v0.1.7
+ - [x] Regex to adapt requirements and remove windows dev traces
+
+## v0.1.7-8
 
  - [x] Added Docker GitHub Action workflow to compile documentation
 

@@ -21,6 +21,16 @@ reports_path = pathlib.Path(nox.options.envdir) / 'reports'
 reports_path.mkdir(exist_ok=True)
 
 
+def file_sub(file, pattern, replacement):
+    """Clean file with regular expression"""
+    regex = re.compile(pattern)
+    with open(file, "r") as handler:
+        original = handler.read()
+    substituted = regex.sub(replacement, original)
+    with open(file, "w") as handler:
+        handler.write(substituted)
+
+
 # Sessions:
 
 @nox.session
@@ -57,10 +67,13 @@ def install(session):
 @nox.session
 def build(session):
     """Package builder"""
-
-    report = reports_path / "requirements_ci.txt"
+    file = "requirements.txt"
+    report = reports_path / file
     with report.open("w") as handler:
-        session.run("pip-compile", "pyproject.toml", "--output-file", "requirements.txt", stdout=handler)
+        session.run("pip-compile", "pyproject.toml", "--output-file", file, stdout=handler)
+
+    # Clean requirements:
+    file_sub(file, "==", ">=")
 
     report = reports_path / "build.log"
     with report.open("w") as handler:
@@ -71,9 +84,14 @@ def build(session):
 def build_dev(session):
     """Package builder (dev)"""
 
-    report = reports_path / "requirements.txt"
+    file = "requirements_ci.txt"
+    report = reports_path / file
     with report.open("w") as handler:
-        session.run("pip-compile", "--extra", "dev", "pyproject.toml", "--output-file", "requirements_ci.txt", stdout=handler)
+        session.run("pip-compile", "--extra", "dev", "pyproject.toml", "--output-file", file, stdout=handler)
+
+    # Clean requirements:
+    file_sub(file, "==", ">=")
+    file_sub(file, "pywin32>=.*\r\n", "\r\n")
 
     report = reports_path / "build.log"
     with report.open("w") as handler:
