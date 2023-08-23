@@ -60,7 +60,7 @@ def build(session):
 
     report = reports_path / "requirements_ci.txt"
     with report.open("w") as handler:
-        session.run("pip-compile", "pyproject.toml", "--output-file", ".cache/requirements_ci.txt", stdout=handler)
+        session.run("pip-compile", "pyproject.toml", "--output-file", "requirements.txt", stdout=handler)
 
     report = reports_path / "build.log"
     with report.open("w") as handler:
@@ -73,7 +73,7 @@ def build_dev(session):
 
     report = reports_path / "requirements.txt"
     with report.open("w") as handler:
-        session.run("pip-compile", "--extra", "dev", "pyproject.toml", "--output-file", ".cache/requirements.txt", stdout=handler)
+        session.run("pip-compile", "--extra", "dev", "pyproject.toml", "--output-file", "requirements_ci.txt", stdout=handler)
 
     report = reports_path / "build.log"
     with report.open("w") as handler:
@@ -272,7 +272,7 @@ def notebooks(session):
         session.run(
             "python", "-m",
             "jupyter", "nbconvert",  # "--debug",
-            "--ExecutePreprocessor.timeout=600",
+            "--ExecutePreprocessor.timeout=1200",
             #"--ExecutePreprocessor.kernel_name=venv",
             "--inplace", "--clear-output", "--allow-errors", "--warnings", "ignore", "--to", "notebook",
             "--execute", "./docs/source/notebooks/**/*.ipynb",

@@ -83,15 +83,30 @@ class FitSolverInterface:
         """
         return self._configuration | kwargs
 
-    def store(self, xdata, ydata, sigma=None):
+    def store(self, xdata=None, ydata=None, sigma=None, data=None):
         """
         Validate and store features (variables), target and target uncertainties.
 
-        :param xdata: Experimental features (variables) as a :code:`(n,m)` matrix
-        :param ydata: Experimental target as a :code:`(n,)` matrix
-        :param sigma: Experimental target uncertainties as :code:`(n,)` matrix
+        :param xdata: Features (variables) as a :code:`(n,m)` matrix
+        :param ydata: Target as a :code:`(n,)` matrix
+        :param sigma: Target uncertainties as :code:`(n,)` matrix
+        :param data: Full dataset including all xdata, ydata and sigma at once
         :raise: Exception :class:`scifit.errors.base.InputDataError` if validation fails
         """
+
+        # Partially import dataframe if provided, override with other fields
+        if data is not None:
+            if not isinstance(data, pd.DataFrame):
+                raise InputDataError(
+                    "Data must be of type DataFrame, got %s instead" % type(data)
+                )
+            if xdata is None:
+                xdata = data.filter(regex="^x[\d]+").values
+            if ydata is None:
+                ydata = data["y"].values
+            if sigma is None and "sy" in data.columns:
+                sigma = data["sy"].values
+
         xdata = np.array(xdata)
         ydata = np.array(ydata)
 
@@ -115,9 +130,21 @@ class FitSolverInterface:
         if isinstance(sigma, Iterable):
             sigma = np.array(sigma)
             if sigma.shape != ydata.shape:
-                raise InputDataError("Sigma as array must have the same shape as ydata")
+                raise InputDataError(
+                    "Sigma as array must have the same shape as ydata %s, got %s instead"
+                    % (ydata.shape, sigma.shape)
+                )
+            if not np.issubdtype(sigma.dtype, np.number):
+                raise InputDataError(
+                    "All sigma must be numbers, got '%s' instead: %s"
+                    % (sigma.dtype, sigma)
+                )
+            if not np.all(np.isfinite(sigma)):
+                raise InputDataError("All sigma must be finite numbers: %s" % sigma)
             if not np.all(sigma > 0.0):
-                raise InputDataError("All sigma must be strictly positive")
+                raise InputDataError(
+                    "All sigma must be strictly positive numbers: %s" % sigma
+                )
         elif isinstance(sigma, numbers.Number):
             if sigma <= 0.0:
                 raise InputDataError("Sigma must be strictly positive")
@@ -214,7 +241,6 @@ class FitSolverInterface:
         if sigma is not None:
             if isinstance(sigma, Iterable):
                 sigma = np.array(sigma)
-
             else:
                 sigma = np.full(yref.shape, sigma)
 
@@ -342,6 +368,8 @@ class FitSolverInterface:
         :return: Dictionary of objects with details about the regression including regressed parameters and final covariance
         """
 
+        kwargs = self.configuration(**kwargs)
+
         # Adapt signature for single number:
         if isinstance(sigma, numbers.Number):
             sigma = np.full(ydata.shape, float(sigma))
@@ -355,7 +383,7 @@ class FitSolverInterface:
             full_output=True,
             check_finite=True,
             nan_policy="raise",
-            **self.configuration(**kwargs),
+            **kwargs,
         )
 
         return {
@@ -371,7 +399,7 @@ class FitSolverInterface:
     def minimize_callback(result):
         pass
 
-    def minimize(self, xdata, ydata, sigma=None, p0=None, **kwargs):
+    def minimize(self, xdata, ydata, sigma=None, **kwargs):
         """
         Solve the fitting problem by finding a set of parameters minimizing the loss function wrt features, target and sigma.
         Return structured solution and update solver object in order to expose analysis convenience (fit, loss).
@@ -383,7 +411,10 @@ class FitSolverInterface:
         :return: Dictionary of objects with details about the regression including regressed parameters and final covariance
         """
 
+        kwargs = self.configuration(**kwargs)
+
         # Adapt default parameters as curve_fit
+        p0 = kwargs.pop("p0", None)
         if p0 is None:
             p0 = np.full((self.k,), 1.0)
 
@@ -399,7 +430,7 @@ class FitSolverInterface:
             self._iterations.append(result)
             self.minimize_callback(result)
 
-        self._iterations = []
+        self._iterations = [p0]
         solution = optimize.minimize(
             loss, x0=p0, method="L-BFGS-B", jac="3-point", callback=callback, **kwargs
         )
@@ -780,9 +811,11 @@ class FitSolverInterface:
         self._solution = self.solve(
             self._xdata, self._ydata, sigma=self._sigma, **kwargs
         )
-        # self._minimize = self.minimize(
-        #     self._xdata, self._ydata, sigma=self._sigma, **kwargs
-        # )
+
+        # Check and regression pathway:
+        self._minimize = self.minimize(
+            self._xdata, self._ydata, sigma=self._sigma, **kwargs
+        )
 
         self._yhat = self.predict(self._xdata)
         self._loss = self.loss(self._xdata, self._ydata, sigma=self._sigma)
@@ -921,8 +954,12 @@ class FitSolverInterface:
         mode="lin",
         xmin=None,
         xmax=None,
-        ratio=10.0,
-        factor=3.0,
+        ratio=None,
+        factor=None,
+        precision=1e-9,
+        include_origin=False,
+        include_unit=False,
+        iterations=False,
     ):
         """
         Generate parameter domains, useful for drawing scales fitting the parameters space
@@ -933,47 +970,85 @@ class FitSolverInterface:
                 "Domain mode must be in {lin, log} got '%s' instead" % mode
             )
 
-        if parameters is None and self.fitted(error=True):
-            parameters = self._solution["parameters"]
+        ratio = ratio or (0.1 if mode == "lin" else 10.0)
+        factor = factor or (5.0 if mode == "lin" else 2.0)
 
-        if parameters is not None:
-            if mode == "lin":
-                xmin = xmin or list(parameters - factor * ratio * np.abs(parameters))
-                xmax = xmax or list(parameters + factor * ratio * np.abs(parameters))
+        if iterations:
 
-            elif mode == "log":
-                xmin = xmin or list(parameters / np.power(ratio, factor))
-                xmax = xmax or list(parameters * np.power(ratio, factor))
+            domains = pd.DataFrame(self._iterations).describe()
+            domains.loc["extent", :] = domains.loc["max", :] - domains.loc["min", :]
+            domains.loc["min", :] -= ratio * domains.loc["extent", :]
+            domains.loc["max", :] += ratio * domains.loc["extent", :]
+            domains = domains.loc[["min", "max"], :]
 
-        xmin = xmin or 0.0
-        if not isinstance(xmin, Iterable):
-            xmin = [xmin] * self.k
+        else:
 
-        if len(xmin) != self.k:
-            raise ConfigurationError(
-                "Domain lower boundaries must have the same dimension as parameter space"
-            )
+            if parameters is None and self.fitted(error=True):
+                parameters = self._solution["parameters"]
 
-        xmax = xmax or 1.0
-        if not isinstance(xmax, Iterable):
-            xmax = [xmax] * self.k
+            if parameters is not None:
+                if mode == "lin":
+                    xmin = xmin or list(parameters - factor * ratio * np.abs(parameters))
+                    xmax = xmax or list(parameters + factor * ratio * np.abs(parameters))
 
-        if len(xmax) != self.k:
-            raise ConfigurationError(
-                "Domain upper boundaries must have the same dimension as parameter space"
-            )
+                elif mode == "log":
+                    xmin = xmin or list(parameters / np.power(ratio, factor))
+                    xmax = xmax or list(parameters * np.power(ratio, factor))
 
-        return pd.DataFrame([xmin, xmax], index=["min", "max"])
+            xmin = xmin or precision
+            if not isinstance(xmin, Iterable):
+                xmin = [xmin] * self.k
+
+            xmin = np.array(xmin)
+            if include_origin:
+                xmin[xmin >= 0.0] = 0.0
+
+            if len(xmin) != self.k:
+                raise ConfigurationError(
+                    "Domain lower boundaries must have the same dimension as parameter space"
+                )
+
+            xmax = xmax or 1.0
+            if not isinstance(xmax, Iterable):
+                xmax = [xmax] * self.k
+
+            xmax = np.array(xmax)
+            if include_unit:
+                xmax[xmax <= 1.0] = 1.0
+
+            if len(xmax) != self.k:
+                raise ConfigurationError(
+                    "Domain upper boundaries must have the same dimension as parameter space"
+                )
+
+            domains =pd.DataFrame([xmin, xmax], index=["min", "max"])
+
+        return domains
 
     def parameter_scales(
-        self, domains=None, mode="lin", xmin=None, xmax=None, ratio=0.1, resolution=100
+        self,
+        domains=None,
+        mode="lin",
+        xmin=None,
+        xmax=None,
+        ratio=None,
+        factor=None,
+        include_origin=False,
+        include_unit=False,
+        resolution=100,
     ):
         """
         Generate parameter scales
         """
         if domains is None:
             domains = self.parameter_domains(
-                mode=mode, xmin=xmin, xmax=xmax, ratio=ratio
+                mode=mode,
+                xmin=xmin,
+                xmax=xmax,
+                ratio=ratio,
+                factor=factor,
+                include_origin=include_origin,
+                include_unit=include_unit,
             )
         return self.scales(domains=domains, resolution=resolution)
 
@@ -993,6 +1068,149 @@ class FitSolverInterface:
                 resolution=resolution,
             )
         )
+
+    def dataset(self):
+        """
+        Return experimental data as a DataFrame
+
+        :return: Pandas DataFrame containing all experimental data
+        """
+
+        if self.stored(error=True):
+            data = pd.DataFrame(self._xdata)
+            data.columns = data.columns.map(lambda x: "x%d" % x)
+
+            extra = {"y": self._ydata}
+            if self._sigma is not None:
+                extra["sy"] = self._sigma
+
+            if self.fitted(error=False):
+                extra["yhat"] = self._yhat
+
+            extra = pd.DataFrame(extra)
+            data = pd.concat([data, extra], axis=1)
+
+            if self.fitted(error=False):
+                data["yerr"] = data["y"] - data["yhat"]
+                data["yerrrel"] = data["yerr"] / data["yhat"]
+                data["yerrabs"] = np.abs(data["yerr"])
+                data["yerrsqr"] = np.power(data["yerr"], 2)
+
+            if self._sigma is not None and self.fitted(error=False):
+                data["chi2"] = ((data["y"] - data["yhat"]) / data["sy"]) ** 2
+
+            data.index = data.index.values + 1
+            data.index.name = "id"
+
+            return data
+
+    def synthetic_dataset(
+        self,
+        xdata=None,
+        parameters=None,
+        dimension=1,
+        mode="lin",
+        xmin=-1.0,
+        xmax=1.0,
+        resolution=30,
+        sigma=None,
+        scale_mode="abs",
+        generator=np.random.normal,
+        seed=1234,
+        **kwargs,
+    ):
+        target = self.target_dataset(
+            xdata=xdata,
+            parameters=parameters,
+            dimension=dimension,
+            mode=mode,
+            xmin=xmin,
+            xmax=xmax,
+            resolution=resolution,
+            sigma=sigma,
+            scale_mode=scale_mode,
+            generator=generator,
+            seed=seed,
+            **kwargs,
+            full_output=True,
+        )
+
+        x = target.pop("x")
+        data = pd.DataFrame(x)
+        data.columns = data.columns.map(lambda x: "x%d" % x)
+
+        p = target.pop("parameters")
+        target = pd.DataFrame(target)
+
+        data = pd.concat([data, target], axis=1)
+        data.index = data.index.values + 1
+        data.index.name = "id"
+
+        return data
+
+    def load(self, file_or_frame, sep=";", store=False):
+        """
+        Load and store data from frame or CSV file
+        :param file_or_frame:
+        :param mode:
+        :param sep:
+        :param store:
+        :return:
+        """
+
+        if isinstance(file_or_frame, pd.DataFrame):
+            data = file_or_frame
+        else:
+            data = pd.read_csv(file_or_frame, sep=sep)
+
+        subset = data.filter(regex="^x")
+        if subset.shape[1] == 0:
+            raise ConfigurationError("Data must contains at least one 'x' column")
+
+        subset = data.filter(regex="^y$")
+        if subset.shape[1] != 1:
+            raise ConfigurationError("Data must contains a single 'y' column")
+
+        if "id" in data.columns:
+            data = data.set_index("id")
+        else:
+            if data.index.name != "id":
+                data.index = data.index.values + 1
+                data.index.name = "id"
+
+        logger.info("Loaded file '%s' with shape %s" % (file_or_frame, data.shape))
+
+        if store:
+            self.store(data=data)
+
+        return data
+
+    def dump(self, file_or_frame, data=None, summary=False):
+        """
+        Dump dataset into CSV
+        :param file_or_frame:
+        :param data:
+        :param summary:
+        :return:
+        """
+        if data is None:
+            data = self.dataset()
+        if summary:
+            data = self.summary(data=data)
+        data.to_csv(file_or_frame, sep=";", index=True)
+
+    def summary(self, data=None):
+        """
+        Add summary row for LaTeX display
+        :param data:
+        :return: DataFrame
+        """
+        if data is None:
+            data = self.dataset()
+        data.loc[r""] = data.sum()
+        data.iloc[-1, :-5] = None
+        data.iloc[-1, 5] = None
+        return data
 
     def get_latex_parameters(self, show_sigma=True, precision=3, mode="f"):
         """
@@ -1163,7 +1381,7 @@ class FitSolverInterface:
             else:
                 pass
 
-    def plot_chi_square(self, title="", resolution=100):
+    def plot_chi_square(self, title="", resolution=120):
         """
         Plot Chi Square Goodness of Fit figure, summarizes all critical thresholds and p-value
 
@@ -1181,8 +1399,10 @@ class FitSolverInterface:
 
             law = self._gof["law"]
             statistic = self._gof["statistic"]
-            xlin = np.linspace(law.ppf(0.0001), law.ppf(0.9999), resolution)
-            xarea = np.linspace(statistic, law.ppf(0.9999), resolution)
+            xmin = min(law.ppf(0.0001), statistic - 1)
+            xmax = max(law.ppf(0.9999), statistic + 1)
+            xlin = np.linspace(xmin, xmax, resolution)
+            xarea = np.linspace(statistic, xmax, resolution)
 
             fig, axe = plt.subplots()
 
@@ -1244,7 +1464,9 @@ class FitSolverInterface:
         second_index=None,
         axe=None,
         mode="lin",
-        ratio=0.1,
+        domains=None,
+        ratio=None,
+        factor=None,
         xmin=None,
         xmax=None,
         title="",
@@ -1252,6 +1474,8 @@ class FitSolverInterface:
         resolution=75,
         surface=False,
         iterations=False,
+        include_origin=False,
+        include_unit=False,
         add_labels=True,
         add_title=True,
         log_x=False,
@@ -1276,13 +1500,24 @@ class FitSolverInterface:
                     fig, axe = plt.subplots()
             fig = axe.figure
 
-            full_title = "Fit Loss Plot: {}\n{}".format(title, self.get_title())
+            full_title = "Fit {}Loss Plot: {}\n{}".format(
+                "Log-" if log_loss else "", title, self.get_title()
+            )
 
             scales = self.parameter_scales(
-                mode=mode, ratio=ratio, xmin=xmin, xmax=xmax, resolution=resolution
+                mode=mode,
+                domains=domains,
+                ratio=ratio,
+                factor=factor,
+                xmin=xmin,
+                xmax=xmax,
+                resolution=resolution,
+                include_origin=include_origin,
+                include_unit=include_unit,
             )
 
             if self.k == 1 or (first_index is not None and second_index is None):
+
                 first_index = first_index or 0
                 p0 = self._solution["parameters"]
                 parameters = list(p0)
@@ -1302,19 +1537,20 @@ class FitSolverInterface:
                 )
 
                 if iterations and hasattr(self, "_iterations"):
+                    xiter = self._iterations.reshape(-1, 1)
                     axe.plot(
-                        self._iterations.reshape(-1, 1),
-                        loss(self._iterations.reshape(-1, 1)),
-                        linestyle="-",
+                        xiter,
+                        loss(xiter),
+                        linestyle=":",
                         marker="o",
-                        color="black",
-                        linewidth=0.75,
-                        markersize=2,
+                        color="darkgray",
+                        #linewidth=0.75,
+                        markersize=4,
                     )
 
                 axe.scatter(p0, loss(*p0))
 
-                if hasattr(self, "_minimize"):
+                if iterations and hasattr(self, "_minimize"):
                     axe.scatter(
                         self._minimize["parameters"],
                         loss(*self._minimize["parameters"]),
@@ -1322,14 +1558,18 @@ class FitSolverInterface:
 
                 if add_labels:
                     axe.set_xlabel(r"Parameter, $\beta_{{{}}}$".format(first_index + 1))
-                    label = r"Loss, $\rho(\beta_{{{}}})$".format(first_index + 1)
-                    if log_loss:
-                        label = "Log-" + label
+                    label = r"{}Loss, $\rho(\beta_{{{}}})$".format(
+                        "Log-" if log_loss else "", first_index + 1
+                    )
                     axe.set_ylabel(label)
+
+                if domains is not None:
+                    axe.set_xlim(domains.loc[["min", "max"], first_index])
 
                 axe._pair_indices = (first_index, first_index)
 
             elif self.k == 2 or (first_index is not None and second_index is not None):
+
                 first_index = first_index or 0
                 second_index = second_index or 1
 
@@ -1357,9 +1597,17 @@ class FitSolverInterface:
                         x, y, loss, cmap="jet", rstride=1, cstride=1, alpha=0.50
                     )
                     axe.contour(
-                        x, y, loss, zdir="z", offset=ploss, levels=10, cmap="jet"
+                        x,
+                        y,
+                        loss,
+                        zdir="z",
+                        offset=ploss,
+                        levels=levels or 10,
+                        cmap="jet",
                     )
-                    axe.set_zlabel(r"Loss, $\rho(\beta)$")
+                    axe.set_zlabel(
+                        r"{}Loss, $\rho(\beta)$".format("Log-" if log_loss else "")
+                    )
 
                 else:
                     # Contours
@@ -1377,15 +1625,15 @@ class FitSolverInterface:
                         linestyle="-.",
                     )
 
-                    if iterations and hasattr(self, "_iteration"):
+                    if iterations and hasattr(self, "_iterations"):
                         axe.plot(
                             self._iterations[:, first_index].reshape(-1, 1),
                             self._iterations[:, second_index].reshape(-1, 1),
-                            linestyle="-",
+                            linestyle=":",
                             marker="o",
-                            color="black",
-                            linewidth=0.75,
-                            markersize=2,
+                            color="darkgray",
+                            #linewidth=0.75,
+                            markersize=4,
                         )
 
                 if surface:
@@ -1393,7 +1641,7 @@ class FitSolverInterface:
                 else:
                     axe.scatter(p0[first_index], p0[second_index])
 
-                if hasattr(self, "_minimize"):
+                if iterations and hasattr(self, "_minimize"):
                     axe.scatter(
                         self._minimize["parameters"][first_index],
                         self._minimize["parameters"][second_index],
@@ -1404,6 +1652,10 @@ class FitSolverInterface:
                     axe.set_ylabel(
                         r"Parameter, $\beta_{{{}}}$".format(second_index + 1)
                     )
+
+                if domains is not None:
+                    axe.set_xlim(domains.loc[["min", "max"], first_index])
+                    axe.set_ylim(domains.loc[["min", "max"], second_index])
 
             else:
                 raise ConfigurationError("Cannot plot loss due to configuration")
@@ -1431,13 +1683,17 @@ class FitSolverInterface:
     def plot_loss(
         self,
         mode="lin",
-        ratio=0.1,
+        domains=None,
+        ratio=None,
+        factor=None,
         xmin=None,
         xmax=None,
         title="",
         levels=None,
         resolution=75,
         iterations=False,
+        include_origin=False,
+        include_unit=False,
         log_x=False,
         log_y=False,
         log_loss=False,
@@ -1461,20 +1717,26 @@ class FitSolverInterface:
         if self.k <= 2:
             axe = self.plot_loss_low_dimension(
                 mode=mode,
+                domains=domains,
                 ratio=ratio,
+                factor=factor,
                 xmin=xmin,
                 xmax=xmax,
                 title=title,
                 levels=levels,
                 resolution=resolution,
                 iterations=iterations,
+                include_origin=include_origin,
+                include_unit=include_unit,
                 log_x=log_x,
                 log_y=log_y,
                 log_loss=log_loss,
             )
 
         else:
-            full_title = "Fit Loss Plot: {}\n{}".format(title, self.get_title())
+            full_title = "Fit {}Loss Plot: {}\n{}".format(
+                "Log-" if log_loss else "", title, self.get_title()
+            )
 
             fig, axes = plt.subplots(
                 ncols=self.k - 1,
@@ -1492,13 +1754,17 @@ class FitSolverInterface:
                         second_index=j,
                         axe=axe,
                         mode=mode,
+                        domains=domains,
                         ratio=ratio,
+                        factor=factor,
                         xmin=xmin,
                         xmax=xmax,
                         title=title,
                         levels=levels,
                         resolution=resolution,
                         iterations=iterations,
+                        include_origin=include_origin,
+                        include_unit=include_unit,
                         log_x=log_x,
                         log_y=log_y,
                         log_loss=log_loss,
@@ -1520,149 +1786,3 @@ class FitSolverInterface:
             fig.subplots_adjust(top=0.8, left=0.2)
 
         return axe
-
-    def dataset(self):
-        """
-        Return experimental data as a DataFrame
-
-        :return: Pandas DataFrame containing all experimental data
-        """
-
-        if self.stored(error=True):
-            data = pd.DataFrame(self._xdata)
-            data.columns = data.columns.map(lambda x: "x%d" % x)
-
-            extra = {"y": self._ydata}
-            if self._sigma is not None:
-                extra["sy"] = self._sigma
-
-            if self.fitted(error=False):
-                extra["yhat"] = self._yhat
-
-            extra = pd.DataFrame(extra)
-            data = pd.concat([data, extra], axis=1)
-
-            if self.fitted(error=False):
-                data["yerr"] = data["y"] - data["yhat"]
-                data["yerrrel"] = data["yerr"] / data["yhat"]
-                data["yerrabs"] = np.abs(data["yerr"])
-                data["yerrsqr"] = np.power(data["yerr"], 2)
-
-            if self._sigma is not None and self.fitted(error=False):
-                data["chi2"] = ((data["y"] - data["yhat"]) / data["sy"]) ** 2
-
-            data.index = data.index.values + 1
-            data.index.name = "id"
-
-            return data
-
-    def synthetic_dataset(
-        self,
-        xdata=None,
-        parameters=None,
-        dimension=1,
-        mode="lin",
-        xmin=-1.0,
-        xmax=1.0,
-        resolution=30,
-        sigma=None,
-        scale_mode="abs",
-        generator=np.random.normal,
-        seed=1234,
-        **kwargs,
-    ):
-        target = self.target_dataset(
-            xdata=xdata,
-            parameters=parameters,
-            dimension=dimension,
-            mode=mode,
-            xmin=xmin,
-            xmax=xmax,
-            resolution=resolution,
-            sigma=sigma,
-            scale_mode=scale_mode,
-            generator=generator,
-            seed=seed,
-            **kwargs,
-            full_output=True,
-        )
-
-        x = target.pop("x")
-        data = pd.DataFrame(x)
-        data.columns = data.columns.map(lambda x: "x%d" % x)
-
-        p = target.pop("parameters")
-        target = pd.DataFrame(target)
-
-        data = pd.concat([data, target], axis=1)
-        data.index = data.index.values + 1
-        data.index.name = "id"
-
-        return data
-
-    def load(self, file_or_frame, sep=";", store=True):
-        """
-        Load and store data from frame or CSV file
-        :param file_or_frame:
-        :param mode:
-        :param sep:
-        :param store:
-        :return:
-        """
-
-        if isinstance(file_or_frame, pd.DataFrame):
-            data = file_or_frame
-        else:
-            data = pd.read_csv(file_or_frame, sep=sep)
-
-        subset = data.filter(regex="^x")
-        if subset.shape[1] == 0:
-            raise ConfigurationError("Data must contains at least one 'x' column")
-
-        subset = data.filter(regex="^y$")
-        if subset.shape[1] != 1:
-            raise ConfigurationError("Data must contains a single 'y' column")
-
-        if "id" in data.columns:
-            data = data.set_index("id")
-        else:
-            if data.index.name != "id":
-                data.index = data.index.values + 1
-                data.index.name = "id"
-
-        logger.info("Loaded file '%s' with shape %s" % (file_or_frame, data.shape))
-
-        if store:
-            if "sy" in data.columns:
-                sigma = data["sy"]
-            else:
-                sigma = None
-
-            self.store(data.filter(regex="x").values, data["y"], sigma=sigma)
-
-        return data
-
-    def dump(self, file_or_frame, data=None, summary=False):
-        """
-        Dump dataset into CSV
-        :param file_or_frame:
-        :param summary:
-        :return:
-        """
-        if data is None:
-            if summary:
-                data = self.summary()
-            else:
-                data = self.dataset()
-        data.to_csv(file_or_frame, sep=";", index=True)
-
-    def summary(self):
-        """
-        Add summary row for LaTeX display
-        :return: DataFrame
-        """
-        data = self.dataset()
-        data.loc[r""] = data.sum()
-        data.iloc[-1, :-5] = None
-        data.iloc[-1, 5] = None
-        return data

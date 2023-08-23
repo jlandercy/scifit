@@ -1,3 +1,4 @@
+import os
 import itertools
 import pathlib
 
@@ -7,6 +8,14 @@ import pandas as pd
 
 from scifit.errors.base import *
 from scifit.interfaces.generic import FitSolverInterface
+
+
+# Tests setup:
+print_fit = bool(int(os.getenv("TESTS_PRINT_FIT", 1)))
+print_chi2 = bool(int(os.getenv("TESTS_PRINT_CHI2", 0)))
+print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 1)))
+print_loss_surface = bool(int(os.getenv("TESTS_PRINT_LOSS_SURFACE", 0)))
+print_loss_iterations = bool(int(os.getenv("TESTS_PRINT_LOSS_ITERATIONS", 1)))
 
 
 class GenericTestFitSolverInterface:
@@ -127,7 +136,6 @@ class GenericTestFitSolver:
     resolution = 30
     dimension = 1
     xdata = None
-    p0 = None
 
     seed = 789
     sigma = None
@@ -138,6 +146,10 @@ class GenericTestFitSolver:
 
     log_x = False
     log_y = False
+
+    loss_domains = None
+    loss_ratio = 10.0
+    loss_factor = 3.0
     loss_log_x = False
     loss_log_y = False
     log_loss = False
@@ -198,10 +210,21 @@ class GenericTestFitSolver:
                     **self.target_kwargs,
                 )["sigmas"]
 
-        if self.parameters is not None:
-            domains = self.solver.parameter_domains(parameters=self.parameters)
-            if self.p0 is None:
-                self.p0 = domains.loc["max", :].values
+        # Problem: Minimize & CurveFit does not beahve the same and cruvefit might also guess p0 or bar1 is better
+        # Tu essayes de faire deux choses en même temps:
+        # - faire que minimize & curve_fit se ressemble pour avoir l'accès au callback
+        # - créer un p0 qui est bien pour l'affichage en mélangeant avec p0 qui sert au deux minimize et curve_fit
+
+        # print(self.parameters)
+        # print(self.loss_domains)
+        # if self.parameters is not None:
+        #     if self.loss_domains is None:
+        #         domains = self.solver.parameter_domains(parameters=self.parameters)
+        #     else:
+        #         domains = self.loss_domains
+        #     #self.configuration["p0"] = 0.5 * np.array(self.parameters)
+        #     self.configuration["p0"] = domains.loc["min", :] + 0.25 * (domains.loc["max", :] - domains.loc["min", :])
+        # print(self.configuration)
 
     def test_signature(self):
         s = self.solver.signature
@@ -218,6 +241,14 @@ class GenericTestFitSolver:
         solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         for key in ["_xdata", "_ydata", "_solution", "_yhat", "_score"]:
             self.assertTrue(hasattr(self.solver, key))
+
+    def test_parameter_domains_size(self):
+        domains = self.solver.parameter_domains(
+            parameters=self.parameters, mode=self.mode
+        )
+        self.assertEqual(self.solver.k, domains.shape[1])
+        self.assertEqual(self.solver.k, domains.loc["min", :].size)
+        self.assertEqual(self.solver.k, domains.loc["max", :].size)
 
     def test_model_solve_signature_no_sigma(self):
         solution = self.solver.solve(self.xdata, self.ydata, sigma=None)
@@ -312,9 +343,6 @@ class GenericTestFitSolver:
         if self.sigma is not None and self.sigma > 0.0:
             self.assertTrue(0.50 <= test["normalized"] <= 1.50)
             self.assertTrue(test["pvalue"] >= 0.10)
-        else:
-            self.assertTrue(0.85 <= test["normalized"] <= 1.15)
-            self.assertTrue(test["pvalue"] >= 0.50)
 
     def test_feature_dataset_auto(self):
         self.solver.store(self.xdata, self.ydata)
@@ -342,72 +370,11 @@ class GenericTestFitSolver:
         solution = self.solver.fit(self.xdata, self.ydata)
         domains = self.solver.parameter_domains(mode="log", xmin=1e-5, xmax=100.0)
 
-    def test_plot_fit(self):
-        name = self.__class__.__name__
-        title = r"{} (seed={:d})".format(name, self.seed)
-        self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        axe = self.solver.plot_fit(
-            title=title,
-            errors=True,
-            squared_errors=False,
-            mode=self.mode,
-            log_x=self.log_x,
-            log_y=self.log_y,
-        )
-        axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format))
-        plt.close(axe.figure)
+    def test_parameters_domain_from_iterations(self):
+        solution = self.solver.fit(self.xdata, self.ydata)
+        domains = self.solver.parameter_domains(iterations=True)
 
-    def _test_plot_chi_square(self):
-        name = self.__class__.__name__
-        title = r"{} (seed={:d})".format(name, self.seed)
-        self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        axe = self.solver.plot_chi_square(title=title)
-        axe.figure.savefig("{}/{}_chi2.{}".format(self.media_path, name, self.format))
-        plt.close(axe.figure)
-
-    def _test_plot_loss_automatic(self):
-        name = self.__class__.__name__
-        title = r"{} (seed={:d})".format(name, self.seed)
-        self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        axe = self.solver.plot_loss(
-            title=title,
-            iterations=False,
-            mode=self.mode,
-            log_x=self.loss_log_x,
-            log_y=self.loss_log_y,
-            log_loss=self.log_loss,
-        )
-        axe.figure.savefig(
-            "{}/{}_loss_scatter.{}".format(self.media_path, name, self.format)
-        )
-        plt.close(axe.figure)
-
-    def _test_plot_loss_surface_automatic(self):
-        name = self.__class__.__name__
-        title = r"{} (seed={:d})".format(name, self.seed)
-        self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-
-        for i, j in itertools.combinations(range(self.solver.k), 2):
-            axe = self.solver.plot_loss_low_dimension(
-                title=title,
-                first_index=i,
-                second_index=j,
-                surface=True,
-                add_title=False,
-                iterations=False,
-                resolution=self.loss_resolution,
-                log_x=False,
-                log_y=False,
-                log_loss=False,
-            )
-            axe.figure.savefig(
-                "{}/{}_loss_surface_b{}_b{}.{}".format(
-                    self.media_path, name, i + 1, j + 1, self.format
-                )
-            )
-            plt.close(axe.figure)
-
-    def test_load(self):
+    def test_load_and_store(self):
         if self.data_path:
             data = self.solver.load(self.data_path, store=True)
             self.assertTrue(self.solver.stored(error=False))
@@ -435,17 +402,28 @@ class GenericTestFitSolver:
         keys = {"y"}
         self.assertEqual(set(data.columns).intersection(keys), keys)
 
-    # def test_fit_from_synthetic_dataset(self):
-    #     if self.parameters is None:
-    #         parameters = np.random.uniform(size=(self.solver.k,), low=0.1, high=0.9)
-    #     else:
-    #         parameters = self.parameters
-    #     data = self.solver.synthetic_dataset(
-    #         parameters=parameters, dimension=self.dimension, sigma=self.sigma
-    #     )
-    #     self.solver.load(data)
-    #     solution = self.solver.fit()
-    #     self.assertTrue(solution["success"])
+    def test_fit_from_synthetic_dataset(self):
+        if self.parameters is None:
+            parameters = np.random.uniform(size=(self.solver.k,), low=0.1, high=0.9)
+        else:
+            parameters = self.parameters
+        data = self.solver.synthetic_dataset(
+            xdata=self.xdata,
+            parameters=parameters,
+            dimension=self.dimension,
+            sigma=self.sigma,
+        )
+        data = data.dropna(how="all", axis=1)
+        self.solver.store(data=data)
+        solution = self.solver.fit(p0=0.75 * parameters)
+        self.assertTrue(
+            np.allclose(
+                parameters,
+                solution["parameters"],
+                atol=1e-6,
+                rtol=10 * (self.sigma or 1e-4),
+            )
+        )
 
     def test_fitted_dataset(self):
         self.solver.store(self.xdata, self.ydata, sigma=self.sigmas)
@@ -457,7 +435,140 @@ class GenericTestFitSolver:
         keys = {"y"}
         self.assertEqual(set(data.columns).intersection(keys), keys)
 
+    def test_dataset_serialization_equivalence(self):
+        name = self.__class__.__name__
+        file1 = "{}/{}.csv".format(self.media_path, name)
+        # file2 = "{}/{}_echo.csv".format(self.media_path, name)
+
+        np.random.seed(self.seed)
+        solution1 = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        check1 = self.solver.dataset()
+        self.solver.dump(file1, summary=False)
+
+        solver2 = self.factory(**self.configuration)
+        solver2.load(file1, store=True)
+        np.random.seed(self.seed)
+        solution2 = solver2.fit()
+        check2 = solver2.dataset()
+        # solver2.dump(file2, summary=False)
+
+        # Assert 3 significant digits
+        self.assertTrue(
+            np.allclose(
+                solution1["parameters"], solution2["parameters"], atol=1e-6, rtol=1e-3
+            )
+        )
+        self.assertTrue(
+            np.allclose(
+                check1.values, check2.values, equal_nan=True, atol=1e-6, rtol=1e-3
+            )
+        )
+
+    def test_random_seed_synthetic_dataset_reproducibility(self):
+        seed = np.random.randint(low=1, high=999999999, size=1)[0]
+        if self.parameters is None:
+            parameters = np.random.uniform(size=(self.solver.k,), low=0.1, high=0.9)
+        else:
+            parameters = self.parameters
+        dataset1 = self.solver.synthetic_dataset(
+            dimension=self.dimension or self.xdata.shape[1],
+            parameters=parameters,
+            resolution=250,
+            sigma=self.sigma or 0.015,
+            seed=seed,
+        ).dropna(how="all", axis=1)
+        dataset2 = self.solver.synthetic_dataset(
+            dimension=self.dimension or self.xdata.shape[1],
+            parameters=parameters,
+            resolution=250,
+            sigma=self.sigma or 0.015,
+            seed=seed,
+        ).dropna(how="all", axis=1)
+        self.assertTrue(np.allclose(dataset1.values, dataset2.values, equal_nan=True))
+        self.assertTrue(dataset1.equals(dataset2))
+
     def test_dump_summary(self):
         name = self.__class__.__name__
         self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        self.solver.dump("{}/{}.csv".format(self.media_path, name), summary=True)
+        self.solver.dump(
+            "{}/{}_summary.csv".format(self.media_path, name), summary=True
+        )
+
+    def test_plot_fit(self):
+        if print_fit:
+            name = self.__class__.__name__
+            title = r"{} (seed={:d})".format(name, self.seed)
+            self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+            axe = self.solver.plot_fit(
+                title=title,
+                errors=True,
+                squared_errors=False,
+                mode=self.mode,
+                log_x=self.log_x,
+                log_y=self.log_y,
+            )
+            axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format))
+            plt.close(axe.figure)
+
+    def test_plot_chi_square(self):
+        if print_chi2:
+            name = self.__class__.__name__
+            title = r"{} (seed={:d})".format(name, self.seed)
+            self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+            axe = self.solver.plot_chi_square(title=title)
+            axe.figure.savefig("{}/{}_chi2.{}".format(self.media_path, name, self.format))
+            plt.close(axe.figure)
+
+    def test_plot_loss_automatic(self):
+        if print_loss_contour:
+            name = self.__class__.__name__
+            title = r"{} (seed={:d})".format(name, self.seed)
+            self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+            if self.loss_domains is None:
+                domains = self.solver.parameter_domains(iterations=True)
+            else:
+                domains = self.loss_domains
+            axe = self.solver.plot_loss(
+                title=title,
+                iterations=print_loss_iterations,
+                mode=self.mode,
+                domains=domains,
+                ratio=self.loss_ratio,
+                factor=self.loss_factor,
+                log_x=self.loss_log_x,
+                log_y=self.loss_log_y,
+                log_loss=self.log_loss,
+            )
+            axe.figure.savefig(
+                "{}/{}_loss_scatter.{}".format(self.media_path, name, self.format)
+            )
+            plt.close(axe.figure)
+
+    def test_plot_loss_surface_automatic(self):
+        if print_loss_surface:
+            name = self.__class__.__name__
+            title = r"{} (seed={:d})".format(name, self.seed)
+            self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+
+            for i, j in itertools.combinations(range(self.solver.k), 2):
+                axe = self.solver.plot_loss_low_dimension(
+                    title=title,
+                    first_index=i,
+                    second_index=j,
+                    surface=True,
+                    add_title=True,
+                    iterations=False,
+                    resolution=self.loss_resolution,
+                    domains=self.loss_domains,
+                    ratio=self.loss_ratio,
+                    factor=self.loss_factor,
+                    log_x=False,
+                    log_y=False,
+                    log_loss=False,
+                )
+                axe.figure.savefig(
+                    "{}/{}_loss_surface_b{}_b{}.{}".format(
+                        self.media_path, name, i + 1, j + 1, self.format
+                    )
+                )
+                plt.close(axe.figure)

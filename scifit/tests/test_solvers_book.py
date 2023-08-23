@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 import numpy as np
+import pandas as pd
 
 from scifit.solvers import linear, scientific
 from scifit.tests.helpers import GenericTestFitSolver
@@ -9,7 +10,7 @@ from scifit.tests.test_solvers_linear import GenericLinearRegression
 
 class BookSampleRegression(GenericLinearRegression):
     root_path = ".cache/media/book/"
-    format = "eps"
+    format = "png"
     fake_sigma_factor = None
 
     def setUp(self):
@@ -27,6 +28,8 @@ class BookIntroduction2DigitsRegression(BookSampleRegression, TestCase):
     sigma = 0.125
     xmin = 0.0
     xmax = 10.0
+    # mode = "log"
+    loss_domains = pd.DataFrame({"min": [0.10, 0.1], "max": [2.5, 10.0]}).T
 
 
 class BookIntroduction3DigitsRegression(BookIntroduction2DigitsRegression):
