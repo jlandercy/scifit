@@ -345,7 +345,7 @@ class DoubleInverseBoxCoxSigmoidRegressionNoiseL2(
 
 class GaussianPeakRegression(GenericLinearRegression):
     factory = scientific.GaussianPeakFitSolver
-    configuration = {"p0": (500., 5., 20.)}
+    configuration = {"p0": (500., 5., 20.)} #, "bounds": [(1e-2, 1e-2, 1e-2), (1e3, 1e3, 1e3)]}  # 20 min run
     parameters = np.array([450.3, 1.23, 15.7])
     xmin = 0.0
     xmax = 30.0
@@ -407,7 +407,7 @@ class GaussianPeakWithBaselineRegressionNoiseL2(
 
 class EMGPeakRegression(GenericLinearRegression):
     factory = scientific.EMGPeakFitSolver
-    configuration = {"p0": (500., 5., 20., 10.), "bounds": [(0., 0., 0., 0.), (1e3, 1e3, 1e3, 1e3)]}
+    configuration = {"p0": (500., 5., 20., 10.)} #, "bounds": [(1e-2, 1e-2, 1e-2, 1e-2), (1e3, 1e3, 1e3, 1e3)]}  # 20 min run
     parameters = np.array([450.3, 1.23, 15.7, 3.42])
     xmin = 0.0
     xmax = 30.0
