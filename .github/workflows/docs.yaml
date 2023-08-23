@@ -1,0 +1,77 @@
+name: Documentations Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  build-docs:
+
+    runs-on: ubuntu-latest
+    container:
+      image: "jlandercy/pyqual:1.0"
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Clean & create folders
+        run: |
+          rm -rf dist/
+          rm -rf .cache/
+          mkdir -p .cache/reports
+          mkdir -p .cache/media
+          mkdir -p .cache/docs
+
+      - name: Python version
+        run: |
+          python --version
+
+      - name: Unit tests suite
+        env:
+          TESTS_PRINT_FIT: 1
+          TESTS_PRINT_CHI2: 1
+          TESTS_PRINT_LOSS_CONTOUR: 1
+          TESTS_PRINT_LOSS_SURFACE: 1
+          TESTS_PRINT_LOSS_ITERATIONS: 1
+        run: |
+          nox --session tests
+
+      - name: Build package
+        run: |
+          nox --session package install
+
+      - name: Notebooks
+        run: |
+          nox --session notebooks
+
+      - name: Documentations
+        run: |
+          nox --session docs
+
+      - name: Collect report artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: reports
+          path: .cache/reports
+
+      - name: Collect media artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: media
+          path: .cache/media
+
+      - name: Collect notebooks artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: notebooks
+          path: docs/source/notebooks
+
+      - name: Collect documentations artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: docs
+          path: .cache/docs

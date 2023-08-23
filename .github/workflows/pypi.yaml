@@ -7,7 +7,7 @@ on:
 
 jobs:
 
-  build:
+  build-package:
 
     runs-on: ubuntu-latest
 
@@ -50,9 +50,10 @@ jobs:
       - name: Unit tests suite
         env:
           TESTS_PRINT_FIT: 1
-          TESTS_PRINT_CHI2: 0
+          TESTS_PRINT_CHI2: 1
           TESTS_PRINT_LOSS_CONTOUR: 1
           TESTS_PRINT_LOSS_SURFACE: 0
+          TESTS_PRINT_LOSS_ITERATIONS: 0
         run: |
           nox --session tests
 
@@ -60,17 +61,13 @@ jobs:
         run: |
           nox --session package install
 
-#      - name: Notebooks
-#        run: |
-#          nox --session notebooks
-
-#      - name: Publish package
-#        env:
-#          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
-#          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-#        run: |
-#          nox --session build
-#          nox --session publish
+      - name: Publish package
+        env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+        run: |
+          nox --session build
+          nox --session publish
 
       - name: Collect report artifacts
         uses: actions/upload-artifact@v3
@@ -84,15 +81,3 @@ jobs:
           name: package
           path: |
             dist
-
-      - name: Collect media artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: media
-          path: .cache/media
-
-#      - name: Collect notebooks artifacts
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: notebooks
-#          path: docs/source/notebooks

@@ -389,8 +389,6 @@ pytz>=2023.3
     # via
     #   pandas
     #   scifit (pyproject.toml)
-pywin32>=306
-    # via jupyter-core
 pyyaml>=6.0.1
     # via
     #   bandit
