@@ -1,4 +1,4 @@
-name: Quality & Docs Workflow
+name: Documentations Workflow
 
 on:
   push:
@@ -32,10 +32,11 @@ jobs:
 
       - name: Unit tests suite
         env:
-          TESTS_PRINT_FIT: 0
-          TESTS_PRINT_CHI2: 0
-          TESTS_PRINT_LOSS_CONTOUR: 0
-          TESTS_PRINT_LOSS_SURFACE: 0
+          TESTS_PRINT_FIT: 1
+          TESTS_PRINT_CHI2: 1
+          TESTS_PRINT_LOSS_CONTOUR: 1
+          TESTS_PRINT_LOSS_SURFACE: 1
+          TESTS_PRINT_LOSS_ITERATIONS: 1
         run: |
           nox --session tests
 
@@ -56,13 +57,6 @@ jobs:
         with:
           name: reports
           path: .cache/reports
-
-      - name: Collect package artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: |
-            dist
 
       - name: Collect media artifacts
         uses: actions/upload-artifact@v3
