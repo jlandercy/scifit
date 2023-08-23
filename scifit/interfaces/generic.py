@@ -418,6 +418,10 @@ class FitSolverInterface:
         if p0 is None:
             p0 = np.full((self.k,), 1.0)
 
+        bounds = kwargs.pop("bounds", None)
+        if isinstance(bounds, Iterable):
+            bounds = [(a, b) for a, b in zip(*bounds)]
+
         # Adapt signature for single number:
         if isinstance(sigma, numbers.Number):
             sigma = np.full(ydata.shape, sigma)
@@ -432,7 +436,7 @@ class FitSolverInterface:
 
         self._iterations = [p0]
         solution = optimize.minimize(
-            loss, x0=p0, method="L-BFGS-B", jac="3-point", callback=callback, **kwargs
+            loss, x0=p0, method="L-BFGS-B", jac="3-point", callback=callback, bounds=bounds, **kwargs
         )
         self._iterations = np.array(self._iterations)
 

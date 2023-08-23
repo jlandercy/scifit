@@ -26,6 +26,7 @@ SO ``curve-fitting`` tag:
  - [x] Regex to adapt requirements and remove windows dev traces
  - [x] Added smart display for parameters
  - [x] Added Gaussian Peak model
+ - [x] Added Exponential Modified Gaussian Peak model
 
 ## v0.1.7-8
 

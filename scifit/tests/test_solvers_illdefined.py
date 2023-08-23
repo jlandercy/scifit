@@ -14,3 +14,20 @@ class IncompleteLogisticRegression(GenericLinearRegression):
 
 class IncompleteLogisticRegressionNoiseL0(IncompleteLogisticRegression, TestCase):
     sigma = 1e-6
+
+
+class LinearSquaredSlopeRegression(GenericLinearRegression):
+    factory = illdefined.LinearSquaredSlopeSolver
+    parameters = np.array([1.0, 1.0])
+
+
+class LinearSquaredSlopeRegressionNoiseL0(LinearSquaredSlopeRegression, TestCase):
+    sigma = 1e-6
+
+
+class LinearSquaredSlopeRegressionNoiseL1(LinearSquaredSlopeRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class LinearSquaredSlopeRegressionNoiseL2(LinearSquaredSlopeRegression, TestCase):
+    sigma = 1e-1

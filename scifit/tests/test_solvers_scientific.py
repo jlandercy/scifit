@@ -403,3 +403,34 @@ class GaussianPeakWithBaselineRegressionNoiseL2(
     GaussianPeakWithBaselineRegression, TestCase
 ):
     sigma = 1e-1
+
+
+class EMGPeakRegression(GenericLinearRegression):
+    factory = scientific.EMGPeakFitSolver
+    configuration = {"p0": (500., 5., 20., 10.), "bounds": [(0., 0., 0., 0.), (1e3, 1e3, 1e3, 1e3)]}
+    parameters = np.array([450.3, 1.23, 15.7, 3.42])
+    xmin = 0.0
+    xmax = 30.0
+    resolution = 120
+    #loss_domains = pd.DataFrame({"min": [0.1]*2, "max": [0.9]*2}).T
+
+    def test_fit_from_synthetic_dataset(self):
+        pass
+
+
+class EMGPeakRegressionNoiseL0(
+    EMGPeakRegression, TestCase
+):
+    sigma = 1e-6
+
+
+class EMGPeakRegressionNoiseL1(
+    EMGPeakRegression, TestCase
+):
+    sigma = 2.5e-2
+
+
+class EMGPeakRegressionNoiseL2(
+    EMGPeakRegression, TestCase
+):
+    sigma = 1e-1

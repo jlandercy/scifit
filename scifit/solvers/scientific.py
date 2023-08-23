@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import stats
 
 from scifit.interfaces.generic import FitSolverInterface
 
@@ -255,13 +256,48 @@ class GaussianPeakWithBaselineFitSolver(FitSolverInterface):
 
         .. math::
 
-            y = a x + b + H \\exp\\left[- \\frac{1}{2} \\cdot \\left(\\frac{(x - x_0)}{\\sigma}\\right)^2\\right]
+            y = H \\exp\\left[- \\frac{1}{2} \\cdot \\left(\\frac{(x - x_0)}{\\sigma}\\right)^2\\right] + a x + b
 
         :param x: independent variable :math:`x`
         :param H: Peak height
         :param sigma: Peak width factor
         :param x0: Peak displacement :math:`x_0`
+        :param a:
+        :param b:
         :return: Gaussian peak :math:`y`
         """
         return H*np.exp(-0.5 * np.power((x[:, 0] - x0)/sigma, 2)) + a * x[:, 0] + b
+
+
+class EMGPeakFitSolver(FitSolverInterface):
+    """
+    `Exponential Modified Gaussian Peak function model (calculus) <https://www.researchgate.net/publication/231172511_Equations_for_chromatographic_peak_modeling_and_calculation_of_peak_area>`_
+    """
+
+    cdf = np.vectorize(stats.norm(loc=0.0, scale=1.0).cdf)
+
+    @staticmethod
+    def model(x, A, sigma, x0, xG):
+        """
+        EMG Peak function is defined as follows:
+
+        .. math::
+
+            y = \\frac{A}{x_0} \\exp\\left[-\\frac{1}{2}\\left(\\frac{\\sigma_G}{x_0}\\right)^2 -\\frac{x - x_G}{x_0} \\right] \\cdot \\frac{1}{\\sqrt{2\pi}}\\int\\limits_{\\infty}^{z} \\exp\\left[-\\frac{y^2}{2}\\right]\\mathrm{d}y
+
+        .. math::
+
+            z = \\frac{x - x_G}{\\sigma_G} - \\frac{\\sigma_G}{x_0}
+
+        :param x: independent variable :math:`x`
+        :param A:
+        :param sigma:
+        :param x0:
+        :param xG:
+        :return: EMG peak :math:`y`
+        """
+
+        z = (x[:, 0] - xG)/sigma - sigma/x0
+        return A/x0 * np.exp(-0.5 * np.power(sigma/x0, 2) - (x[:, 0] - xG)/x0) * EMGPeakFitSolver.cdf(z)
+
 
