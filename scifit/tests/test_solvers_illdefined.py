@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 import numpy as np
+import pandas as pd
 
 from scifit.solvers import illdefined, linear, scientific
 from scifit.tests.helpers import GenericTestFitSolver
@@ -18,7 +19,9 @@ class IncompleteLogisticRegressionNoiseL0(IncompleteLogisticRegression, TestCase
 
 class LinearSquaredSlopeRegression(GenericLinearRegression):
     factory = illdefined.LinearSquaredSlopeSolver
-    parameters = np.array([1.0, 1.0])
+    parameters = np.array([2.0, 1.0])
+    loss_domains = pd.DataFrame({"min": [-3, -2], "max": [3, 4]}).T
+    log_loss = True
 
 
 class LinearSquaredSlopeRegressionNoiseL0(LinearSquaredSlopeRegression, TestCase):

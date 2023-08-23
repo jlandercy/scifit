@@ -233,7 +233,7 @@ class GaussianPeakFitSolver(FitSolverInterface):
 
         .. math::
 
-            y = H \\exp\\left[- \\frac{1}{2} \\cdot \\left(\\frac{(x - x_0)}{\\sigma}\\right)^2\\right]
+            y = H \\exp\\left[- \\frac{1}{2} \\cdot \\left(\\frac{x - x_0}{\\sigma}\\right)^2\\right]
 
         :param x: independent variable :math:`x`
         :param H: Peak height
@@ -256,7 +256,7 @@ class GaussianPeakWithBaselineFitSolver(FitSolverInterface):
 
         .. math::
 
-            y = H \\exp\\left[- \\frac{1}{2} \\cdot \\left(\\frac{(x - x_0)}{\\sigma}\\right)^2\\right] + a x + b
+            y = H \\exp\\left[- \\frac{1}{2} \\cdot \\left(\\frac{x - x_0}{\\sigma}\\right)^2\\right] + a x + b
 
         :param x: independent variable :math:`x`
         :param H: Peak height

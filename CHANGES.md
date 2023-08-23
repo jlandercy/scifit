@@ -27,6 +27,7 @@ SO ``curve-fitting`` tag:
  - [x] Added smart display for parameters
  - [x] Added Gaussian Peak model
  - [x] Added Exponential Modified Gaussian Peak model
+ - [x] Added Linear Squared Slope model (ill-defined)
 
 ## v0.1.7-8
 
