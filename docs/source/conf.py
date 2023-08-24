@@ -26,7 +26,7 @@ copyright = '2023, Jean Landercy'
 author = 'Jean Landercy'
 
 # The full version, including alpha/beta/rc tags
-release = "0.1.8"
+release = "0.1.9"
 
 
 # -- General to_dict ---------------------------------------------------
