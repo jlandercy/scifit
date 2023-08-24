@@ -2,7 +2,7 @@
 
 > Comprehensive fits for scientists
 
-![SciFit Banner](./docs/source/media/branding/banner.png)
+![SciFit Banner](./docs/source/media/branding/Banner.png)
 
 Welcome to SciFit package the scientist companion for comprehensive fits with quality assessment.
 
