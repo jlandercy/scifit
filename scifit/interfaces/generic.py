@@ -1575,6 +1575,10 @@ class FitSolverInterface:
             :width: 560
             :alt: Low Dimensionality Fit Loss Plot
 
+        .. image:: ../media/figures/FitLossSurfacePlot.png
+            :width: 560
+            :alt: Low Dimensionality Fit Loss Plot (surface)
+
         See :meth:`FitSolverInterface.plot_loss` for full loss landscape.
         """
 
