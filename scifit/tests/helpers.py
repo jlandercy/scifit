@@ -340,7 +340,7 @@ class GenericTestFitSolver:
         Perform Chi 2 Test for Goodness of fit and check proper fits get their pvalue acceptable
         """
         solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        test = self.solver.goodness_of_fit(self.xdata, self.ydata, sigma=self.sigmas)
+        test = self.solver.goodness_of_fit()
         self.assertIsInstance(test, dict)
         self.assertEqual(
             set(test.keys()).intersection({"statistic", "pvalue"}),

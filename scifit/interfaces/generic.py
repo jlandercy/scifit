@@ -530,8 +530,9 @@ class FitSolverInterface:
         :param parameters: Sequence of :code:`k` parameters
         :return: Predicted target as a :code:`(n,)` matrix
         """
-        if parameters is not None or self.fitted(error=True):
-            return self.model(xdata, *(parameters or self._solution["parameters"]))
+        if parameters is None:
+            parameters = self._solution["parameters"]
+        return self.model(xdata, *parameters)
 
     @property
     def degree_of_freedom(self):
@@ -684,9 +685,16 @@ class FitSolverInterface:
 
             R^2 = 1 - \\frac{RSS}{TSS}
 
+        Or in its estimated form (default):
+
         .. math::
 
-            R^2 = 1 - \\frac{RSS / \d_\nu}{TSS / d_n}
+            R^2 = 1 - \\frac{RSS / d_\\nu}{TSS / d_n}
+
+        Where:
+
+        - :math:`d_\\nu = n - k - 1` is the degree of freedom for Residual Sum of Squared of the model;
+        - :math:`d_\\nu = n - 1` is the degree of freedom of the Variance
 
         :param xdata: Features (variables) as :code:`(n,m)` matrix
         :param ydata: Target as :code:`(n,)` matrix
@@ -704,7 +712,7 @@ class FitSolverInterface:
 
     score.name = "$R^2$"
 
-    def goodness_of_fit(self, xdata, ydata, sigma=None, parameters=None):
+    def goodness_of_fit(self):
         """
         Compute Chi Square for Goodness of Fit (GoF) as follows:
 
@@ -741,46 +749,47 @@ class FitSolverInterface:
         :param parameters: Sequence of :code:`k` parameters
         :return: Dictionary of objects containing elements to interpret the Chi Square Test for Goodness of Fit
         """
-        statistic = self.chi_square(xdata, ydata, sigma=sigma, parameters=parameters)
-        normalized = statistic / self.dof
-        law = stats.chi2(df=self.dof)
-        result = {
-            "n": self.n,
-            "k": self.k,
-            "dof": self.dof,
-            "statistic": statistic,
-            "normalized": normalized,
-            "pvalue": law.sf(statistic),
-            "law": law,
-            "significance": {
-                "left-sided": [],
-                "right-sided": [],
-                "two-sided": [],
-            },
-        }
-        for alpha in [0.500, 0.100, 0.050, 0.010, 0.005, 0.001]:
-            # Left Sided Test:
-            chi = law.ppf(alpha)
-            result["significance"]["left-sided"].append(
-                {"alpha": alpha, "value": chi, "H0": chi <= statistic}
-            )
-            # Right Sided Test:
-            chi = law.ppf(1.0 - alpha)
-            result["significance"]["right-sided"].append(
-                {"alpha": alpha, "value": chi, "H0": statistic <= chi}
-            )
-            # Two Sided Test:
-            low = law.ppf(alpha / 2.0)
-            high = law.ppf(1.0 - alpha / 2.0)
-            result["significance"]["two-sided"].append(
-                {
-                    "alpha": alpha,
-                    "low-value": low,
-                    "high-value": high,
-                    "H0": low <= statistic <= high,
-                }
-            )
-        return result
+        if self.fitted(error=True):
+            statistic = self.chi_square(self._xdata, self._ydata, sigma=self._sigma, parameters=None)
+            normalized = statistic / self.dof
+            law = stats.chi2(df=self.dof)
+            result = {
+                "n": self.n,
+                "k": self.k,
+                "dof": self.dof,
+                "statistic": statistic,
+                "normalized": normalized,
+                "pvalue": law.sf(statistic),
+                "law": law,
+                "significance": {
+                    "left-sided": [],
+                    "right-sided": [],
+                    "two-sided": [],
+                },
+            }
+            for alpha in [0.500, 0.100, 0.050, 0.010, 0.005, 0.001]:
+                # Left Sided Test:
+                chi = law.ppf(alpha)
+                result["significance"]["left-sided"].append(
+                    {"alpha": alpha, "value": chi, "H0": chi <= statistic}
+                )
+                # Right Sided Test:
+                chi = law.ppf(1.0 - alpha)
+                result["significance"]["right-sided"].append(
+                    {"alpha": alpha, "value": chi, "H0": statistic <= chi}
+                )
+                # Two Sided Test:
+                low = law.ppf(alpha / 2.0)
+                high = law.ppf(1.0 - alpha / 2.0)
+                result["significance"]["two-sided"].append(
+                    {
+                        "alpha": alpha,
+                        "low-value": low,
+                        "high-value": high,
+                        "H0": low <= statistic <= high,
+                    }
+                )
+            return result
 
     def kolmogorov(self):
         if self.fitted(error=True):
@@ -838,19 +847,24 @@ class FitSolverInterface:
         if not self.stored(error=False):
             self.store(xdata=xdata, ydata=ydata, sigma=sigma, data=data)
 
+        # Solve the Adjustment problem:
         self._solution = self.solve(
             self._xdata, self._ydata, sigma=self._sigma, **kwargs
         )
 
-        # Check and regression pathway:
+        # Solve again the regression problem in a different way to check the regression and parameters pathway:
         self._minimize = self.minimize(
             self._xdata, self._ydata, sigma=self._sigma, **kwargs
         )
 
+        # Estimates & metrics:
         self._yhat = self.predict(self._xdata)
         self._loss = self.loss(self._xdata, self._ydata, sigma=self._sigma)
         self._score = self.score(self._xdata, self._ydata, sigma=self._sigma)
-        self._gof = self.goodness_of_fit(self._xdata, self._ydata, sigma=self._sigma)
+
+        # Statistical tests:
+        self._gof = self.goodness_of_fit()
+        self._k2s = self.kolmogorov()
 
         return self._solution
 

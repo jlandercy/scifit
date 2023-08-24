@@ -9,8 +9,9 @@
    - [ ] Gradient recovery
    - [ ] Distribution fit
  - [ ] Rethink how load, store and fit should work together
- - [ ] Add a Kolmogorov Smirnov Tests in addition of Chi Square Test
- - [ ] Make surfaces available in plot_loss as well
+   - load and store are the only way to push data
+   - then all function performs on stored data
+   - it cannot be changed, must create another object
 
 SO ``curve-fitting`` tag:
 
@@ -31,6 +32,8 @@ SO ``curve-fitting`` tag:
  - [x] Added Gaussian Peak model
  - [x] Added Exponential Modified Gaussian Peak model
  - [x] Added Linear Squared Slope model (ill-defined)
+ - [x] Add a Kolmogorov Smirnov Tests in addition of Chi Square Test
+ - [ ] Surfaces are available in plot_loss as well
 
 ## v0.1.8
 ## v0.1.7
