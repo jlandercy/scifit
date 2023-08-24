@@ -52,3 +52,11 @@ axe = solver.plot_fit(title="SciFit Quick Start Guide")
 ```
 
 ![QuickStart](./docs/source/media/branding/QuickStart.png)
+
+## Resources
+
+ - [Documentations][20]
+ - [Repository][21]
+
+[20]: https://github.com/jlandercy/scifit/tree/main/docs
+[21]: https://github.com/jlandercy/scifit
