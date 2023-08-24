@@ -158,7 +158,7 @@ def coverage(session):
     env = {"COVERAGE_FILE": str(reports_path / "coverage.dat")}
     report = reports_path / "coverage.xml"
     session.run("python", "-m", "coverage", "run", "-m", "unittest",
-                "discover", "-v", "tests", env=env)
+                "discover", "-v", "scifit.tests", env=env)
     session.run("python", "-m", "coverage", "report", "--omit=venv/**/*", env=env)
     session.run("python", "-m", "coverage", "xml", "-o", f"{report:}", env=env)
     with report.open() as handler:
