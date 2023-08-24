@@ -34,6 +34,7 @@ jobs:
         env:
           TESTS_PRINT_FIT: 1
           TESTS_PRINT_CHI2: 1
+          TESTS_PRINT_K2S: 1
           TESTS_PRINT_LOSS_CONTOUR: 1
           TESTS_PRINT_LOSS_SURFACE: 1
           TESTS_PRINT_LOSS_ITERATIONS: 1

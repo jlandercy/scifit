@@ -13,8 +13,9 @@ from scifit.interfaces.generic import FitSolverInterface
 # Tests setup:
 print_fit = bool(int(os.getenv("TESTS_PRINT_FIT", 1)))
 print_chi2 = bool(int(os.getenv("TESTS_PRINT_CHI2", 0)))
-print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 1)))
-print_loss_surface = bool(int(os.getenv("TESTS_PRINT_LOSS_SURFACE", 1)))
+print_k2s = bool(int(os.getenv("TESTS_PRINT_K2S", 1)))
+print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 0)))
+print_loss_surface = bool(int(os.getenv("TESTS_PRINT_LOSS_SURFACE", 0)))
 print_loss_iterations = bool(int(os.getenv("TESTS_PRINT_LOSS_ITERATIONS", 0)))
 
 
@@ -345,9 +346,19 @@ class GenericTestFitSolver:
             set(test.keys()).intersection({"statistic", "pvalue"}),
             {"statistic", "pvalue"},
         )
-        # Ensure proper fits get its test valid:
         if self.sigma is not None and self.sigma > 0.0:
             self.assertTrue(0.50 <= test["normalized"] <= 1.50)
+            self.assertTrue(test["pvalue"] >= 0.10)
+
+    def test_kolmogorov(self):
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        test = self.solver.kolmogorov()
+        self.assertIsInstance(test, dict)
+        self.assertEqual(
+            set(test.keys()).intersection({"statistic", "pvalue"}),
+            {"statistic", "pvalue"},
+        )
+        if self.sigma is not None and self.sigma > 0.0:
             self.assertTrue(test["pvalue"] >= 0.10)
 
     def test_feature_dataset_auto(self):
@@ -523,6 +534,15 @@ class GenericTestFitSolver:
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
             axe = self.solver.plot_chi_square(title=title)
             axe.figure.savefig("{}/{}_chi2.{}".format(self.media_path, name, self.format))
+            plt.close(axe.figure)
+
+    def test_plot_kolmogorov(self):
+        if print_k2s:
+            name = self.__class__.__name__
+            title = r"{} (seed={:d})".format(name, self.seed)
+            self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+            axe = self.solver.plot_kolmogorov(title=title)
+            axe.figure.savefig("{}/{}_k2s.{}".format(self.media_path, name, self.format))
             plt.close(axe.figure)
 
     def test_plot_loss_automatic(self):

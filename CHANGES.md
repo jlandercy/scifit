@@ -10,6 +10,7 @@
    - [ ] Distribution fit
  - [ ] Rethink how load, store and fit should work together
  - [ ] Add a Kolmogorov Smirnov Tests in addition of Chi Square Test
+ - [ ] Make surfaces available in plot_loss as well
 
 SO ``curve-fitting`` tag:
 

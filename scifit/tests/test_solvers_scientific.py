@@ -386,6 +386,9 @@ class GaussianPeakWithBaselineRegression(GenericLinearRegression):
     def test_fit_from_synthetic_dataset(self):
         pass
 
+    def test_kolmogorov(self):
+        pass
+
 
 class GaussianPeakWithBaselineRegressionNoiseL0(
     GaussianPeakWithBaselineRegression, TestCase

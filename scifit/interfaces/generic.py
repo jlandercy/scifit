@@ -676,7 +676,7 @@ class FitSolverInterface:
         """
         return np.sum(np.power(ydata - ydata.mean(), 2))
 
-    def score(self, xdata, ydata, sigma=None, parameters=None):
+    def score(self, xdata, ydata, sigma=None, parameters=None, estimated=True):
         """
         Compute Coefficient of Determination :math:`R^2` as follows:
 
@@ -684,13 +684,23 @@ class FitSolverInterface:
 
             R^2 = 1 - \\frac{RSS}{TSS}
 
+        .. math::
+
+            R^2 = 1 - \\frac{RSS / \d_\nu}{TSS / d_n}
+
         :param xdata: Features (variables) as :code:`(n,m)` matrix
         :param ydata: Target as :code:`(n,)` matrix
         :param sigma: Uncertainty on target as :code:`(n,)` matrix or scalar or :code:`None`
         :param parameters: Sequence of :code:`k` parameters
         :return: Coefficient of Determination :math:`R^2`
         """
-        return 1.0 - self.RSS(xdata, ydata) / self.TSS(ydata)
+
+        score = 1.0 - self.RSS(xdata, ydata, parameters=parameters) / self.TSS(ydata)
+
+        if estimated:
+            score *= (self.n - 1) / (self.n - self.k - 1)
+
+        return score
 
     score.name = "$R^2$"
 
@@ -771,6 +781,15 @@ class FitSolverInterface:
                 }
             )
         return result
+
+    def kolmogorov(self):
+        if self.fitted(error=True):
+            test = stats.ks_2samp(self._yhat, self._ydata, alternative='two-sided', method='auto')
+            return {
+                "statistic": test.statistic,
+                "pvalue": test.pvalue,
+                "test": test,
+            }
 
     def parametrized_loss(self, xdata=None, ydata=None, sigma=None):
         """
@@ -1398,7 +1417,6 @@ class FitSolverInterface:
             :width: 560
             :alt: Chi Square Goodness of Fit Plot
 
-
         :param title:
         :param resolution:
         :return:
@@ -1464,6 +1482,51 @@ class FitSolverInterface:
             axe.grid()
 
             fig.subplots_adjust(top=0.8, left=0.15, right=0.75)
+
+            return axe
+
+    def plot_kolmogorov(self, title=""):
+        """
+        Plot Kolmogorov Goodness of Fit figure
+
+        .. image:: ../media/figures/KolmogorovPlot.png
+            :width: 560
+            :alt: Chi Square Goodness of Fit Plot
+
+        :param title:
+        :return:
+        """
+        if self.fitted(error=True):
+
+            full_title = "Fit Kolmogorov Plot: {}\n{}".format(title, self.get_title())
+
+            fig, axe = plt.subplots()
+
+            test = self.kolmogorov()["test"]
+
+            y_ecdf = stats.ecdf(self._ydata)
+            y_ecdf.cdf.plot(axe)
+
+            yhat_ecdf = stats.ecdf(self._yhat)
+            yhat_ecdf.cdf.plot(axe)
+
+            axe.axvline(test.statistic_location, linestyle="-.", color="black")
+
+            axe.set_title(full_title, fontdict={"fontsize": 10})
+            axe.set_xlabel(r"Target, $y$")
+            axe.set_ylabel(r"ECDF, $F(y)$")
+
+            axe.legend([
+                r"Data: $F_1(y)$",
+                r"Fit: $F_2(\hat{y})$",
+                (
+                    r"K-Test: $D({:.3g}) = {:.3g}$".format(test.statistic_location, test.statistic) +
+                    "\n" + r"$p = P(K > D) = {:.4f}$".format(test.pvalue)
+                )
+            ])
+            axe.grid()
+
+            fig.subplots_adjust(top=0.8, left=0.15)
 
             return axe
 

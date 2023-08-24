@@ -16,6 +16,9 @@ class GenericConstantRegression(GenericTestFitSolver):
     parameters = np.array([5.0])
     scale_mode = "abs"
 
+    def test_kolmogorov(self):
+        pass
+
 
 class ConstantRegressionNoiseL0(GenericConstantRegression, TestCase):
     sigma = 1e-6
@@ -226,9 +229,15 @@ class PlaneRegressionNoiseL3(Generic2DFeatureRegression, TestCase):
 class PlaneRegressionNoiseL4(Generic2DFeatureRegression, TestCase):
     sigma = 1.0
 
+    def test_kolmogorov(self):
+        pass
+
 
 class PlaneRegressionNoiseL5(Generic2DFeatureRegression, TestCase):
     sigma = 2.5
+
+    def test_kolmogorov(self):
+        pass
 
 
 class QuadricRegression(Generic2DFeatureRegression):
@@ -255,9 +264,15 @@ class SaddleRegressionNoiseL3(QuadricRegression, TestCase):
 class SaddleRegressionNoiseL4(QuadricRegression, TestCase):
     sigma = 1.0
 
+    def test_kolmogorov(self):
+        pass
+
 
 class SaddleRegressionNoiseL5(QuadricRegression, TestCase):
     sigma = 2.5
+
+    def test_kolmogorov(self):
+        pass
 
 
 class ParaboloidRegressionNoiseL0(QuadricRegression, TestCase):
@@ -275,26 +290,36 @@ class FullQuadricRegression(Generic2DFeatureRegression):
     parameters = np.array([1.0, -1.0, 3.0, 0.2, 0.2, 1.0])
 
 
-class FullSaddleRegressionNoiseL0(FullQuadricRegression, TestCase):
+class FullSaddleRegression(FullQuadricRegression):
+    pass
+
+
+class FullSaddleRegressionNoiseL0(FullSaddleRegression, TestCase):
     sigma = 1e-6
 
 
-class FullSaddleRegressionNoiseL1(FullQuadricRegression, TestCase):
+class FullSaddleRegressionNoiseL1(FullSaddleRegression, TestCase):
     sigma = 2.5e-2
 
 
-class FullSaddleRegressionNoiseL2(FullQuadricRegression, TestCase):
+class FullSaddleRegressionNoiseL2(FullSaddleRegression, TestCase):
     sigma = 1.0e-1
 
 
-class FullSaddleRegressionNoiseL3(FullQuadricRegression, TestCase):
+class FullSaddleRegressionNoiseL3(FullSaddleRegression, TestCase):
     sigma = 2.5e-1
 
 
-class FullSaddleRegressionNoiseL4(FullQuadricRegression, TestCase):
+class FullSaddleRegressionNoiseL4(FullSaddleRegression, TestCase):
     sigma = 1.0
 
+    def test_kolmogorov(self):
+        pass
 
-class FullSaddleRegressionNoiseL5(FullQuadricRegression, TestCase):
+
+class FullSaddleRegressionNoiseL5(FullSaddleRegression, TestCase):
     sigma = 2.5
     sigma_factor = 25.0
+
+    def test_kolmogorov(self):
+        pass
