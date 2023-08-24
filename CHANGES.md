@@ -25,8 +25,11 @@ SO ``curve-fitting`` tag:
  - https://stackoverflow.com/questions/63637144/python-rayleigh-fit-histogram/63646040#63646040
 
 
+## v0.1.11
+
 ## v0.1.10
 
+ - [x] Updated documentation
 
 ## v0.1.9
 
