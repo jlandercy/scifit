@@ -25,6 +25,9 @@ SO ``curve-fitting`` tag:
  - https://stackoverflow.com/questions/63637144/python-rayleigh-fit-histogram/63646040#63646040
 
 
+## v0.1.10
+
+
 ## v0.1.9
 
  - [x] Regex to adapt requirements and remove windows dev traces
@@ -33,7 +36,7 @@ SO ``curve-fitting`` tag:
  - [x] Added Exponential Modified Gaussian Peak model
  - [x] Added Linear Squared Slope model (ill-defined)
  - [x] Add a Kolmogorov Smirnov Tests in addition of Chi Square Test
- - [ ] Surfaces are available in plot_loss as well
+ - [x] Surfaces are available in plot_loss as well
 
 ## v0.1.8
 ## v0.1.7

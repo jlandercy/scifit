@@ -793,7 +793,7 @@ class FitSolverInterface:
 
     def kolmogorov(self):
         if self.fitted(error=True):
-            test = stats.ks_2samp(self._yhat, self._ydata, alternative='two-sided', method='auto')
+            test = stats.ks_2samp(self._yhat, self._ydata, alternative='two-sided', method='asymp')
             return {
                 "statistic": test.statistic,
                 "pvalue": test.pvalue,
@@ -1783,6 +1783,8 @@ class FitSolverInterface:
         log_x=False,
         log_y=False,
         log_loss=False,
+        scatter=True,
+        surface=False,
     ):
         """
         Sketch and plot full loss landscape in order to assess parameters optima convergence and uniqueness.
@@ -1801,7 +1803,8 @@ class FitSolverInterface:
         :return:
         """
         if self.k <= 2:
-            axe = self.plot_loss_low_dimension(
+
+            axes = self.plot_loss_low_dimension(
                 mode=mode,
                 domains=domains,
                 ratio=ratio,
@@ -1817,9 +1820,11 @@ class FitSolverInterface:
                 log_x=log_x,
                 log_y=log_y,
                 log_loss=log_loss,
+                surface=surface,
             )
 
-        else:
+        elif scatter and not surface:
+
             full_title = "Fit {}Loss Plot: {}\n{}".format(
                 "Log-" if log_loss else "", title, self.get_title()
             )
@@ -1871,4 +1876,31 @@ class FitSolverInterface:
             fig.suptitle(full_title, fontsize=10)
             fig.subplots_adjust(top=0.8, left=0.2)
 
-        return axe
+        else:
+
+            axes = []
+            for i, j in itertools.combinations(range(self.k), 2):
+
+                axe = self.plot_loss_low_dimension(
+                    title=title,
+                    first_index=i,
+                    second_index=j,
+                    mode=mode,
+                    domains=domains,
+                    ratio=ratio,
+                    factor=factor,
+                    xmin=xmin,
+                    xmax=xmax,
+                    levels=levels,
+                    resolution=resolution,
+                    iterations=iterations,
+                    include_origin=include_origin,
+                    include_unit=include_unit,
+                    log_x=log_x,
+                    log_y=log_y,
+                    log_loss=log_loss,
+                    surface=surface,
+                )
+                axes.append(axe)
+
+        return axes

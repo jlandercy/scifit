@@ -12,7 +12,7 @@ from scifit.interfaces.generic import FitSolverInterface
 
 # Tests setup:
 print_fit = bool(int(os.getenv("TESTS_PRINT_FIT", 1)))
-print_chi2 = bool(int(os.getenv("TESTS_PRINT_CHI2", 0)))
+print_chi2 = bool(int(os.getenv("TESTS_PRINT_CHI2", 1)))
 print_k2s = bool(int(os.getenv("TESTS_PRINT_K2S", 1)))
 print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 0)))
 print_loss_surface = bool(int(os.getenv("TESTS_PRINT_LOSS_SURFACE", 0)))
@@ -565,6 +565,8 @@ class GenericTestFitSolver:
                 log_y=self.loss_log_y,
                 log_loss=self.log_loss,
             )
+            if self.solver.k > 2:
+                axe = axe[0][0]
             axe.figure.savefig(
                 "{}/{}_loss_scatter.{}".format(self.media_path, name, self.format)
             )
@@ -576,11 +578,10 @@ class GenericTestFitSolver:
             title = r"{} (seed={:d})".format(name, self.seed)
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
 
-            for i, j in itertools.combinations(range(self.solver.k), 2):
+            if self.solver.k <= 2:
+
                 axe = self.solver.plot_loss_low_dimension(
                     title=title,
-                    first_index=i,
-                    second_index=j,
                     surface=True,
                     add_title=True,
                     iterations=False,
@@ -593,8 +594,30 @@ class GenericTestFitSolver:
                     log_loss=False,
                 )
                 axe.figure.savefig(
-                    "{}/{}_loss_surface_b{}_b{}.{}".format(
-                        self.media_path, name, i + 1, j + 1, self.format
+                    "{}/{}_loss_surface_b1_b2.{}".format(
+                        self.media_path, name, self.format
                     )
                 )
                 plt.close(axe.figure)
+
+            else:
+
+                for axe in self.solver.plot_loss(
+                    title=title,
+                    surface=True,
+                    iterations=False,
+                    resolution=self.loss_resolution,
+                    domains=self.loss_domains,
+                    ratio=self.loss_ratio,
+                    factor=self.loss_factor,
+                    log_x=False,
+                    log_y=False,
+                    log_loss=False,
+                ):
+                    i, j = axe._pair_indices
+                    axe.figure.savefig(
+                        "{}/{}_loss_surface_b{}_b{}.{}".format(
+                            self.media_path, name, i + 1, j + 1, self.format
+                        )
+                    )
+                    plt.close(axe.figure)
