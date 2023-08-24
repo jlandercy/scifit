@@ -241,7 +241,7 @@ class GaussianPeakFitSolver(FitSolverInterface):
         :param x0: Peak displacement :math:`x_0`
         :return: Gaussian peak :math:`y`
         """
-        return H*np.exp(-0.5 * np.power((x[:, 0] - x0)/sigma, 2))
+        return H * np.exp(-0.5 * np.power((x[:, 0] - x0) / sigma, 2))
 
 
 class GaussianPeakWithBaselineFitSolver(FitSolverInterface):
@@ -266,7 +266,7 @@ class GaussianPeakWithBaselineFitSolver(FitSolverInterface):
         :param b:
         :return: Gaussian peak :math:`y`
         """
-        return H*np.exp(-0.5 * np.power((x[:, 0] - x0)/sigma, 2)) + a * x[:, 0] + b
+        return H * np.exp(-0.5 * np.power((x[:, 0] - x0) / sigma, 2)) + a * x[:, 0] + b
 
 
 class EMGPeakFitSolver(FitSolverInterface):
@@ -297,7 +297,10 @@ class EMGPeakFitSolver(FitSolverInterface):
         :return: EMG peak :math:`y`
         """
 
-        z = (x[:, 0] - xG)/sigma - sigma/x0
-        return A/x0 * np.exp(-0.5 * np.power(sigma/x0, 2) - (x[:, 0] - xG)/x0) * EMGPeakFitSolver.cdf(z)
-
-
+        z = (x[:, 0] - xG) / sigma - sigma / x0
+        return (
+            A
+            / x0
+            * np.exp(-0.5 * np.power(sigma / x0, 2) - (x[:, 0] - xG) / x0)
+            * EMGPeakFitSolver.cdf(z)
+        )

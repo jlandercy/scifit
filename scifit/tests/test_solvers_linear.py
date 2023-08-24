@@ -210,11 +210,13 @@ class LinearRootRegressionNoiseL4(GenericLinearRootRegression, TestCase):
     def test_kolmogorov(self):
         pass
 
+
 class LinearRootRegressionNoiseL5(GenericLinearRootRegression, TestCase):
     sigma = 2.5
 
     def test_kolmogorov(self):
         pass
+
 
 class Generic2DFeatureRegression(GenericTestFitSolver):
     factory = linear.PlaneFitSolver

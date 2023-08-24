@@ -443,7 +443,13 @@ class FitSolverInterface:
 
         self._iterations = [p0]
         solution = optimize.minimize(
-            loss, x0=p0, method="L-BFGS-B", jac="3-point", callback=callback, bounds=bounds, **kwargs
+            loss,
+            x0=p0,
+            method="L-BFGS-B",
+            jac="3-point",
+            callback=callback,
+            bounds=bounds,
+            **kwargs,
         )
         self._iterations = np.array(self._iterations)
 
@@ -750,7 +756,9 @@ class FitSolverInterface:
         :return: Dictionary of objects containing elements to interpret the Chi Square Test for Goodness of Fit
         """
         if self.fitted(error=True):
-            statistic = self.chi_square(self._xdata, self._ydata, sigma=self._sigma, parameters=None)
+            statistic = self.chi_square(
+                self._xdata, self._ydata, sigma=self._sigma, parameters=None
+            )
             normalized = statistic / self.dof
             law = stats.chi2(df=self.dof)
             result = {
@@ -793,7 +801,9 @@ class FitSolverInterface:
 
     def kolmogorov(self):
         if self.fitted(error=True):
-            test = stats.ks_2samp(self._yhat, self._ydata, alternative='two-sided', method='asymp')
+            test = stats.ks_2samp(
+                self._yhat, self._ydata, alternative="two-sided", method="asymp"
+            )
             return {
                 "statistic": test.statistic,
                 "pvalue": test.pvalue,
@@ -1018,7 +1028,6 @@ class FitSolverInterface:
         factor = factor or (5.0 if mode == "lin" else 2.0)
 
         if iterations:
-
             domains = pd.DataFrame(self._iterations).describe()
             domains.loc["extent", :] = domains.loc["max", :] - domains.loc["min", :]
             domains.loc["min", :] -= ratio * domains.loc["extent", :]
@@ -1026,14 +1035,17 @@ class FitSolverInterface:
             domains = domains.loc[["min", "max"], :]
 
         else:
-
             if parameters is None and self.fitted(error=True):
                 parameters = self._solution["parameters"]
 
             if parameters is not None:
                 if mode == "lin":
-                    xmin = xmin or list(parameters - factor * ratio * np.abs(parameters))
-                    xmax = xmax or list(parameters + factor * ratio * np.abs(parameters))
+                    xmin = xmin or list(
+                        parameters - factor * ratio * np.abs(parameters)
+                    )
+                    xmax = xmax or list(
+                        parameters + factor * ratio * np.abs(parameters)
+                    )
 
                 elif mode == "log":
                     xmin = xmin or list(parameters / np.power(ratio, factor))
@@ -1065,7 +1077,7 @@ class FitSolverInterface:
                     "Domain upper boundaries must have the same dimension as parameter space"
                 )
 
-            domains =pd.DataFrame([xmin, xmax], index=["min", "max"])
+            domains = pd.DataFrame([xmin, xmax], index=["min", "max"])
 
         return domains
 
@@ -1511,7 +1523,6 @@ class FitSolverInterface:
         :return:
         """
         if self.fitted(error=True):
-
             full_title = "Fit Kolmogorov Plot: {}\n{}".format(title, self.get_title())
 
             fig, axe = plt.subplots()
@@ -1530,14 +1541,19 @@ class FitSolverInterface:
             axe.set_xlabel(r"Target, $y$")
             axe.set_ylabel(r"ECDF, $F(y)$")
 
-            axe.legend([
-                r"Data: $F_1(y)$",
-                r"Fit: $F_2(\hat{y})$",
-                (
-                    r"K-Test: $D({:.3g}) = {:.3g}$".format(test.statistic_location, test.statistic) +
-                    "\n" + r"$p = P(K > D) = {:.4f}$".format(test.pvalue)
-                )
-            ])
+            axe.legend(
+                [
+                    r"Data: $F_1(y)$",
+                    r"Fit: $F_2(\hat{y})$",
+                    (
+                        r"K-Test: $D({:.3g}) = {:.3g}$".format(
+                            test.statistic_location, test.statistic
+                        )
+                        + "\n"
+                        + r"$p = P(K > D) = {:.4f}$".format(test.pvalue)
+                    ),
+                ]
+            )
             axe.grid()
 
             fig.subplots_adjust(top=0.8, left=0.15)
@@ -1607,7 +1623,6 @@ class FitSolverInterface:
             )
 
             if self.k == 1 or (first_index is not None and second_index is None):
-
                 first_index = first_index or 0
                 p0 = self._solution["parameters"]
                 parameters = list(p0)
@@ -1634,7 +1649,7 @@ class FitSolverInterface:
                         linestyle=":",
                         marker="o",
                         color="darkgray",
-                        #linewidth=0.75,
+                        # linewidth=0.75,
                         markersize=4,
                     )
 
@@ -1659,7 +1674,6 @@ class FitSolverInterface:
                 axe._pair_indices = (first_index, first_index)
 
             elif self.k == 2 or (first_index is not None and second_index is not None):
-
                 first_index = first_index or 0
                 second_index = second_index or 1
 
@@ -1722,7 +1736,7 @@ class FitSolverInterface:
                             linestyle=":",
                             marker="o",
                             color="darkgray",
-                            #linewidth=0.75,
+                            # linewidth=0.75,
                             markersize=4,
                         )
 
@@ -1807,7 +1821,6 @@ class FitSolverInterface:
         :return:
         """
         if self.k <= 2:
-
             axes = self.plot_loss_low_dimension(
                 mode=mode,
                 domains=domains,
@@ -1828,7 +1841,6 @@ class FitSolverInterface:
             )
 
         elif scatter and not surface:
-
             full_title = "Fit {}Loss Plot: {}\n{}".format(
                 "Log-" if log_loss else "", title, self.get_title()
             )
@@ -1881,10 +1893,8 @@ class FitSolverInterface:
             fig.subplots_adjust(top=0.8, left=0.2)
 
         else:
-
             axes = []
             for i, j in itertools.combinations(range(self.k), 2):
-
                 axe = self.plot_loss_low_dimension(
                     title=title,
                     first_index=i,

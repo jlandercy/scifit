@@ -1,5 +1,5 @@
-import os
 import itertools
+import os
 import pathlib
 
 import matplotlib.pyplot as plt
@@ -8,7 +8,6 @@ import pandas as pd
 
 from scifit.errors.base import *
 from scifit.interfaces.generic import FitSolverInterface
-
 
 # Tests setup:
 print_fit = bool(int(os.getenv("TESTS_PRINT_FIT", 1)))
@@ -438,7 +437,7 @@ class GenericTestFitSolver:
                 parameters,
                 solution["parameters"],
                 atol=1e-6,
-                rtol=10. * (self.sigma or 1e-4),
+                rtol=10.0 * (self.sigma or 1e-4),
             )
         )
 
@@ -524,7 +523,9 @@ class GenericTestFitSolver:
                 log_x=self.log_x,
                 log_y=self.log_y,
             )
-            axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format))
+            axe.figure.savefig(
+                "{}/{}_fit.{}".format(self.media_path, name, self.format)
+            )
             plt.close(axe.figure)
 
     def test_plot_chi_square(self):
@@ -533,7 +534,9 @@ class GenericTestFitSolver:
             title = r"{} (seed={:d})".format(name, self.seed)
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
             axe = self.solver.plot_chi_square(title=title)
-            axe.figure.savefig("{}/{}_chi2.{}".format(self.media_path, name, self.format))
+            axe.figure.savefig(
+                "{}/{}_chi2.{}".format(self.media_path, name, self.format)
+            )
             plt.close(axe.figure)
 
     def test_plot_kolmogorov(self):
@@ -542,7 +545,9 @@ class GenericTestFitSolver:
             title = r"{} (seed={:d})".format(name, self.seed)
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
             axe = self.solver.plot_kolmogorov(title=title)
-            axe.figure.savefig("{}/{}_k2s.{}".format(self.media_path, name, self.format))
+            axe.figure.savefig(
+                "{}/{}_k2s.{}".format(self.media_path, name, self.format)
+            )
             plt.close(axe.figure)
 
     def test_plot_loss_automatic(self):
@@ -551,7 +556,9 @@ class GenericTestFitSolver:
             title = r"{} (seed={:d})".format(name, self.seed)
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
             if self.loss_domains is None:
-                domains = self.solver.parameter_domains(iterations=print_loss_iterations)
+                domains = self.solver.parameter_domains(
+                    iterations=print_loss_iterations
+                )
             else:
                 domains = self.loss_domains
             axe = self.solver.plot_loss(
@@ -579,7 +586,6 @@ class GenericTestFitSolver:
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
 
             if self.solver.k <= 2:
-
                 axe = self.solver.plot_loss_low_dimension(
                     title=title,
                     surface=True,
@@ -601,7 +607,6 @@ class GenericTestFitSolver:
                 plt.close(axe.figure)
 
             else:
-
                 for axe in self.solver.plot_loss(
                     title=title,
                     surface=True,
