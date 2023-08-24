@@ -65,6 +65,9 @@ class FitSolverInterface:
     Which defines a simple linear regression that can be fitted to experimental data.
     """
 
+    _data_keys = ["_xdata", "_ydata", "_sigma"]
+    _result_keys = ["_solution", "_minimize", "_yhat", "_loss", "_score", "_gof"]
+
     def __init__(self, **kwargs):
         """
         Create a new instance of :class:`FitSolverInterface` and store parameters to pass them to :py:mod:`scipy`
@@ -82,6 +85,10 @@ class FitSolverInterface:
         :return: Dictionary of parameters
         """
         return self._configuration | kwargs
+
+    def clean_results(self):
+        for key in self._result_keys:
+            self.__dict__.pop(key, None)
 
     def store(self, xdata=None, ydata=None, sigma=None, data=None):
         """
@@ -418,6 +425,10 @@ class FitSolverInterface:
         if p0 is None:
             p0 = np.full((self.k,), 1.0)
 
+        bounds = kwargs.pop("bounds", None)
+        if isinstance(bounds, Iterable):
+            bounds = [(a, b) for a, b in zip(*bounds)]
+
         # Adapt signature for single number:
         if isinstance(sigma, numbers.Number):
             sigma = np.full(ydata.shape, sigma)
@@ -432,7 +443,7 @@ class FitSolverInterface:
 
         self._iterations = [p0]
         solution = optimize.minimize(
-            loss, x0=p0, method="L-BFGS-B", jac="3-point", callback=callback, **kwargs
+            loss, x0=p0, method="L-BFGS-B", jac="3-point", callback=callback, bounds=bounds, **kwargs
         )
         self._iterations = np.array(self._iterations)
 
@@ -519,8 +530,9 @@ class FitSolverInterface:
         :param parameters: Sequence of :code:`k` parameters
         :return: Predicted target as a :code:`(n,)` matrix
         """
-        if parameters is not None or self.fitted(error=True):
-            return self.model(xdata, *(parameters or self._solution["parameters"]))
+        if parameters is None:
+            parameters = self._solution["parameters"]
+        return self.model(xdata, *parameters)
 
     @property
     def degree_of_freedom(self):
@@ -665,7 +677,7 @@ class FitSolverInterface:
         """
         return np.sum(np.power(ydata - ydata.mean(), 2))
 
-    def score(self, xdata, ydata, sigma=None, parameters=None):
+    def score(self, xdata, ydata, sigma=None, parameters=None, estimated=True):
         """
         Compute Coefficient of Determination :math:`R^2` as follows:
 
@@ -673,17 +685,34 @@ class FitSolverInterface:
 
             R^2 = 1 - \\frac{RSS}{TSS}
 
+        Or in its estimated form (default):
+
+        .. math::
+
+            R^2 = 1 - \\frac{RSS / d_\\nu}{TSS / d_n}
+
+        Where:
+
+        - :math:`d_\\nu = n - k - 1` is the degree of freedom for Residual Sum of Squared of the model;
+        - :math:`d_\\nu = n - 1` is the degree of freedom of the Variance
+
         :param xdata: Features (variables) as :code:`(n,m)` matrix
         :param ydata: Target as :code:`(n,)` matrix
         :param sigma: Uncertainty on target as :code:`(n,)` matrix or scalar or :code:`None`
         :param parameters: Sequence of :code:`k` parameters
         :return: Coefficient of Determination :math:`R^2`
         """
-        return 1.0 - self.RSS(xdata, ydata) / self.TSS(ydata)
+
+        score = 1.0 - self.RSS(xdata, ydata, parameters=parameters) / self.TSS(ydata)
+
+        if estimated:
+            score *= (self.n - 1) / (self.n - self.k - 1)
+
+        return score
 
     score.name = "$R^2$"
 
-    def goodness_of_fit(self, xdata, ydata, sigma=None, parameters=None):
+    def goodness_of_fit(self):
         """
         Compute Chi Square for Goodness of Fit (GoF) as follows:
 
@@ -720,46 +749,56 @@ class FitSolverInterface:
         :param parameters: Sequence of :code:`k` parameters
         :return: Dictionary of objects containing elements to interpret the Chi Square Test for Goodness of Fit
         """
-        statistic = self.chi_square(xdata, ydata, sigma=sigma, parameters=parameters)
-        normalized = statistic / self.dof
-        law = stats.chi2(df=self.dof)
-        result = {
-            "n": self.n,
-            "k": self.k,
-            "dof": self.dof,
-            "statistic": statistic,
-            "normalized": normalized,
-            "pvalue": law.sf(statistic),
-            "law": law,
-            "significance": {
-                "left-sided": [],
-                "right-sided": [],
-                "two-sided": [],
-            },
-        }
-        for alpha in [0.500, 0.100, 0.050, 0.010, 0.005, 0.001]:
-            # Left Sided Test:
-            chi = law.ppf(alpha)
-            result["significance"]["left-sided"].append(
-                {"alpha": alpha, "value": chi, "H0": chi <= statistic}
-            )
-            # Right Sided Test:
-            chi = law.ppf(1.0 - alpha)
-            result["significance"]["right-sided"].append(
-                {"alpha": alpha, "value": chi, "H0": statistic <= chi}
-            )
-            # Two Sided Test:
-            low = law.ppf(alpha / 2.0)
-            high = law.ppf(1.0 - alpha / 2.0)
-            result["significance"]["two-sided"].append(
-                {
-                    "alpha": alpha,
-                    "low-value": low,
-                    "high-value": high,
-                    "H0": low <= statistic <= high,
-                }
-            )
-        return result
+        if self.fitted(error=True):
+            statistic = self.chi_square(self._xdata, self._ydata, sigma=self._sigma, parameters=None)
+            normalized = statistic / self.dof
+            law = stats.chi2(df=self.dof)
+            result = {
+                "n": self.n,
+                "k": self.k,
+                "dof": self.dof,
+                "statistic": statistic,
+                "normalized": normalized,
+                "pvalue": law.sf(statistic),
+                "law": law,
+                "significance": {
+                    "left-sided": [],
+                    "right-sided": [],
+                    "two-sided": [],
+                },
+            }
+            for alpha in [0.500, 0.100, 0.050, 0.010, 0.005, 0.001]:
+                # Left Sided Test:
+                chi = law.ppf(alpha)
+                result["significance"]["left-sided"].append(
+                    {"alpha": alpha, "value": chi, "H0": chi <= statistic}
+                )
+                # Right Sided Test:
+                chi = law.ppf(1.0 - alpha)
+                result["significance"]["right-sided"].append(
+                    {"alpha": alpha, "value": chi, "H0": statistic <= chi}
+                )
+                # Two Sided Test:
+                low = law.ppf(alpha / 2.0)
+                high = law.ppf(1.0 - alpha / 2.0)
+                result["significance"]["two-sided"].append(
+                    {
+                        "alpha": alpha,
+                        "low-value": low,
+                        "high-value": high,
+                        "H0": low <= statistic <= high,
+                    }
+                )
+            return result
+
+    def kolmogorov(self):
+        if self.fitted(error=True):
+            test = stats.ks_2samp(self._yhat, self._ydata, alternative='two-sided', method='asymp')
+            return {
+                "statistic": test.statistic,
+                "pvalue": test.pvalue,
+                "test": test,
+            }
 
     def parametrized_loss(self, xdata=None, ydata=None, sigma=None):
         """
@@ -791,7 +830,7 @@ class FitSolverInterface:
 
         return wrapped
 
-    def fit(self, xdata=None, ydata=None, sigma=None, **kwargs):
+    def fit(self, xdata=None, ydata=None, sigma=None, data=None, **kwargs):
         """
         Fully solve the fitting problem for the given model and input data.
         This method stores input data and fit results. It assesses loss function over parameter neighborhoods,
@@ -806,21 +845,26 @@ class FitSolverInterface:
         """
 
         if not self.stored(error=False):
-            self.store(xdata, ydata, sigma=sigma)
+            self.store(xdata=xdata, ydata=ydata, sigma=sigma, data=data)
 
+        # Solve the Adjustment problem:
         self._solution = self.solve(
             self._xdata, self._ydata, sigma=self._sigma, **kwargs
         )
 
-        # Check and regression pathway:
+        # Solve again the regression problem in a different way to check the regression and parameters pathway:
         self._minimize = self.minimize(
             self._xdata, self._ydata, sigma=self._sigma, **kwargs
         )
 
+        # Estimates & metrics:
         self._yhat = self.predict(self._xdata)
         self._loss = self.loss(self._xdata, self._ydata, sigma=self._sigma)
         self._score = self.score(self._xdata, self._ydata, sigma=self._sigma)
-        self._gof = self.goodness_of_fit(self._xdata, self._ydata, sigma=self._sigma)
+
+        # Statistical tests:
+        self._gof = self.goodness_of_fit()
+        self._k2s = self.kolmogorov()
 
         return self._solution
 
@@ -1212,7 +1256,7 @@ class FitSolverInterface:
         data.iloc[-1, 5] = None
         return data
 
-    def get_latex_parameters(self, show_sigma=True, precision=3, mode="f"):
+    def get_latex_parameters(self, show_sigma=True, precision=3, mode="g"):
         """
         Return parameters in a compact LaTeX fashion, useful for figure title
         """
@@ -1221,13 +1265,11 @@ class FitSolverInterface:
             for i, parameter in enumerate(self._solution["parameters"]):
                 term = ("{:.%d%s}" % (precision, mode)).format(parameter)
                 if show_sigma:
-                    term += (r" \pm {:.%d%s}" % (precision, mode)).format(
+                    term += (" \xb1 {:.%d%s}" % (precision, mode)).format(
                         np.sqrt(self._solution["covariance"][i][i])
                     )
-                # if i % 4 == 0:
-                #     term += "\n"
                 terms.append(term)
-            return r"$\beta = ({})$".format(", ".join(terms))
+            return r"$\beta \pm s_{{\beta}}$ = ({})".format("; ".join(terms))
 
     def get_title(self):
         """
@@ -1389,7 +1431,6 @@ class FitSolverInterface:
             :width: 560
             :alt: Chi Square Goodness of Fit Plot
 
-
         :param title:
         :param resolution:
         :return:
@@ -1458,6 +1499,51 @@ class FitSolverInterface:
 
             return axe
 
+    def plot_kolmogorov(self, title=""):
+        """
+        Plot Kolmogorov Goodness of Fit figure
+
+        .. image:: ../media/figures/KolmogorovPlot.png
+            :width: 560
+            :alt: Chi Square Goodness of Fit Plot
+
+        :param title:
+        :return:
+        """
+        if self.fitted(error=True):
+
+            full_title = "Fit Kolmogorov Plot: {}\n{}".format(title, self.get_title())
+
+            fig, axe = plt.subplots()
+
+            test = self.kolmogorov()["test"]
+
+            y_ecdf = stats.ecdf(self._ydata)
+            y_ecdf.cdf.plot(axe)
+
+            yhat_ecdf = stats.ecdf(self._yhat)
+            yhat_ecdf.cdf.plot(axe)
+
+            axe.axvline(test.statistic_location, linestyle="-.", color="black")
+
+            axe.set_title(full_title, fontdict={"fontsize": 10})
+            axe.set_xlabel(r"Target, $y$")
+            axe.set_ylabel(r"ECDF, $F(y)$")
+
+            axe.legend([
+                r"Data: $F_1(y)$",
+                r"Fit: $F_2(\hat{y})$",
+                (
+                    r"K-Test: $D({:.3g}) = {:.3g}$".format(test.statistic_location, test.statistic) +
+                    "\n" + r"$p = P(K > D) = {:.4f}$".format(test.pvalue)
+                )
+            ])
+            axe.grid()
+
+            fig.subplots_adjust(top=0.8, left=0.15)
+
+            return axe
+
     def plot_loss_low_dimension(
         self,
         first_index=None,
@@ -1488,6 +1574,10 @@ class FitSolverInterface:
         .. image:: ../media/figures/FitLossPlotLowDim.png
             :width: 560
             :alt: Low Dimensionality Fit Loss Plot
+
+        .. image:: ../media/figures/FitLossSurfacePlot.png
+            :width: 560
+            :alt: Low Dimensionality Fit Loss Plot (surface)
 
         See :meth:`FitSolverInterface.plot_loss` for full loss landscape.
         """
@@ -1697,6 +1787,8 @@ class FitSolverInterface:
         log_x=False,
         log_y=False,
         log_loss=False,
+        scatter=True,
+        surface=False,
     ):
         """
         Sketch and plot full loss landscape in order to assess parameters optima convergence and uniqueness.
@@ -1715,7 +1807,8 @@ class FitSolverInterface:
         :return:
         """
         if self.k <= 2:
-            axe = self.plot_loss_low_dimension(
+
+            axes = self.plot_loss_low_dimension(
                 mode=mode,
                 domains=domains,
                 ratio=ratio,
@@ -1731,9 +1824,11 @@ class FitSolverInterface:
                 log_x=log_x,
                 log_y=log_y,
                 log_loss=log_loss,
+                surface=surface,
             )
 
-        else:
+        elif scatter and not surface:
+
             full_title = "Fit {}Loss Plot: {}\n{}".format(
                 "Log-" if log_loss else "", title, self.get_title()
             )
@@ -1785,4 +1880,31 @@ class FitSolverInterface:
             fig.suptitle(full_title, fontsize=10)
             fig.subplots_adjust(top=0.8, left=0.2)
 
-        return axe
+        else:
+
+            axes = []
+            for i, j in itertools.combinations(range(self.k), 2):
+
+                axe = self.plot_loss_low_dimension(
+                    title=title,
+                    first_index=i,
+                    second_index=j,
+                    mode=mode,
+                    domains=domains,
+                    ratio=ratio,
+                    factor=factor,
+                    xmin=xmin,
+                    xmax=xmax,
+                    levels=levels,
+                    resolution=resolution,
+                    iterations=iterations,
+                    include_origin=include_origin,
+                    include_unit=include_unit,
+                    log_x=log_x,
+                    log_y=log_y,
+                    log_loss=log_loss,
+                    surface=surface,
+                )
+                axes.append(axe)
+
+        return axes

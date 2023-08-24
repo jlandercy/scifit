@@ -12,10 +12,11 @@ from scifit.interfaces.generic import FitSolverInterface
 
 # Tests setup:
 print_fit = bool(int(os.getenv("TESTS_PRINT_FIT", 1)))
-print_chi2 = bool(int(os.getenv("TESTS_PRINT_CHI2", 0)))
-print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 1)))
+print_chi2 = bool(int(os.getenv("TESTS_PRINT_CHI2", 1)))
+print_k2s = bool(int(os.getenv("TESTS_PRINT_K2S", 1)))
+print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 0)))
 print_loss_surface = bool(int(os.getenv("TESTS_PRINT_LOSS_SURFACE", 0)))
-print_loss_iterations = bool(int(os.getenv("TESTS_PRINT_LOSS_ITERATIONS", 1)))
+print_loss_iterations = bool(int(os.getenv("TESTS_PRINT_LOSS_ITERATIONS", 0)))
 
 
 class GenericTestFitSolverInterface:
@@ -239,8 +240,14 @@ class GenericTestFitSolver:
 
     def test_model_fit_stored_fields(self):
         solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        for key in ["_xdata", "_ydata", "_solution", "_yhat", "_score"]:
+        for key in self.solver._data_keys + self.solver._result_keys:
             self.assertTrue(hasattr(self.solver, key))
+
+    def test_clean_stored_fields(self):
+        solution = self.solver.store(self.xdata, self.ydata, sigma=self.sigmas)
+        self.solver.clean_results()
+        for key in self.solver._result_keys:
+            self.assertFalse(hasattr(self.solver, key))
 
     def test_parameter_domains_size(self):
         domains = self.solver.parameter_domains(
@@ -333,15 +340,25 @@ class GenericTestFitSolver:
         Perform Chi 2 Test for Goodness of fit and check proper fits get their pvalue acceptable
         """
         solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
-        test = self.solver.goodness_of_fit(self.xdata, self.ydata, sigma=self.sigmas)
+        test = self.solver.goodness_of_fit()
         self.assertIsInstance(test, dict)
         self.assertEqual(
             set(test.keys()).intersection({"statistic", "pvalue"}),
             {"statistic", "pvalue"},
         )
-        # Ensure proper fits get its test valid:
         if self.sigma is not None and self.sigma > 0.0:
             self.assertTrue(0.50 <= test["normalized"] <= 1.50)
+            self.assertTrue(test["pvalue"] >= 0.10)
+
+    def test_kolmogorov(self):
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        test = self.solver.kolmogorov()
+        self.assertIsInstance(test, dict)
+        self.assertEqual(
+            set(test.keys()).intersection({"statistic", "pvalue"}),
+            {"statistic", "pvalue"},
+        )
+        if self.sigma is not None and self.sigma > 0.0:
             self.assertTrue(test["pvalue"] >= 0.10)
 
     def test_feature_dataset_auto(self):
@@ -421,7 +438,7 @@ class GenericTestFitSolver:
                 parameters,
                 solution["parameters"],
                 atol=1e-6,
-                rtol=10 * (self.sigma or 1e-4),
+                rtol=10. * (self.sigma or 1e-4),
             )
         )
 
@@ -519,13 +536,22 @@ class GenericTestFitSolver:
             axe.figure.savefig("{}/{}_chi2.{}".format(self.media_path, name, self.format))
             plt.close(axe.figure)
 
+    def test_plot_kolmogorov(self):
+        if print_k2s:
+            name = self.__class__.__name__
+            title = r"{} (seed={:d})".format(name, self.seed)
+            self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+            axe = self.solver.plot_kolmogorov(title=title)
+            axe.figure.savefig("{}/{}_k2s.{}".format(self.media_path, name, self.format))
+            plt.close(axe.figure)
+
     def test_plot_loss_automatic(self):
         if print_loss_contour:
             name = self.__class__.__name__
             title = r"{} (seed={:d})".format(name, self.seed)
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
             if self.loss_domains is None:
-                domains = self.solver.parameter_domains(iterations=True)
+                domains = self.solver.parameter_domains(iterations=print_loss_iterations)
             else:
                 domains = self.loss_domains
             axe = self.solver.plot_loss(
@@ -539,6 +565,8 @@ class GenericTestFitSolver:
                 log_y=self.loss_log_y,
                 log_loss=self.log_loss,
             )
+            if self.solver.k > 2:
+                axe = axe[0][0]
             axe.figure.savefig(
                 "{}/{}_loss_scatter.{}".format(self.media_path, name, self.format)
             )
@@ -550,11 +578,10 @@ class GenericTestFitSolver:
             title = r"{} (seed={:d})".format(name, self.seed)
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
 
-            for i, j in itertools.combinations(range(self.solver.k), 2):
+            if self.solver.k <= 2:
+
                 axe = self.solver.plot_loss_low_dimension(
                     title=title,
-                    first_index=i,
-                    second_index=j,
                     surface=True,
                     add_title=True,
                     iterations=False,
@@ -567,8 +594,30 @@ class GenericTestFitSolver:
                     log_loss=False,
                 )
                 axe.figure.savefig(
-                    "{}/{}_loss_surface_b{}_b{}.{}".format(
-                        self.media_path, name, i + 1, j + 1, self.format
+                    "{}/{}_loss_surface_b1_b2.{}".format(
+                        self.media_path, name, self.format
                     )
                 )
                 plt.close(axe.figure)
+
+            else:
+
+                for axe in self.solver.plot_loss(
+                    title=title,
+                    surface=True,
+                    iterations=False,
+                    resolution=self.loss_resolution,
+                    domains=self.loss_domains,
+                    ratio=self.loss_ratio,
+                    factor=self.loss_factor,
+                    log_x=False,
+                    log_y=False,
+                    log_loss=False,
+                ):
+                    i, j = axe._pair_indices
+                    axe.figure.savefig(
+                        "{}/{}_loss_surface_b{}_b{}.{}".format(
+                            self.media_path, name, i + 1, j + 1, self.format
+                        )
+                    )
+                    plt.close(axe.figure)

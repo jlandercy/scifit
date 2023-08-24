@@ -8,8 +8,10 @@
    - [ ] Mechanics
    - [ ] Gradient recovery
    - [ ] Distribution fit
- - [ ] Print parameters in scientific format if too small or too large
- - [ ] Take time to refactor load and store to make it compliant with workflow
+ - [ ] Rethink how load, store and fit should work together
+   - load and store are the only way to push data
+   - then all function performs on stored data
+   - it cannot be changed, must create another object
 
 SO ``curve-fitting`` tag:
 
@@ -23,7 +25,20 @@ SO ``curve-fitting`` tag:
  - https://stackoverflow.com/questions/63637144/python-rayleigh-fit-histogram/63646040#63646040
 
 
+## v0.1.10
 
+
+## v0.1.9
+
+ - [x] Regex to adapt requirements and remove windows dev traces
+ - [x] Added smart display for parameters
+ - [x] Added Gaussian Peak model
+ - [x] Added Exponential Modified Gaussian Peak model
+ - [x] Added Linear Squared Slope model (ill-defined)
+ - [x] Add a Kolmogorov Smirnov Tests in addition of Chi Square Test
+ - [x] Surfaces are available in plot_loss as well
+
+## v0.1.8
 ## v0.1.7
 
  - [x] Added Docker GitHub Action workflow to compile documentation
