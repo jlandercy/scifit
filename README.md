@@ -1,11 +1,11 @@
+[![Pypi Workflow](https://github.com/jlandercy/scifit/actions/workflows/pypi.yaml/badge.svg?branch=main)](https://github.com/jlandercy/scifit/actions/workflows/pypi.yaml)
+[![Documentations Workflow](https://github.com/jlandercy/scifit/actions/workflows/docs.yaml/badge.svg?branch=main)](https://github.com/jlandercy/scifit/actions/workflows/docs.yaml)
+
 ![SciFit Banner](./docs/source/media/branding/Banner.png)
 
 # SciFit
 
 > Comprehensive fits for scientists
-
-[![Pypi Workflow](https://github.com/jlandercy/scifit/actions/workflows/pypi.yaml/badge.svg?branch=main)](https://github.com/jlandercy/scifit/actions/workflows/pypi.yaml)
-[![Documentations Workflow](https://github.com/jlandercy/scifit/actions/workflows/docs.yaml/badge.svg?branch=main)](https://github.com/jlandercy/scifit/actions/workflows/docs.yaml)
 
 Welcome to SciFit package the python package for comprehensive fits for scientists
 designed to ease fitting procedure and automatically perform the quality assessment.
