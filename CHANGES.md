@@ -9,6 +9,7 @@
    - [ ] Gradient recovery
    - [ ] Distribution fit
  - [ ] Rethink how load, store and fit should work together
+ - [ ] Add a Kolmogorov Smirnov Tests in addition of Chi Square Test
 
 SO ``curve-fitting`` tag:
 
