@@ -4,13 +4,14 @@
 
 > Comprehensive fits for scientists
 
-Welcome to SciFit package the scientist companion for comprehensive fits with quality assessment.
+Welcome to SciFit package the python package for comprehensive fits for scientists
+designed to ease fitting procedure and automatically perform the quality assessment.
 
 SciFit aims to support your work by:
 
  - Providing a clean, stable and compliant interface for each solver;
  - Perform ad hoc transformations, processing and tests on each stage of solver procedure;
- - Render high quality figures summarizing solver solution and quality checks.
+ - Render high quality figures summarizing solver solution and quality assessments.
 
 ## Installation
 
