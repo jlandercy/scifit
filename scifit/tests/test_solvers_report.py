@@ -1,36 +1,34 @@
-import os
 from unittest import TestCase
 
-import numpy as np
+from scifit.solvers import linear
+from scifit.toolbox import report
 
-import pypandoc
 
-#
-# class TestSimple(TestCase):
-#
-#     def test_export_changes_pdf(self):
-#         pypandoc.convert_file('CHANGES.md', 'pdf', outputfile=".cache/changes.pdf")
-#
-#     def test_export_readme_pdf(self):
-#         pypandoc.convert_file('scifit/tests/resources/reports/sample/report.md', 'pdf', outputfile=".cache/report.pdf")
+class TestReportProcessor(TestCase):
 
-#
-# class ReportProcessor:
-#
-#     directory = None
-#     report = "report"
-#
-#     def setUp(self):
-#         self.current = os.getcwd()
-#         os.chdir(self.directory)
-#
-#     def tearDown(self):
-#         os.chdir(self.current)
-#
-#     def test_report_pdf(self):
-#         pypandoc.convert_file(self.report + ".md", 'pdf', outputfile="%s.pdf" % self.report)
-#
-#
-# class TestSimpleReport(ReportProcessor, TestCase):
-#     directory = "scifit/tests/resources/reports/sample"
+    context = {
+        "name": "Jean Landercy"
+    }
 
+    def setUp(self):
+        self.processor = report.ReportProcessor()
+        self.solver = linear.LinearFitSolver()
+        self.data = self.solver.synthetic_dataset(sigma=0.15)
+        self.solver.fit(self.data)
+
+    def test_jinja_processor(self):
+        payload = self.processor.render(self.context)
+
+    def test_pandoc_converter(self):
+        self.processor.convert("# Hello world\n##Foo\n###Bar", file="dummy")
+
+    def test_serialize_payload(self):
+        axe = self.solver.plot_fit()
+        payload = self.processor.serialize(axe)
+
+    def test_full_chain(self):
+        axe = self.solver.plot_fit()
+        figure = self.processor.serialize(axe)
+        context = self.context | {"fit_payload": figure}
+        payload = self.processor.render(context)
+        self.processor.convert(payload, file="report")
