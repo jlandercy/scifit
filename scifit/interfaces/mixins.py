@@ -1,6 +1,6 @@
 import abc
-import numbers
 import inspect
+import numbers
 from collections.abc import Iterable
 
 import numpy as np
@@ -11,7 +11,6 @@ from scifit.errors.base import *
 
 
 class ConfigurationMixin:
-
     def __init__(self, **kwargs):
         """
         Create a new instance of :class:`FitSolverInterface` and store parameters to pass them to :py:mod:`scipy`
@@ -32,7 +31,6 @@ class ConfigurationMixin:
 
 
 class FitSolverMixin(ConfigurationMixin, abc.ABC):
-
     _dimension = None
     _data_keys = ("_xdata", "_ydata", "_sigma")
     _result_keys = tuple()
@@ -42,7 +40,10 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
         if self._dimension is None:
             raise ConfigurationError("Dimension must be set.")
         if not isinstance(self._dimension, numbers.Integral):
-            raise ConfigurationError("Dimension must be an integral number, got %s instead" % type(self._dimension))
+            raise ConfigurationError(
+                "Dimension must be an integral number, got %s instead"
+                % type(self._dimension)
+            )
         if self._dimension < 0:
             raise ConfigurationError("Dimension must be a positive number.")
         super().__init__(*args, **kwargs)
@@ -55,7 +56,7 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
         :return: Stored status as boolean
         :raise: Exception :class:`scifit.errors.base.NotStoredError` if check fails
         """
-        is_cleaned = not(hasattr(self, "_xdata") or hasattr(self, "_ydata"))
+        is_cleaned = not (hasattr(self, "_xdata") or hasattr(self, "_ydata"))
         if not is_cleaned and error:
             NotCleanedError("Input data are not cleaned")
         return is_cleaned
@@ -230,7 +231,6 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
         data.to_csv(file_or_frame, sep=";", index=True)
 
     def validate(self, xdata=None, ydata=None, sigma=None):
-
         xdata = np.array(xdata)
         ydata = np.array(ydata)
 
@@ -244,7 +244,8 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
 
         if xdata.shape[1] != self.m:
             raise InputDataError(
-                "Incompatible second dimension for x, expected %d, got %d instead" % (self.m, xdata[1])
+                "Incompatible second dimension for x, expected %d, got %d instead"
+                % (self.m, xdata[1])
             )
 
         if not (
@@ -355,7 +356,9 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
         :param parameters: Sequence of :code:`k` parameters
         :return: Predicted target as a :code:`(n,)` matrix
         """
-        xdata, _, _, parameters = self.defaults(xdata=xdata, ydata=False, sigma=False, parameters=parameters)
+        xdata, _, _, parameters = self.defaults(
+            xdata=xdata, ydata=False, sigma=False, parameters=parameters
+        )
         return self.model(xdata, *parameters)
 
     @staticmethod
@@ -605,7 +608,6 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
             )
         )
 
-
     def generate_noise(
         self,
         yref,
@@ -827,7 +829,6 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
         """
 
         if self.stored(error=True):
-
             data = self.merge_dataset(self._xdata, self._ydata, self._sigma)
 
             if self.fitted(error=False):

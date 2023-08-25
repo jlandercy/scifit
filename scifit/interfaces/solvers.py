@@ -66,7 +66,15 @@ class FitSolverInterface(FitSolverMixin):
 
     _dimension = None
     _data_keys = ("_xdata", "_ydata", "_sigma")
-    _result_keys = ("_solution", "_minimize", "_yhat", "_loss", "_score", "_gof", "_k2s")
+    _result_keys = (
+        "_solution",
+        "_minimize",
+        "_yhat",
+        "_loss",
+        "_score",
+        "_gof",
+        "_k2s",
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

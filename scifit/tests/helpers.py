@@ -19,7 +19,6 @@ print_loss_iterations = bool(int(os.getenv("TESTS_PRINT_LOSS_ITERATIONS", 0)))
 
 
 class GenericTestFitSolverInterface:
-
     dimension = None
     xdata = None
     ydata = None
@@ -433,7 +432,7 @@ class GenericTestFitSolver:
             sigma=self.sigma,
         )
         data = data.dropna(how="all", axis=1)
-        #self.solver._store(data)
+        # self.solver._store(data)
         solution = self.solver.fit(data, p0=0.75 * parameters)
         self.assertTrue(
             np.allclose(
@@ -466,7 +465,7 @@ class GenericTestFitSolver:
 
         solver2 = self.factory(**self.configuration)
         data = solver2.load(file1)
-        #solver2._store()
+        # solver2._store()
         np.random.seed(self.seed)
         solution2 = solver2.fit(data)
         check2 = solver2.dataset()

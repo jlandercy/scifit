@@ -1,8 +1,8 @@
 Solvers
-=======
+#######
 
 Linear models
--------------
+*************
 
 Linear models are useful as they emerge very often in daily life.
 When solving fit problem, linear means linear in terms of regression parameters
@@ -14,7 +14,7 @@ can linearly regress parabola.
 
 
 Scientific models
------------------
+*****************
 
 .. note::
 
@@ -31,10 +31,21 @@ solving system of equations, and so on).
 
 
 Special models
---------------
+**************
 
 Special models are all scientific models but with an extra complexity in the
 problem to solver and its implementation.
 
 .. automodule:: scifit.solvers.specials
+   :members:
+
+
+
+Ill defined models
+******************
+
+Collection of models specially designed to be ill defined in order to check
+how badly setup model can drift from normality.
+
+.. automodule:: scifit.solvers.illdefined
    :members:
