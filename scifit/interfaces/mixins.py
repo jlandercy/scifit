@@ -10,7 +10,7 @@ from scifit import logger
 from scifit.errors.base import *
 
 
-class ConfigurationMixin(abc.ABC):
+class ConfigurationMixin:
 
     def __init__(self, **kwargs):
         """
@@ -31,7 +31,7 @@ class ConfigurationMixin(abc.ABC):
         return self._configuration | kwargs
 
 
-class FitSolverMixin(ConfigurationMixin):
+class FitSolverMixin(ConfigurationMixin, abc.ABC):
 
     _dimension = None
     _data_keys = ("_xdata", "_ydata", "_sigma")
@@ -271,7 +271,21 @@ class FitSolverMixin(ConfigurationMixin):
 
         return xdata, ydata, sigma
 
-    def store(self, xdata=None, ydata=None, sigma=None, data=None):
+    def defaults(self, xdata=None, ydata=None, sigma=None, parameters=None):
+        if xdata is None:
+            xdata = self._xdata
+        if ydata is None:
+            ydata = self._ydata
+        if sigma is None:
+            sigma = self._sigma
+        if parameters is None:
+            if self.fitted():
+                parameters = self._solution["parameters"]
+            else:
+                parameters = np.full((self.k,), 1.0)
+        return xdata, ydata, sigma, parameters
+
+    def _store(self, xdata=None, ydata=None, sigma=None):
         """
         Validate and store features (variables), target and target uncertainties.
 
@@ -282,12 +296,12 @@ class FitSolverMixin(ConfigurationMixin):
         :raise: Exception :class:`scifit.errors.base.InputDataError` if validation fails
         """
 
-        if data is not None:
-            if not isinstance(data, pd.DataFrame):
+        if xdata is not None and ydata is None:
+            if not isinstance(xdata, pd.DataFrame):
                 raise InputDataError(
-                    "Data must be of type DataFrame, got %s instead" % type(data)
+                    "Data must be of type DataFrame, got %s instead" % type(xdata)
                 )
-            xdata, ydata, sigma = self.split_dataset(data)
+            xdata, ydata, sigma = self.split_dataset(xdata)
 
         # Validate data:
         xdata, ydata, sigma = self.validate(xdata=xdata, ydata=ydata, sigma=sigma)
@@ -301,35 +315,34 @@ class FitSolverMixin(ConfigurationMixin):
             % (xdata.shape, ydata.shape, sigma is not None)
         )
 
-    # @abc.abstractmethod
-    # def _fit(self, xdata=None, ydata=None, sigma=None, data=None, **kwargs):
-    #     """Class defined fit method"""
-    #     pass
-    #
-    # def fit(self, xdata=None, ydata=None, sigma=None, data=None, **kwargs):
-    #     """Fit using data"""
-    #     self.clean()
-    #     self._fit(xdata=None, ydata=None, sigma=None, data=None, **kwargs)
-    #     # Fit
-    #     return self
-    #
-    # def refit(self, xdata=None, ydata=None, sigma=None, data=None, **kwargs):
+    @abc.abstractmethod
+    def _fit(self, xdata=None, ydata=None, sigma=None, **kwargs):
+        """Class defined fit method"""
+        pass
+
+    def fit(self, xdata=None, ydata=None, sigma=None, **kwargs):
+        """Clean old data, store data and fit data to model"""
+        self.clean()
+        self._store(xdata=xdata, ydata=ydata, sigma=sigma)
+        solution = self._fit(xdata=xdata, ydata=ydata, sigma=sigma, **kwargs)
+        return solution
+
+    # def refit(self, xdata=None, ydata=None, sigma=None, **kwargs):
     #     """Merge data and fit again"""
     #     data = self._merge(xdata=xdata, ydata=ydata, sigma=sigma, data=data)
     #     self.fit(data=data, **kwargs)
     #     return self
 
-    def predict(self, xdata, parameters=None):
+    def predict(self, xdata=None, parameters=None):
         """
         Predict target wrt features (variables) and parameters.
         If parameters are not provided uses regressed parameters (problem needs to be solved first).
 
-        :param x: Features (variables) as :code:`(n,m)` matrix
+        :param xdata: Features (variables) as :code:`(n,m)` matrix
         :param parameters: Sequence of :code:`k` parameters
         :return: Predicted target as a :code:`(n,)` matrix
         """
-        if parameters is None:
-            parameters = self._solution["parameters"]
+        xdata, _, _, parameters = self.defaults(xdata=xdata, ydata=False, sigma=False, parameters=parameters)
         return self.model(xdata, *parameters)
 
     @staticmethod
@@ -831,66 +844,3 @@ class FitSolverMixin(ConfigurationMixin):
         data.iloc[-1, :-5] = None
         data.iloc[-1, 5] = None
         return data
-
-
-    # def clean_data(self):
-    #     """Clean data"""
-    #     pass
-    #
-    # def clean_attributes(self):
-    #     """Clean fitted attributes"""
-    #     pass
-    #
-    # def clean(self):
-    #     self.clean_data()
-    #     self.clean_attributes()
-    #
-    # def store(self, xdata=None, ydata=None, sigma=None, **kwargs):
-    #     """Store data"""
-    #     self.clean()
-    #     xdata, ydata, sigma = self.validate(xdata=xdata, ydata=ydata, sigma=sigma)
-    #
-    # def merge(self, xdata=None, ydata=None, sigma=None, **kwargs):
-    #     """Update data"""
-    #     pass
-    #
-    # @staticmethod
-    # def create_dataset(xdata=None, ydata=None, sigma=None):
-    #     """Assemble standardized dataset from matrix and vectors"""
-    #     pass
-    #
-    # @staticmethod
-    # def split_dataset(data=None):
-    #     """Split standardized dataset into matrix and vectors"""
-    #     pass
-    #
-    # @classmethod
-    # def validate(cls, xdata=None, ydata=None, sigma=None):
-    #     """Validate matrix and vectors"""
-    #     if isinstance(xdata, pd.DataFrame) and ydata is None:
-    #         xdata, ydata, sigma = cls.split_dataset(xdata)
-    #
-    #     return xdata, ydata, sigma
-    #
-    # def dataset(self):
-    #     """Get data as a standardized frame"""
-    #     data = self.create_dataset(xdata=self.xdata, ydata=self.ydata, sigma=self.sigma)
-    #     return data
-    #
-    # @abc.abstractmethod
-    # def _fit(self, xdata=None, ydata=None, sigma=None, data=None, **kwargs):
-    #     """Class defined fit method"""
-    #     pass
-    #
-    # def fit(self, xdata=None, ydata=None, sigma=None, data=None, **kwargs):
-    #     """Fit using data"""
-    #     self.clean()
-    #     self._fit(xdata=None, ydata=None, sigma=None, data=None, **kwargs)
-    #     # Fit
-    #     return self
-    #
-    # def refit(self, xdata=None, ydata=None, sigma=None, data=None, **kwargs):
-    #     """Merge data and fit again"""
-    #     data = self._merge(xdata=xdata, ydata=ydata, sigma=sigma, data=data)
-    #     self.fit(data=data, **kwargs)
-    #     return self

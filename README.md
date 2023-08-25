@@ -44,7 +44,7 @@ data = solver.synthetic_dataset(
 )
 
 # Stor data into the solver:
-solver.store(data=data)
+solver._store(data=data)
 
 # Perform regression:
 solution = solver.fit()

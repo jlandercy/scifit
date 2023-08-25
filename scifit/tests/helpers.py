@@ -26,7 +26,7 @@ class GenericTestFitSolverInterface:
 
     def setUp(self) -> None:
         self.solver = FitSolverInterface(dimension=self.dimension)
-        self.solver.store(self.xdata, self.ydata)
+        self.solver._store(self.xdata, self.ydata)
 
     def test_missing_model(self):
         with self.assertRaises(MissingModel):
@@ -245,7 +245,7 @@ class GenericTestFitSolver:
             self.assertTrue(hasattr(self.solver, key))
 
     def test_clean_stored_fields(self):
-        solution = self.solver.store(self.xdata, self.ydata, sigma=self.sigmas)
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         self.solver.clean_results()
         for key in self.solver._result_keys:
             self.assertFalse(hasattr(self.solver, key))
@@ -363,7 +363,7 @@ class GenericTestFitSolver:
             self.assertTrue(test["pvalue"] >= 0.10)
 
     def test_feature_dataset_auto(self):
-        self.solver.store(self.xdata, self.ydata)
+        self.solver._store(self.xdata, self.ydata)
         dataset = self.solver.feature_dataset(
             domains=self.solver.feature_domains(), resolution=10
         )
@@ -395,7 +395,7 @@ class GenericTestFitSolver:
     def test_load_and_store(self):
         if self.data_path:
             data = self.solver.load(self.data_path)
-            self.solver.store(data=data)
+            self.solver._store(data=data)
             self.assertTrue(self.solver.stored(error=False))
             self.assertEqual(data.shape[0], self.solver._xdata.shape[0])
             self.assertEqual(data.shape[0], self.solver._ydata.shape[0])
@@ -433,8 +433,8 @@ class GenericTestFitSolver:
             sigma=self.sigma,
         )
         data = data.dropna(how="all", axis=1)
-        self.solver.store(data=data)
-        solution = self.solver.fit(p0=0.75 * parameters)
+        #self.solver._store(data)
+        solution = self.solver.fit(data, p0=0.75 * parameters)
         self.assertTrue(
             np.allclose(
                 parameters,
@@ -445,7 +445,7 @@ class GenericTestFitSolver:
         )
 
     def test_fitted_dataset(self):
-        self.solver.store(self.xdata, self.ydata, sigma=self.sigmas)
+        self.solver._store(self.xdata, self.ydata, sigma=self.sigmas)
         data = self.solver.dataset()
         self.assertIsInstance(data, pd.DataFrame)
         self.assertEqual(data.index.name, "id")
@@ -466,9 +466,9 @@ class GenericTestFitSolver:
 
         solver2 = self.factory(**self.configuration)
         data = solver2.load(file1)
-        solver2.store(data=data)
+        #solver2._store()
         np.random.seed(self.seed)
-        solution2 = solver2.fit()
+        solution2 = solver2.fit(data)
         check2 = solver2.dataset()
         # solver2.dump(file2, summary=False)
 

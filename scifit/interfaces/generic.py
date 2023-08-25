@@ -472,12 +472,7 @@ class FitSolverInterface(FitSolverMixin):
         :return: Wrapped loss function decorated with experimental data and vectorized for parameters
         """
 
-        if xdata is None:
-            xdata = self._xdata
-        if ydata is None:
-            ydata = self._ydata
-        if sigma is None:
-            sigma = self._sigma
+        xdata, ydata, sigma, _ = self.defaults(xdata=xdata, ydata=ydata, sigma=sigma)
 
         @np.vectorize
         def wrapped(*parameters):
@@ -485,7 +480,7 @@ class FitSolverInterface(FitSolverMixin):
 
         return wrapped
 
-    def fit(self, xdata=None, ydata=None, sigma=None, data=None, **kwargs):
+    def _fit(self, xdata=None, ydata=None, sigma=None, **kwargs):
         """
         Fully solve the fitting problem for the given model and input data.
         This method stores input data and fit results. It assesses loss function over parameter neighborhoods,
@@ -498,9 +493,6 @@ class FitSolverInterface(FitSolverMixin):
         :return: Dictionary of values related to fit solution
 
         """
-
-        if not self.stored(error=False):
-            self.store(xdata=xdata, ydata=ydata, sigma=sigma, data=data)
 
         # Solve the Adjustment problem:
         self._solution = self.solve(
