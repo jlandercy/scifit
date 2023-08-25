@@ -15,7 +15,7 @@ Package References
 The complete package references decompose as follow:
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    Installation <./pages/installation.rst>
    Quick Start Guide <./pages/quickstart.rst>

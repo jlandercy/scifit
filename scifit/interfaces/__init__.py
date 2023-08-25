@@ -8,6 +8,9 @@ and implement the missing model to solve.
 
 Benefits are important, it enforces consistency among models and ensure quality is standard while
 it allows ease of reuse for next problems it also helps to create clean code.
+
+Code is split in mixins and interfaces:
+
 """
 
 from scifit.interfaces.solvers import *
