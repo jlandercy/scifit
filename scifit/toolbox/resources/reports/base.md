@@ -7,3 +7,9 @@ Report supervised by **{{name}}**.
 Figure below shows the adjustment:
 
 ![Adjustment]({{fit_payload}})
+
+
+
+Where dataset is about:
+
+{{table_payload}}

@@ -22,13 +22,26 @@ class TestReportProcessor(TestCase):
     def test_pandoc_converter(self):
         self.processor.convert("# Hello world\n##Foo\n###Bar", file="dummy")
 
-    def test_serialize_payload(self):
+    def test_serialize_figure(self):
         axe = self.solver.plot_fit()
         payload = self.processor.serialize(axe)
 
+    def test_serialize_table(self):
+        data = self.solver.dataset()
+        payload = self.processor.serialize(data)
+
     def test_full_chain(self):
+
         axe = self.solver.plot_fit()
         figure = self.processor.serialize(axe)
-        context = self.context | {"fit_payload": figure}
+
+        data = self.solver.dataset()#[["x0", "y", "sy"]].reset_index()
+        table = self.processor.serialize(data)
+
+        context = self.context | {
+            "fit_payload": figure,
+            "table_payload": table,
+        }
+
         payload = self.processor.render(context)
-        self.processor.convert(payload, file="report")
+        self.processor.convert(payload, file="report", mode="pdf")
