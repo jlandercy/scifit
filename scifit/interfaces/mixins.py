@@ -36,7 +36,8 @@ class FitSolverMixin(ConfigurationMixin):
     _data_keys = ("_xdata", "_ydata", "_sigma")
     _result_keys = tuple()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, dimension=None, *args, **kwargs):
+        self._dimension = dimension or self._dimension
         if self._dimension is None:
             raise ConfigurationError("Dimension must be set.")
         if not isinstance(self._dimension, numbers.Integral):

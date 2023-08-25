@@ -19,11 +19,13 @@ print_loss_iterations = bool(int(os.getenv("TESTS_PRINT_LOSS_ITERATIONS", 0)))
 
 
 class GenericTestFitSolverInterface:
+
+    dimension = None
     xdata = None
     ydata = None
 
     def setUp(self) -> None:
-        self.solver = FitSolverInterface()
+        self.solver = FitSolverInterface(dimension=self.dimension)
         self.solver.store(self.xdata, self.ydata)
 
     def test_missing_model(self):
