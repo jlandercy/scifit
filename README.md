@@ -43,11 +43,8 @@ data = solver.synthetic_dataset(
     sigma=0.1, scale_mode="auto", seed=1234,
 )
 
-# Stor data into the solver:
-solver._store(data=data)
-
 # Perform regression:
-solution = solver.fit()
+solution = solver.fit(data)
 
 # Render results:
 axe = solver.plot_fit(title="SciFit Quick Start Guide")

@@ -1,6 +1,6 @@
 import numpy as np
 
-from scifit.interfaces.generic import FitSolver1D, FitSolver2D
+from scifit.interfaces.solvers import FitSolver1D, FitSolver2D
 
 
 class ConstantFitSolver(FitSolver1D):

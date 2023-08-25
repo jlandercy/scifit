@@ -3,7 +3,7 @@ from unittest import TestCase
 import numpy as np
 
 from scifit.errors.base import *
-from scifit.interfaces.generic import FitSolverInterface
+from scifit.interfaces.solvers import FitSolverInterface
 from scifit.tests.helpers import GenericTestFitSolverInterface
 
 #

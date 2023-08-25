@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from scifit.errors.base import *
-from scifit.interfaces.generic import FitSolverInterface
+from scifit.interfaces.solvers import FitSolverInterface
 
 # Tests setup:
 print_fit = bool(int(os.getenv("TESTS_PRINT_FIT", 1)))

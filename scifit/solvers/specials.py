@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import integrate, optimize
 
-from scifit.interfaces.generic import FitSolver1D
+from scifit.interfaces.solvers import FitSolver1D
 
 
 class DebyeInternalEnergyFitSolver(FitSolver1D):
