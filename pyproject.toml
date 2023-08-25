@@ -111,6 +111,7 @@ dev = [
     "pyflakes>=2.2.0",
     "Pygments>=2.7.3",
     "pylint>=2.6.0",
+    "pypandoc>=1.11",
     "pyparsing>=2.4.7",
     "pyproj>=3.0.0.post1",
     "pyrsistent>=0.17.3",

@@ -8,6 +8,8 @@
    - [ ] Mechanics
    - [ ] Gradient recovery
    - [ ] Distribution fit
+ - [ ] Make fit report using pandoc MD -> PDF
+ - [ ] Give a try to Kivy in another package (userflow first)
 
 ## v0.1.12
 
