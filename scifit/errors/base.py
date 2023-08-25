@@ -26,6 +26,10 @@ class InputDataError(GenericError):
     pass
 
 
+class NotCleanedError(GenericError):
+    pass
+
+
 class NotStoredError(GenericError):
     pass
 

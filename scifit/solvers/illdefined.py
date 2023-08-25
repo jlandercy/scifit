@@ -1,10 +1,9 @@
 import numpy as np
 
-from scifit.interfaces.generic import FitSolverInterface
+from scifit.interfaces.solvers import FitSolver1D
 
 
-class LinearSquaredSlopeSolver(FitSolverInterface):
+class LinearSquaredSlopeSolver(FitSolver1D):
     @staticmethod
     def model(x, a, b):
         return np.power(a, 2) * x[:, 0] + b
-

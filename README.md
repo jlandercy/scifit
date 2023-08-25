@@ -7,14 +7,14 @@
 
 > Comprehensive fits for scientists
 
-Welcome to SciFit package the python package for comprehensive fits for scientists
+Welcome to SciFit project the Python package for comprehensive fits for scientists
 designed to ease fitting procedure and automatically perform the quality assessment.
 
-SciFit aims to support your work by:
+The SciFit project aims to support your work by:
 
  - Providing a clean, stable and compliant interface for each solver;
- - Perform ad hoc transformations, processing and tests on each stage of solver procedure;
- - Render high quality figures summarizing solver solution and quality assessments.
+ - Perform ad hoc transformations, processing and tests on each stage of a solver procedure;
+ - Render high quality figures summarizing solver solution and the quality assessment.
 
 ## Installation
 
@@ -23,6 +23,8 @@ You can install the SciFit package by issuing:
 ```commandline
 python -m pip install --upgrade scifit
 ```
+
+Which update you to the latest version of the package.
 
 ## Quick start
 
@@ -41,14 +43,19 @@ data = solver.synthetic_dataset(
     sigma=0.1, scale_mode="auto", seed=1234,
 )
 
-# Stor data into the solver:
-solver.store(data=data)
-
 # Perform regression:
-solution = solver.fit()
+solution = solver.fit(data)
 
 # Render results:
 axe = solver.plot_fit(title="SciFit Quick Start Guide")
 ```
 
 ![QuickStart](./docs/source/media/branding/QuickStart.png)
+
+## Resources
+
+ - [Documentations][20]
+ - [Repository][21]
+
+[20]: https://github.com/jlandercy/scifit/tree/main/docs
+[21]: https://github.com/jlandercy/scifit

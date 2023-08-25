@@ -1,9 +1,9 @@
 import numpy as np
 
-from scifit.interfaces.generic import FitSolverInterface
+from scifit.interfaces.solvers import FitSolver1D, FitSolver2D
 
 
-class ConstantFitSolver(FitSolverInterface):
+class ConstantFitSolver(FitSolver1D):
     @staticmethod
     def model(x, a):
         """
@@ -16,7 +16,7 @@ class ConstantFitSolver(FitSolverInterface):
         return np.full(x.shape[0], a)
 
 
-class ProportionalFitSolver(FitSolverInterface):
+class ProportionalFitSolver(FitSolver1D):
     @staticmethod
     def model(x, a):
         """
@@ -29,7 +29,7 @@ class ProportionalFitSolver(FitSolverInterface):
         return a * x[:, 0]
 
 
-class LinearFitSolver(FitSolverInterface):
+class LinearFitSolver(FitSolver1D):
     @staticmethod
     def model(x, a, b):
         """
@@ -42,7 +42,7 @@ class LinearFitSolver(FitSolverInterface):
         return a * x[:, 0] + b
 
 
-class ParabolicFitSolver(FitSolverInterface):
+class ParabolicFitSolver(FitSolver1D):
     @staticmethod
     def model(x, a, b, c):
         """
@@ -55,7 +55,7 @@ class ParabolicFitSolver(FitSolverInterface):
         return a * np.power(x[:, 0], 2) + b * x[:, 0] + c
 
 
-class CubicFitSolver(FitSolverInterface):
+class CubicFitSolver(FitSolver1D):
     @staticmethod
     def model(x, a, b, c, d):
         """
@@ -68,7 +68,7 @@ class CubicFitSolver(FitSolverInterface):
         return a * np.power(x[:, 0], 3) + b * np.power(x[:, 0], 2) + c * x[:, 0] + d
 
 
-class LinearRootFitSolver(FitSolverInterface):
+class LinearRootFitSolver(FitSolver1D):
     @staticmethod
     def model(x, a, b, c):
         """
@@ -81,7 +81,7 @@ class LinearRootFitSolver(FitSolverInterface):
         return a * x[:, 0] + b * np.sqrt(np.abs(x[:, 0]) + 1.0) + c
 
 
-class PlaneFitSolver(FitSolverInterface):
+class PlaneFitSolver(FitSolver2D):
     @staticmethod
     def model(x, a, b, c):
         """
@@ -94,7 +94,7 @@ class PlaneFitSolver(FitSolverInterface):
         return a * x[:, 0] + b * x[:, 1] + c
 
 
-class QuadricFitSolver(FitSolverInterface):
+class QuadricFitSolver(FitSolver2D):
     @staticmethod
     def model(x, a, b, c):
         """
@@ -107,7 +107,7 @@ class QuadricFitSolver(FitSolverInterface):
         return a * x[:, 0] * x[:, 0] + b * x[:, 1] * x[:, 1] + c
 
 
-class FullQuadricFitSolver(FitSolverInterface):
+class FullQuadricFitSolver(FitSolver2D):
     @staticmethod
     def model(x, a, b, c, d, e, f):
         """

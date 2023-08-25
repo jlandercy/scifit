@@ -1,10 +1,10 @@
 import numpy as np
 from scipy import integrate, optimize
 
-from scifit.interfaces.generic import FitSolverInterface
+from scifit.interfaces.solvers import FitSolver1D
 
 
-class DebyeInternalEnergyFitSolver(FitSolverInterface):
+class DebyeInternalEnergyFitSolver(FitSolver1D):
     @staticmethod
     def debye_integral(n):
         """
@@ -104,7 +104,7 @@ class CrankDiffusion:
         ) * self.sum(t, Kp, D)
 
 
-class CrankDiffusionFitSolver(FitSolverInterface):
+class CrankDiffusionFitSolver(FitSolver1D):
     _helper = CrankDiffusion()
 
     def __init__(self, alpha=3.9, radius=1.9e-3, **kwargs):
@@ -141,7 +141,7 @@ class CrankDiffusionFitSolver(FitSolverInterface):
         return CrankDiffusionFitSolver._helper.objective(x[:, 0], Kp, D)
 
 
-class RaneyKetonDehydrogenationFitSolver(FitSolverInterface):
+class RaneyKetonDehydrogenationFitSolver(FitSolver1D):
     def __init__(self, n0=3.5, V=200e-6, **kwargs):
         self.n0 = n0  # m3 of isopropanol
         self.V = V  # mol

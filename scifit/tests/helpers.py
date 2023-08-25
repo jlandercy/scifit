@@ -1,5 +1,5 @@
-import os
 import itertools
+import os
 import pathlib
 
 import matplotlib.pyplot as plt
@@ -7,25 +7,25 @@ import numpy as np
 import pandas as pd
 
 from scifit.errors.base import *
-from scifit.interfaces.generic import FitSolverInterface
-
+from scifit.interfaces.solvers import FitSolverInterface
 
 # Tests setup:
 print_fit = bool(int(os.getenv("TESTS_PRINT_FIT", 1)))
-print_chi2 = bool(int(os.getenv("TESTS_PRINT_CHI2", 1)))
-print_k2s = bool(int(os.getenv("TESTS_PRINT_K2S", 1)))
+print_chi2 = bool(int(os.getenv("TESTS_PRINT_CHI2", 0)))
+print_k2s = bool(int(os.getenv("TESTS_PRINT_K2S", 0)))
 print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 0)))
 print_loss_surface = bool(int(os.getenv("TESTS_PRINT_LOSS_SURFACE", 0)))
 print_loss_iterations = bool(int(os.getenv("TESTS_PRINT_LOSS_ITERATIONS", 0)))
 
 
 class GenericTestFitSolverInterface:
+    dimension = None
     xdata = None
     ydata = None
 
     def setUp(self) -> None:
-        self.solver = FitSolverInterface()
-        self.solver.store(self.xdata, self.ydata)
+        self.solver = FitSolverInterface(dimension=self.dimension)
+        self.solver._store(self.xdata, self.ydata)
 
     def test_missing_model(self):
         with self.assertRaises(MissingModel):
@@ -193,7 +193,7 @@ class GenericTestFitSolver:
             self.ynoise = data["ynoise"].values
 
         else:
-            data = self.solver.load(self.data_path, store=False)
+            data = self.solver.load(self.data_path)
             self.xdata = data.filter(regex="^x").values
             self.ydata = data["y"]
 
@@ -244,7 +244,7 @@ class GenericTestFitSolver:
             self.assertTrue(hasattr(self.solver, key))
 
     def test_clean_stored_fields(self):
-        solution = self.solver.store(self.xdata, self.ydata, sigma=self.sigmas)
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         self.solver.clean_results()
         for key in self.solver._result_keys:
             self.assertFalse(hasattr(self.solver, key))
@@ -362,7 +362,7 @@ class GenericTestFitSolver:
             self.assertTrue(test["pvalue"] >= 0.10)
 
     def test_feature_dataset_auto(self):
-        self.solver.store(self.xdata, self.ydata)
+        self.solver._store(self.xdata, self.ydata)
         dataset = self.solver.feature_dataset(
             domains=self.solver.feature_domains(), resolution=10
         )
@@ -393,7 +393,8 @@ class GenericTestFitSolver:
 
     def test_load_and_store(self):
         if self.data_path:
-            data = self.solver.load(self.data_path, store=True)
+            data = self.solver.load(self.data_path)
+            self.solver._store(data)
             self.assertTrue(self.solver.stored(error=False))
             self.assertEqual(data.shape[0], self.solver._xdata.shape[0])
             self.assertEqual(data.shape[0], self.solver._ydata.shape[0])
@@ -431,19 +432,19 @@ class GenericTestFitSolver:
             sigma=self.sigma,
         )
         data = data.dropna(how="all", axis=1)
-        self.solver.store(data=data)
-        solution = self.solver.fit(p0=0.75 * parameters)
+        # self.solver._store(data)
+        solution = self.solver.fit(data, p0=0.75 * parameters)
         self.assertTrue(
             np.allclose(
                 parameters,
                 solution["parameters"],
                 atol=1e-6,
-                rtol=10. * (self.sigma or 1e-4),
+                rtol=10.0 * (self.sigma or 1e-4),
             )
         )
 
     def test_fitted_dataset(self):
-        self.solver.store(self.xdata, self.ydata, sigma=self.sigmas)
+        self.solver._store(self.xdata, self.ydata, sigma=self.sigmas)
         data = self.solver.dataset()
         self.assertIsInstance(data, pd.DataFrame)
         self.assertEqual(data.index.name, "id")
@@ -463,9 +464,10 @@ class GenericTestFitSolver:
         self.solver.dump(file1, summary=False)
 
         solver2 = self.factory(**self.configuration)
-        solver2.load(file1, store=True)
+        data = solver2.load(file1)
+        # solver2._store()
         np.random.seed(self.seed)
-        solution2 = solver2.fit()
+        solution2 = solver2.fit(data)
         check2 = solver2.dataset()
         # solver2.dump(file2, summary=False)
 
@@ -524,7 +526,9 @@ class GenericTestFitSolver:
                 log_x=self.log_x,
                 log_y=self.log_y,
             )
-            axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format))
+            axe.figure.savefig(
+                "{}/{}_fit.{}".format(self.media_path, name, self.format)
+            )
             plt.close(axe.figure)
 
     def test_plot_chi_square(self):
@@ -533,7 +537,9 @@ class GenericTestFitSolver:
             title = r"{} (seed={:d})".format(name, self.seed)
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
             axe = self.solver.plot_chi_square(title=title)
-            axe.figure.savefig("{}/{}_chi2.{}".format(self.media_path, name, self.format))
+            axe.figure.savefig(
+                "{}/{}_chi2.{}".format(self.media_path, name, self.format)
+            )
             plt.close(axe.figure)
 
     def test_plot_kolmogorov(self):
@@ -542,7 +548,9 @@ class GenericTestFitSolver:
             title = r"{} (seed={:d})".format(name, self.seed)
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
             axe = self.solver.plot_kolmogorov(title=title)
-            axe.figure.savefig("{}/{}_k2s.{}".format(self.media_path, name, self.format))
+            axe.figure.savefig(
+                "{}/{}_k2s.{}".format(self.media_path, name, self.format)
+            )
             plt.close(axe.figure)
 
     def test_plot_loss_automatic(self):
@@ -551,7 +559,9 @@ class GenericTestFitSolver:
             title = r"{} (seed={:d})".format(name, self.seed)
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
             if self.loss_domains is None:
-                domains = self.solver.parameter_domains(iterations=print_loss_iterations)
+                domains = self.solver.parameter_domains(
+                    iterations=print_loss_iterations
+                )
             else:
                 domains = self.loss_domains
             axe = self.solver.plot_loss(
@@ -579,7 +589,6 @@ class GenericTestFitSolver:
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
 
             if self.solver.k <= 2:
-
                 axe = self.solver.plot_loss_low_dimension(
                     title=title,
                     surface=True,
@@ -601,7 +610,6 @@ class GenericTestFitSolver:
                 plt.close(axe.figure)
 
             else:
-
                 for axe in self.solver.plot_loss(
                     title=title,
                     surface=True,

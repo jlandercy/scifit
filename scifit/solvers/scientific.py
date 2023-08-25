@@ -1,10 +1,10 @@
 import numpy as np
 from scipy import stats
 
-from scifit.interfaces.generic import FitSolverInterface
+from scifit.interfaces.solvers import FitSolver1D
 
 
-class GompertzFitSolver(FitSolverInterface):
+class GompertzFitSolver(FitSolver1D):
     """
     `Gompertz function model (calculus) <https://en.wikipedia.org/wiki/Gompertz_function>`_
     """
@@ -27,7 +27,7 @@ class GompertzFitSolver(FitSolverInterface):
         return a * np.exp(-b * np.exp(-c * x[:, 0]))
 
 
-class LogisticFitSolver(FitSolverInterface):
+class LogisticFitSolver(FitSolver1D):
     """
     `Logistic function model (calculus) <https://en.wikipedia.org/wiki/Logit>`_
     """
@@ -49,7 +49,7 @@ class LogisticFitSolver(FitSolverInterface):
         return 1.0 / (1.0 + np.exp(-k * (x[:, 0] - x0)))
 
 
-class AlgebraicSigmoidFitSolver(FitSolverInterface):
+class AlgebraicSigmoidFitSolver(FitSolver1D):
     """
     `Algebraic sigmoid function model (calculus) <https://en.wikipedia.org/wiki/Algebraic_function>`_
     """
@@ -70,7 +70,7 @@ class AlgebraicSigmoidFitSolver(FitSolverInterface):
         return x[:, 0] / np.power(1.0 + np.power(np.abs(x[:, 0]), k), 1.0 / k)
 
 
-class RichardGeneralizedSigmoidFitSolver(FitSolverInterface):
+class RichardGeneralizedSigmoidFitSolver(FitSolver1D):
     """
     `Richard's generalized sigmoid function model (calculus) <https://en.wikipedia.org/wiki/Generalised_logistic_function>`_
     """
@@ -95,7 +95,7 @@ class RichardGeneralizedSigmoidFitSolver(FitSolverInterface):
         return A + (K - A) / np.power(C + Q * np.exp(-B * x[:, 0]), 1.0 / nu)
 
 
-class SmoothstepSigmoidFitSolver(FitSolverInterface):
+class SmoothstepSigmoidFitSolver(FitSolver1D):
     """
     `Smoothstep sigmoid function model (calculus) <https://en.wikipedia.org/wiki/Smoothstep>`_
     """
@@ -124,7 +124,7 @@ class SmoothstepSigmoidFitSolver(FitSolverInterface):
         return y
 
 
-class InverseBoxCoxFitSolver(FitSolverInterface):
+class InverseBoxCoxFitSolver(FitSolver1D):
     """
     `Inverse Box-Cox model (calculus) <https://en.wikipedia.org/wiki/Power_transform#Box%E2%80%93Cox_transformation>`_
     """
@@ -151,7 +151,7 @@ class InverseBoxCoxFitSolver(FitSolverInterface):
             return np.power(1.0 - lambda_ * x[:, 0], 1.0 / lambda_)
 
 
-class DoubleInverseBoxCoxSigmoidFitSolver(FitSolverInterface):
+class DoubleInverseBoxCoxSigmoidFitSolver(FitSolver1D):
     """
     Double Inverse Box-Cox sigmoid model (calculus)
     """
@@ -176,7 +176,7 @@ class DoubleInverseBoxCoxSigmoidFitSolver(FitSolverInterface):
         )
 
 
-class MichaelisMentenKineticFitSolver(FitSolverInterface):
+class MichaelisMentenKineticFitSolver(FitSolver1D):
     """
     `Michaëlis-Menten kinetic model (biochemistry) <https://en.wikipedia.org/wiki/Michaelis%E2%80%93Menten_kinetics>`_
     """
@@ -198,7 +198,7 @@ class MichaelisMentenKineticFitSolver(FitSolverInterface):
         return (vmax * x[:, 0]) / (km + x[:, 0])
 
 
-class HillEquationFitSolver(FitSolverInterface):
+class HillEquationFitSolver(FitSolver1D):
     """
     `Hill equation model (biochemistry) <https://en.wikipedia.org/wiki/Hill_equation_(biochemistry)>`_
     """
@@ -221,7 +221,7 @@ class HillEquationFitSolver(FitSolverInterface):
         return term / (1 + term)
 
 
-class GaussianPeakFitSolver(FitSolverInterface):
+class GaussianPeakFitSolver(FitSolver1D):
     """
     `Gaussian function model (calculus) <https://en.wikipedia.org/wiki/Gaussian_function>`_
     """
@@ -241,10 +241,10 @@ class GaussianPeakFitSolver(FitSolverInterface):
         :param x0: Peak displacement :math:`x_0`
         :return: Gaussian peak :math:`y`
         """
-        return H*np.exp(-0.5 * np.power((x[:, 0] - x0)/sigma, 2))
+        return H * np.exp(-0.5 * np.power((x[:, 0] - x0) / sigma, 2))
 
 
-class GaussianPeakWithBaselineFitSolver(FitSolverInterface):
+class GaussianPeakWithBaselineFitSolver(FitSolver1D):
     """
     Gaussian peak with baseline
     """
@@ -266,10 +266,10 @@ class GaussianPeakWithBaselineFitSolver(FitSolverInterface):
         :param b:
         :return: Gaussian peak :math:`y`
         """
-        return H*np.exp(-0.5 * np.power((x[:, 0] - x0)/sigma, 2)) + a * x[:, 0] + b
+        return H * np.exp(-0.5 * np.power((x[:, 0] - x0) / sigma, 2)) + a * x[:, 0] + b
 
 
-class EMGPeakFitSolver(FitSolverInterface):
+class EMGPeakFitSolver(FitSolver1D):
     """
     `Exponential Modified Gaussian Peak function model (calculus) <https://www.researchgate.net/publication/231172511_Equations_for_chromatographic_peak_modeling_and_calculation_of_peak_area>`_
     """
@@ -297,7 +297,10 @@ class EMGPeakFitSolver(FitSolverInterface):
         :return: EMG peak :math:`y`
         """
 
-        z = (x[:, 0] - xG)/sigma - sigma/x0
-        return A/x0 * np.exp(-0.5 * np.power(sigma/x0, 2) - (x[:, 0] - xG)/x0) * EMGPeakFitSolver.cdf(z)
-
-
+        z = (x[:, 0] - xG) / sigma - sigma / x0
+        return (
+            A
+            / x0
+            * np.exp(-0.5 * np.power(sigma / x0, 2) - (x[:, 0] - xG) / x0)
+            * EMGPeakFitSolver.cdf(z)
+        )

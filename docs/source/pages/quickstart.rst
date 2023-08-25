@@ -1,5 +1,5 @@
 Quick Start Guide
-=================
+#################
 
 Learn about :py:mod:`scifit` package through detailed examples.
 Read following notebooks to get acquainted with the interface.

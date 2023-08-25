@@ -1,5 +1,5 @@
 Installation
-============
+############
 
 SciFit package can be installed using the usual setup flow:
 
@@ -8,7 +8,7 @@ SciFit package can be installed using the usual setup flow:
    python setup.py install
 
 Suites
-------
+******
 
 Additional capabilities are exposed, first install tool suite:
 

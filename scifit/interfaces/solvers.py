@@ -1,6 +1,5 @@
 import inspect
 import itertools
-import logging
 import numbers
 from collections.abc import Iterable
 
@@ -10,12 +9,12 @@ import numpy as np
 import pandas as pd
 from scipy import optimize, stats
 
+from scifit import logger
 from scifit.errors.base import *
+from scifit.interfaces.mixins import *
 
-logger = logging.getLogger(__name__)
 
-
-class FitSolverInterface:
+class FitSolverInterface(FitSolverMixin):
 
     """
     This class is an interface exposing clean way to fit a defined model to experimental data
@@ -65,303 +64,20 @@ class FitSolverInterface:
     Which defines a simple linear regression that can be fitted to experimental data.
     """
 
-    _data_keys = ["_xdata", "_ydata", "_sigma"]
-    _result_keys = ["_solution", "_minimize", "_yhat", "_loss", "_score", "_gof"]
+    _dimension = None
+    _data_keys = ("_xdata", "_ydata", "_sigma")
+    _result_keys = (
+        "_solution",
+        "_minimize",
+        "_yhat",
+        "_loss",
+        "_score",
+        "_gof",
+        "_k2s",
+    )
 
-    def __init__(self, **kwargs):
-        """
-        Create a new instance of :class:`FitSolverInterface` and store parameters to pass them to :py:mod:`scipy`
-        afterwards when fitting experimental data.
-
-        :param kwargs: Dictionary of parameters to pass to :meth:`scipy.optimize.curve_fit`
-        """
-        self._configuration = kwargs
-
-    def configuration(self, **kwargs):
-        """
-        Return stored configuration updated by parameters passed to the method.
-
-        :param kwargs: extra parameters to update initially stored configuration
-        :return: Dictionary of parameters
-        """
-        return self._configuration | kwargs
-
-    def clean_results(self):
-        for key in self._result_keys:
-            self.__dict__.pop(key, None)
-
-    def store(self, xdata=None, ydata=None, sigma=None, data=None):
-        """
-        Validate and store features (variables), target and target uncertainties.
-
-        :param xdata: Features (variables) as a :code:`(n,m)` matrix
-        :param ydata: Target as a :code:`(n,)` matrix
-        :param sigma: Target uncertainties as :code:`(n,)` matrix
-        :param data: Full dataset including all xdata, ydata and sigma at once
-        :raise: Exception :class:`scifit.errors.base.InputDataError` if validation fails
-        """
-
-        # Partially import dataframe if provided, override with other fields
-        if data is not None:
-            if not isinstance(data, pd.DataFrame):
-                raise InputDataError(
-                    "Data must be of type DataFrame, got %s instead" % type(data)
-                )
-            if xdata is None:
-                xdata = data.filter(regex="^x[\d]+").values
-            if ydata is None:
-                ydata = data["y"].values
-            if sigma is None and "sy" in data.columns:
-                sigma = data["sy"].values
-
-        xdata = np.array(xdata)
-        ydata = np.array(ydata)
-
-        if xdata.ndim != 2:
-            raise InputDataError("Features must be a two dimensional array")
-
-        if xdata.shape[0] != ydata.shape[0]:
-            raise InputDataError(
-                "Incompatible shapes between x %s and y %s" % (xdata.shape, ydata.shape)
-            )
-
-        if not (
-            np.issubdtype(xdata.dtype, np.number)
-            and np.issubdtype(ydata.dtype, np.number)
-        ):
-            raise InputDataError("Input values must be numeric")
-
-        if np.any(np.isnan(xdata)) or np.any(np.isnan(ydata)):
-            raise InputDataError("Input values cannot contain missing data (NaN)")
-
-        if isinstance(sigma, Iterable):
-            sigma = np.array(sigma)
-            if sigma.shape != ydata.shape:
-                raise InputDataError(
-                    "Sigma as array must have the same shape as ydata %s, got %s instead"
-                    % (ydata.shape, sigma.shape)
-                )
-            if not np.issubdtype(sigma.dtype, np.number):
-                raise InputDataError(
-                    "All sigma must be numbers, got '%s' instead: %s"
-                    % (sigma.dtype, sigma)
-                )
-            if not np.all(np.isfinite(sigma)):
-                raise InputDataError("All sigma must be finite numbers: %s" % sigma)
-            if not np.all(sigma > 0.0):
-                raise InputDataError(
-                    "All sigma must be strictly positive numbers: %s" % sigma
-                )
-        elif isinstance(sigma, numbers.Number):
-            if sigma <= 0.0:
-                raise InputDataError("Sigma must be strictly positive")
-        elif sigma is None:
-            pass
-        else:
-            raise InputDataError("Sigma must be a number or an array of number")
-
-        self._xdata = xdata
-        self._ydata = ydata
-        self._sigma = sigma
-
-        logger.info(
-            "Stored data into solver: X%s, y%s, s=%s"
-            % (xdata.shape, ydata.shape, sigma is not None)
-        )
-
-    @staticmethod
-    def model(x, *parameters):
-        """
-        This static method defines the model function to fit to experimental data in order to regress parameters.
-        This method must be overridden after the class has been inherited, its signature must be exactly:
-
-        :param x: Features (variables) as :code:`(n,m)` matrix
-        :param parameters: Sequence of :code:`k` parameters with explicit names (don't use unpacking when implementing)
-        :return: Model function evaluated for the given features and parameters as :code:`(n,)` matrix
-        :raise: Exception :class:`scifit.errors.base.MissingModel`
-        """
-        raise MissingModel("Model must be defined before regression")
-
-    @property
-    def observation_space_size(self):
-        """
-        Number of experimental data (points, observations)
-        """
-        return self._xdata.shape[0]
-
-    @property
-    def n(self):
-        """
-        Number of experimental data (points, observations)
-        """
-        return self.observation_space_size
-
-    @property
-    def feature_space_size(self):
-        """
-        Number of features (variables) inferred from experimental data shape
-        """
-        return self._xdata.shape[1]
-
-    @property
-    def m(self):
-        """
-        Number of features (variables) inferred from experimental data shape
-        """
-        return self.feature_space_size
-
-    @property
-    def signature(self):
-        """
-        Signature of model function
-        """
-        return inspect.signature(self.model)
-
-    @property
-    def parameter_space_size(self):
-        """
-        Number of model parameters inferred from model function signature
-        """
-        return len(self.signature.parameters) - 1
-
-    @property
-    def k(self):
-        """
-        Number of model parameters inferred from model function signature
-        """
-        return self.parameter_space_size
-
-    def generate_noise(
-        self,
-        yref,
-        sigma=None,
-        precision=1e-9,
-        scale_mode="abs",
-        generator=np.random.normal,
-        seed=None,
-        full_output=True,
-        **kwargs,
-    ):
-        if seed is not None:
-            np.random.seed(seed)
-
-        if sigma is not None:
-            if isinstance(sigma, Iterable):
-                sigma = np.array(sigma)
-            else:
-                sigma = np.full(yref.shape, sigma)
-
-            if scale_mode == "abs":
-                sigma *= 1.0
-
-            elif scale_mode == "auto":
-                sigma *= (yref.max() - yref.min()) / 2.0 + precision
-
-            elif scale_mode == "rel":
-                sigma *= np.abs(yref) + precision
-
-            else:
-                raise ConfigurationError(
-                    "Scale must be in {'abs', 'rel', 'auto'}, got '%s' instead"
-                    % scale_mode
-                )
-
-            noise = sigma * generator(size=yref.shape[0], **kwargs)
-
-        else:
-            noise = np.full(yref.shape, 0.0)
-
-        if full_output:
-            return {
-                "noise": noise,
-                "sigmas": sigma,
-            }
-        else:
-            return noise
-
-    def target_dataset(
-        self,
-        xdata=None,
-        parameters=None,
-        dimension=1,
-        mode="lin",
-        xmin=-1.0,
-        xmax=1.0,
-        resolution=30,
-        sigma=None,
-        precision=1e-9,
-        scale_mode="abs",
-        generator=np.random.normal,
-        seed=None,
-        full_output=False,
-        **kwargs,
-    ):
-        """
-        Generate synthetic target for the model using features, parameters and eventually add noise to it.
-
-        Noise can be added in three different modes (:code:`scale_mode`):
-
-        - :code:`abs` (default) add absolute noise scaled by :code:`sigma`
-        - :code:`auto` add absolute noise scaled by :code:`sigma` and halved target extent
-        - :code:`rel` add relative noise scaled by :code:`sigma` and target absolute value in each point
-
-        Pseudo Random Generator (PRG) is defined by the object :code:`generator` which must be a PRG
-        coming from :py:mod:`numpy.random` by default it is a Standard Normal distribution :class:`numpy.random.normal`.
-
-        :param xdata: Features (variables) as :code:`(n,m)` matrix
-        :param parameters: Sequence of :code:`k` parameters with explicit names
-        :param dimension:
-        :param mode:
-        :param xmin:
-        :param xmax:
-        :param resolution:
-        :param sigma: Shape (scale) parameter for noise if any (default :code:`None`)
-        :param precision: Tiny :code:`float` added in noise generation to enforce numerical stability
-        :param scale_mode: Type of noise added to target
-        :param generator: Pseudo Random Generator used to create noise on target
-        :param seed: Seed used by the PRG to sample noise
-        :param full_output: Switch to add extra computation to the function output
-        :param kwargs: Extra parameters passed to the PRG function
-        :return: Target as a :code:`(n,)` matrix when :code:`full_output=False` or a dictionary of objects
-                 containing at least synthetic features and details about noise applied on it when :code:`full_output=True`
-        """
-
-        if xdata is None:
-            xdata = self.feature_dataset(
-                mode=mode,
-                xmin=xmin,
-                xmax=xmax,
-                dimension=dimension,
-                resolution=resolution,
-            )
-
-        if parameters is None:
-            parameters = np.power(np.random.uniform(size=(self.k,)), 2) + 1.0
-
-        yref = self.model(xdata, *parameters)
-        noise = self.generate_noise(
-            yref,
-            sigma=sigma,
-            precision=precision,
-            scale_mode=scale_mode,
-            generator=generator,
-            seed=seed,
-            full_output=True,
-            **kwargs,
-        )
-        ydata = yref + noise["noise"]
-
-        if full_output:
-            return {
-                "parameters": np.array(parameters),
-                "x": xdata,
-                "y": ydata,
-                "sy": noise["sigmas"],
-                "yref": yref,
-                "ynoise": noise["noise"],
-            }
-
-        return ydata
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def solve(self, xdata, ydata, sigma=None, **kwargs):
         """
@@ -443,7 +159,13 @@ class FitSolverInterface:
 
         self._iterations = [p0]
         solution = optimize.minimize(
-            loss, x0=p0, method="L-BFGS-B", jac="3-point", callback=callback, bounds=bounds, **kwargs
+            loss,
+            x0=p0,
+            method="L-BFGS-B",
+            jac="3-point",
+            callback=callback,
+            bounds=bounds,
+            **kwargs,
         )
         self._iterations = np.array(self._iterations)
 
@@ -470,69 +192,6 @@ class FitSolverInterface:
             "message": solution.message,
             "status": solution.status,
         }
-
-    def stored(self, error=False):
-        """
-        Boolean switch to indicate if the solver object has stored input data successfully
-
-        :param error: raise error instead of returning
-        :return: Stored status as boolean
-        :raise: Exception :class:`scifit.errors.base.NotStoredError` if check fails
-        """
-        is_stored = hasattr(self, "_xdata") and hasattr(self, "_ydata")
-        if not (is_stored) and error:
-            NotStoredError("Input data must be stored prior to this operation")
-        return is_stored
-
-    def fitted(self, error=False):
-        """
-        Boolean switch to indicate if the fitting procedure has been executed successfully.
-        It does not tell anything about the quality and convergence of the actual solution.
-
-        :param error: raise error instead of returning
-        :return: Fitted status as boolean
-        :raise: Exception :class:`scifit.errors.base.NotFittedError` if check fails
-        """
-        is_fitted = hasattr(self, "_solution")
-        if not (self.stored(error=error)) or not (is_fitted) and error:
-            NotFittedError("Model must be fitted prior to this operation")
-        return is_fitted
-
-    def solved(self, error=False):
-        """
-        Boolean switch to indicate if the fitting procedure has been executed successfully
-        and has converged to a potential solution.
-
-        :param error: raise error instead of returning
-        :return: Fitted status as boolean
-        :raise: Exception :class:`scifit.errors.base.NotSolvedError` if check fails
-        """
-        has_converged = self.fitted(error=error) and self._solution["status"] in {
-            1,
-            2,
-            3,
-            4,
-        }
-        if not (has_converged) and error:
-            NotSolvedError(
-                "Fitting procedure has not converged ({status:}): {message:}".format(
-                    **self._solution
-                )
-            )
-        return has_converged
-
-    def predict(self, xdata, parameters=None):
-        """
-        Predict target wrt features (variables) and parameters.
-        If parameters are not provided uses regressed parameters (problem needs to be solved first).
-
-        :param x: Features (variables) as :code:`(n,m)` matrix
-        :param parameters: Sequence of :code:`k` parameters
-        :return: Predicted target as a :code:`(n,)` matrix
-        """
-        if parameters is None:
-            parameters = self._solution["parameters"]
-        return self.model(xdata, *parameters)
 
     @property
     def degree_of_freedom(self):
@@ -750,7 +409,9 @@ class FitSolverInterface:
         :return: Dictionary of objects containing elements to interpret the Chi Square Test for Goodness of Fit
         """
         if self.fitted(error=True):
-            statistic = self.chi_square(self._xdata, self._ydata, sigma=self._sigma, parameters=None)
+            statistic = self.chi_square(
+                self._xdata, self._ydata, sigma=self._sigma, parameters=None
+            )
             normalized = statistic / self.dof
             law = stats.chi2(df=self.dof)
             result = {
@@ -793,7 +454,9 @@ class FitSolverInterface:
 
     def kolmogorov(self):
         if self.fitted(error=True):
-            test = stats.ks_2samp(self._yhat, self._ydata, alternative='two-sided', method='asymp')
+            test = stats.ks_2samp(
+                self._yhat, self._ydata, alternative="two-sided", method="asymp"
+            )
             return {
                 "statistic": test.statistic,
                 "pvalue": test.pvalue,
@@ -817,12 +480,7 @@ class FitSolverInterface:
         :return: Wrapped loss function decorated with experimental data and vectorized for parameters
         """
 
-        if xdata is None:
-            xdata = self._xdata
-        if ydata is None:
-            ydata = self._ydata
-        if sigma is None:
-            sigma = self._sigma
+        xdata, ydata, sigma, _ = self.defaults(xdata=xdata, ydata=ydata, sigma=sigma)
 
         @np.vectorize
         def wrapped(*parameters):
@@ -830,7 +488,7 @@ class FitSolverInterface:
 
         return wrapped
 
-    def fit(self, xdata=None, ydata=None, sigma=None, data=None, **kwargs):
+    def _fit(self, xdata=None, ydata=None, sigma=None, **kwargs):
         """
         Fully solve the fitting problem for the given model and input data.
         This method stores input data and fit results. It assesses loss function over parameter neighborhoods,
@@ -843,9 +501,6 @@ class FitSolverInterface:
         :return: Dictionary of values related to fit solution
 
         """
-
-        if not self.stored(error=False):
-            self.store(xdata=xdata, ydata=ydata, sigma=sigma, data=data)
 
         # Solve the Adjustment problem:
         self._solution = self.solve(
@@ -867,394 +522,6 @@ class FitSolverInterface:
         self._k2s = self.kolmogorov()
 
         return self._solution
-
-    @staticmethod
-    def scale(mode="lin", xmin=0.0, xmax=1.0, resolution=100, base=10):
-        """
-        Generate a 1-dimensional scale (xmin, xmax) of given resolution and mode
-        """
-        if mode == "lin":
-            return np.linspace(xmin, xmax, resolution)
-        elif mode == "log":
-            xmin = np.log10(xmin) / np.log10(base)
-            xmax = np.log10(xmax) / np.log10(base)
-            return np.logspace(xmin, xmax, resolution, base=base)
-        else:
-            raise ConfigurationError(
-                "Domain mode must be in {lin, log} got '%s' instead" % mode
-            )
-
-    @classmethod
-    def scales(
-        cls,
-        domains=None,
-        mode="lin",
-        xmin=None,
-        xmax=None,
-        dimension=None,
-        resolution=100,
-    ):
-        """
-        Generate scales for each domain or synthetic scales if domains are not defined
-        """
-        if (domains is None) and ((xmin is None) or (xmax is None)):
-            ConfigurationError(
-                "Scales requires at least domains or xmin and xmax to be defined"
-            )
-
-        if domains is None:
-            xmin, xmax = [xmin or 0.0] * dimension, [xmax or 1.0] * dimension
-        else:
-            xmin = domains.loc["min", :]
-            xmax = domains.loc["max", :]
-
-        scales = [
-            cls.scale(mode=mode, xmin=xmin[i], xmax=xmax[i], resolution=resolution)
-            for i in range(dimension or domains.shape[1])
-        ]
-        return scales
-
-    def feature_domains(self):
-        """
-        Get feature (variable) domains, useful for drawing scales fitting the dataset
-        :return:
-        """
-        data = pd.DataFrame(self._xdata)
-        return data.describe()
-
-    def feature_scales(
-        self,
-        domains=None,
-        mode="lin",
-        xmin=None,
-        xmax=None,
-        dimension=None,
-        resolution=100,
-    ):
-        """
-        Generate features scales
-        """
-        if (dimension is None) and (domains is None):
-            domains = self.feature_domains()
-        return self.scales(
-            domains=domains,
-            mode=mode,
-            xmin=xmin,
-            xmax=xmax,
-            dimension=dimension,
-            resolution=resolution,
-        )
-
-    def feature_space(
-        self,
-        domains=None,
-        mode="lin",
-        xmin=None,
-        xmax=None,
-        dimension=None,
-        resolution=10,
-    ):
-        """
-        Generate feature space
-        """
-        return np.meshgrid(
-            *self.feature_scales(
-                domains=domains,
-                mode=mode,
-                xmin=xmin,
-                xmax=xmax,
-                dimension=dimension,
-                resolution=resolution,
-            )
-        )
-
-    def feature_dataset(
-        self,
-        domains=None,
-        mode="lin",
-        xmin=None,
-        xmax=None,
-        dimension=None,
-        resolution=10,
-    ):
-        """
-        Generate feature dataset, useful to generate variables for a synthetic dataset or to create a grid
-        for interpolation over the features space.
-        """
-        space = self.feature_space(
-            domains=domains,
-            mode=mode,
-            xmin=xmin,
-            xmax=xmax,
-            dimension=dimension,
-            resolution=resolution,
-        )
-        dataset = np.vstack([scale.ravel() for scale in space])
-        return dataset.T
-
-    def parameter_domains(
-        self,
-        parameters=None,
-        mode="lin",
-        xmin=None,
-        xmax=None,
-        ratio=None,
-        factor=None,
-        precision=1e-9,
-        include_origin=False,
-        include_unit=False,
-        iterations=False,
-    ):
-        """
-        Generate parameter domains, useful for drawing scales fitting the parameters space
-        """
-
-        if mode not in {"lin", "log"}:
-            raise ConfigurationError(
-                "Domain mode must be in {lin, log} got '%s' instead" % mode
-            )
-
-        ratio = ratio or (0.1 if mode == "lin" else 10.0)
-        factor = factor or (5.0 if mode == "lin" else 2.0)
-
-        if iterations:
-
-            domains = pd.DataFrame(self._iterations).describe()
-            domains.loc["extent", :] = domains.loc["max", :] - domains.loc["min", :]
-            domains.loc["min", :] -= ratio * domains.loc["extent", :]
-            domains.loc["max", :] += ratio * domains.loc["extent", :]
-            domains = domains.loc[["min", "max"], :]
-
-        else:
-
-            if parameters is None and self.fitted(error=True):
-                parameters = self._solution["parameters"]
-
-            if parameters is not None:
-                if mode == "lin":
-                    xmin = xmin or list(parameters - factor * ratio * np.abs(parameters))
-                    xmax = xmax or list(parameters + factor * ratio * np.abs(parameters))
-
-                elif mode == "log":
-                    xmin = xmin or list(parameters / np.power(ratio, factor))
-                    xmax = xmax or list(parameters * np.power(ratio, factor))
-
-            xmin = xmin or precision
-            if not isinstance(xmin, Iterable):
-                xmin = [xmin] * self.k
-
-            xmin = np.array(xmin)
-            if include_origin:
-                xmin[xmin >= 0.0] = 0.0
-
-            if len(xmin) != self.k:
-                raise ConfigurationError(
-                    "Domain lower boundaries must have the same dimension as parameter space"
-                )
-
-            xmax = xmax or 1.0
-            if not isinstance(xmax, Iterable):
-                xmax = [xmax] * self.k
-
-            xmax = np.array(xmax)
-            if include_unit:
-                xmax[xmax <= 1.0] = 1.0
-
-            if len(xmax) != self.k:
-                raise ConfigurationError(
-                    "Domain upper boundaries must have the same dimension as parameter space"
-                )
-
-            domains =pd.DataFrame([xmin, xmax], index=["min", "max"])
-
-        return domains
-
-    def parameter_scales(
-        self,
-        domains=None,
-        mode="lin",
-        xmin=None,
-        xmax=None,
-        ratio=None,
-        factor=None,
-        include_origin=False,
-        include_unit=False,
-        resolution=100,
-    ):
-        """
-        Generate parameter scales
-        """
-        if domains is None:
-            domains = self.parameter_domains(
-                mode=mode,
-                xmin=xmin,
-                xmax=xmax,
-                ratio=ratio,
-                factor=factor,
-                include_origin=include_origin,
-                include_unit=include_unit,
-            )
-        return self.scales(domains=domains, resolution=resolution)
-
-    def parameter_space(
-        self, domains=None, mode="lin", ratio=0.1, xmin=None, xmax=None, resolution=10
-    ):
-        """
-        Generate parameter space
-        """
-        return np.meshgrid(
-            *self.parameter_scales(
-                domains=domains,
-                mode=mode,
-                ratio=ratio,
-                xmin=xmin,
-                xmax=xmax,
-                resolution=resolution,
-            )
-        )
-
-    def dataset(self):
-        """
-        Return experimental data as a DataFrame
-
-        :return: Pandas DataFrame containing all experimental data
-        """
-
-        if self.stored(error=True):
-            data = pd.DataFrame(self._xdata)
-            data.columns = data.columns.map(lambda x: "x%d" % x)
-
-            extra = {"y": self._ydata}
-            if self._sigma is not None:
-                extra["sy"] = self._sigma
-
-            if self.fitted(error=False):
-                extra["yhat"] = self._yhat
-
-            extra = pd.DataFrame(extra)
-            data = pd.concat([data, extra], axis=1)
-
-            if self.fitted(error=False):
-                data["yerr"] = data["y"] - data["yhat"]
-                data["yerrrel"] = data["yerr"] / data["yhat"]
-                data["yerrabs"] = np.abs(data["yerr"])
-                data["yerrsqr"] = np.power(data["yerr"], 2)
-
-            if self._sigma is not None and self.fitted(error=False):
-                data["chi2"] = ((data["y"] - data["yhat"]) / data["sy"]) ** 2
-
-            data.index = data.index.values + 1
-            data.index.name = "id"
-
-            return data
-
-    def synthetic_dataset(
-        self,
-        xdata=None,
-        parameters=None,
-        dimension=1,
-        mode="lin",
-        xmin=-1.0,
-        xmax=1.0,
-        resolution=30,
-        sigma=None,
-        scale_mode="abs",
-        generator=np.random.normal,
-        seed=1234,
-        **kwargs,
-    ):
-        target = self.target_dataset(
-            xdata=xdata,
-            parameters=parameters,
-            dimension=dimension,
-            mode=mode,
-            xmin=xmin,
-            xmax=xmax,
-            resolution=resolution,
-            sigma=sigma,
-            scale_mode=scale_mode,
-            generator=generator,
-            seed=seed,
-            **kwargs,
-            full_output=True,
-        )
-
-        x = target.pop("x")
-        data = pd.DataFrame(x)
-        data.columns = data.columns.map(lambda x: "x%d" % x)
-
-        p = target.pop("parameters")
-        target = pd.DataFrame(target)
-
-        data = pd.concat([data, target], axis=1)
-        data.index = data.index.values + 1
-        data.index.name = "id"
-
-        return data
-
-    def load(self, file_or_frame, sep=";", store=False):
-        """
-        Load and store data from frame or CSV file
-        :param file_or_frame:
-        :param mode:
-        :param sep:
-        :param store:
-        :return:
-        """
-
-        if isinstance(file_or_frame, pd.DataFrame):
-            data = file_or_frame
-        else:
-            data = pd.read_csv(file_or_frame, sep=sep)
-
-        subset = data.filter(regex="^x")
-        if subset.shape[1] == 0:
-            raise ConfigurationError("Data must contains at least one 'x' column")
-
-        subset = data.filter(regex="^y$")
-        if subset.shape[1] != 1:
-            raise ConfigurationError("Data must contains a single 'y' column")
-
-        if "id" in data.columns:
-            data = data.set_index("id")
-        else:
-            if data.index.name != "id":
-                data.index = data.index.values + 1
-                data.index.name = "id"
-
-        logger.info("Loaded file '%s' with shape %s" % (file_or_frame, data.shape))
-
-        if store:
-            self.store(data=data)
-
-        return data
-
-    def dump(self, file_or_frame, data=None, summary=False):
-        """
-        Dump dataset into CSV
-        :param file_or_frame:
-        :param data:
-        :param summary:
-        :return:
-        """
-        if data is None:
-            data = self.dataset()
-        if summary:
-            data = self.summary(data=data)
-        data.to_csv(file_or_frame, sep=";", index=True)
-
-    def summary(self, data=None):
-        """
-        Add summary row for LaTeX display
-        :param data:
-        :return: DataFrame
-        """
-        if data is None:
-            data = self.dataset()
-        data.loc[r""] = data.sum()
-        data.iloc[-1, :-5] = None
-        data.iloc[-1, 5] = None
-        return data
 
     def get_latex_parameters(self, show_sigma=True, precision=3, mode="g"):
         """
@@ -1511,7 +778,6 @@ class FitSolverInterface:
         :return:
         """
         if self.fitted(error=True):
-
             full_title = "Fit Kolmogorov Plot: {}\n{}".format(title, self.get_title())
 
             fig, axe = plt.subplots()
@@ -1530,14 +796,19 @@ class FitSolverInterface:
             axe.set_xlabel(r"Target, $y$")
             axe.set_ylabel(r"ECDF, $F(y)$")
 
-            axe.legend([
-                r"Data: $F_1(y)$",
-                r"Fit: $F_2(\hat{y})$",
-                (
-                    r"K-Test: $D({:.3g}) = {:.3g}$".format(test.statistic_location, test.statistic) +
-                    "\n" + r"$p = P(K > D) = {:.4f}$".format(test.pvalue)
-                )
-            ])
+            axe.legend(
+                [
+                    r"Data: $F_1(y)$",
+                    r"Fit: $F_2(\hat{y})$",
+                    (
+                        r"K-Test: $D({:.3g}) = {:.3g}$".format(
+                            test.statistic_location, test.statistic
+                        )
+                        + "\n"
+                        + r"$p = P(K > D) = {:.4f}$".format(test.pvalue)
+                    ),
+                ]
+            )
             axe.grid()
 
             fig.subplots_adjust(top=0.8, left=0.15)
@@ -1607,7 +878,6 @@ class FitSolverInterface:
             )
 
             if self.k == 1 or (first_index is not None and second_index is None):
-
                 first_index = first_index or 0
                 p0 = self._solution["parameters"]
                 parameters = list(p0)
@@ -1634,7 +904,7 @@ class FitSolverInterface:
                         linestyle=":",
                         marker="o",
                         color="darkgray",
-                        #linewidth=0.75,
+                        # linewidth=0.75,
                         markersize=4,
                     )
 
@@ -1659,7 +929,6 @@ class FitSolverInterface:
                 axe._pair_indices = (first_index, first_index)
 
             elif self.k == 2 or (first_index is not None and second_index is not None):
-
                 first_index = first_index or 0
                 second_index = second_index or 1
 
@@ -1722,7 +991,7 @@ class FitSolverInterface:
                             linestyle=":",
                             marker="o",
                             color="darkgray",
-                            #linewidth=0.75,
+                            # linewidth=0.75,
                             markersize=4,
                         )
 
@@ -1807,7 +1076,6 @@ class FitSolverInterface:
         :return:
         """
         if self.k <= 2:
-
             axes = self.plot_loss_low_dimension(
                 mode=mode,
                 domains=domains,
@@ -1828,7 +1096,6 @@ class FitSolverInterface:
             )
 
         elif scatter and not surface:
-
             full_title = "Fit {}Loss Plot: {}\n{}".format(
                 "Log-" if log_loss else "", title, self.get_title()
             )
@@ -1881,10 +1148,8 @@ class FitSolverInterface:
             fig.subplots_adjust(top=0.8, left=0.2)
 
         else:
-
             axes = []
             for i, j in itertools.combinations(range(self.k), 2):
-
                 axe = self.plot_loss_low_dimension(
                     title=title,
                     first_index=i,
@@ -1908,3 +1173,15 @@ class FitSolverInterface:
                 axes.append(axe)
 
         return axes
+
+
+class FitSolver1D(FitSolverInterface):
+    _dimension = 1
+
+
+class FitSolver2D(FitSolverInterface):
+    _dimension = 2
+
+
+class FitSolver3D(FitSolverInterface):
+    _dimension = 3

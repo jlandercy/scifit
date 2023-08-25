@@ -10,4 +10,4 @@ Benefits are important, it enforces consistency among models and ensure quality 
 it allows ease of reuse for next problems it also helps to create clean code.
 """
 
-from scifit.interfaces.generic import *
+from scifit.interfaces.solvers import *
