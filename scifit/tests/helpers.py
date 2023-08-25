@@ -13,7 +13,7 @@ from scifit.interfaces.solvers import FitSolverInterface
 print_fit = bool(int(os.getenv("TESTS_PRINT_FIT", 1)))
 print_chi2 = bool(int(os.getenv("TESTS_PRINT_CHI2", 0)))
 print_k2s = bool(int(os.getenv("TESTS_PRINT_K2S", 0)))
-print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 0)))
+print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 1)))
 print_loss_surface = bool(int(os.getenv("TESTS_PRINT_LOSS_SURFACE", 0)))
 print_loss_iterations = bool(int(os.getenv("TESTS_PRINT_LOSS_ITERATIONS", 0)))
 
@@ -78,20 +78,20 @@ class GenericTestFitSolverInterface:
             self.assertEqual(spaces[i].ndim, self.solver.m)
             for k in range(self.solver.m):
                 self.assertEqual(spaces[i].shape[k], 10)
-
-    def test_feature_dataset_1D(self):
-        dataset = self.solver.feature_dataset(dimension=1, resolution=10)
-        self.assertIsInstance(dataset, np.ndarray)
-        self.assertEqual(dataset.ndim, 2)
-        self.assertEqual(dataset.shape[0], 10**1)
-        self.assertEqual(dataset.shape[1], 1)
-
-    def test_feature_dataset_2D(self):
-        dataset = self.solver.feature_dataset(dimension=5, resolution=10)
-        self.assertIsInstance(dataset, np.ndarray)
-        self.assertEqual(dataset.ndim, 2)
-        self.assertEqual(dataset.shape[0], 10**5)
-        self.assertEqual(dataset.shape[1], 5)
+    #
+    # def test_feature_dataset_1D(self):
+    #     dataset = self.solver.feature_dataset(resolution=10)
+    #     self.assertIsInstance(dataset, np.ndarray)
+    #     self.assertEqual(dataset.ndim, 2)
+    #     self.assertEqual(dataset.shape[0], 10**self.solver.m)
+    #     self.assertEqual(dataset.shape[1], 1)
+    #
+    # def test_feature_dataset_2D(self):
+    #     dataset = self.solver.feature_dataset(resolution=10)
+    #     self.assertIsInstance(dataset, np.ndarray)
+    #     self.assertEqual(dataset.ndim, 2)
+    #     self.assertEqual(dataset.shape[0], 10**5)
+    #     self.assertEqual(dataset.shape[1], 5)
 
     def test_feature_dataset_auto(self):
         dataset = self.solver.feature_dataset(
@@ -177,7 +177,6 @@ class GenericTestFitSolver:
                 parameters=self.parameters,
                 xmin=self.xmin,
                 xmax=self.xmax,
-                dimension=self.dimension,
                 resolution=self.resolution,
                 sigma=self.sigma,
                 scale_mode=self.scale_mode,
@@ -411,7 +410,7 @@ class GenericTestFitSolver:
 
     def test_synthetic_dataset(self):
         data = self.solver.synthetic_dataset(
-            parameters=self.parameters, dimension=self.dimension, sigma=self.sigma
+            parameters=self.parameters, sigma=self.sigma
         )
         self.assertIsInstance(data, pd.DataFrame)
         self.assertEqual(data.index.name, "id")
@@ -428,7 +427,6 @@ class GenericTestFitSolver:
         data = self.solver.synthetic_dataset(
             xdata=self.xdata,
             parameters=parameters,
-            dimension=self.dimension,
             sigma=self.sigma,
         )
         data = data.dropna(how="all", axis=1)
@@ -490,14 +488,12 @@ class GenericTestFitSolver:
         else:
             parameters = self.parameters
         dataset1 = self.solver.synthetic_dataset(
-            dimension=self.dimension or self.xdata.shape[1],
             parameters=parameters,
             resolution=250,
             sigma=self.sigma or 0.015,
             seed=seed,
         ).dropna(how="all", axis=1)
         dataset2 = self.solver.synthetic_dataset(
-            dimension=self.dimension or self.xdata.shape[1],
             parameters=parameters,
             resolution=250,
             sigma=self.sigma or 0.015,

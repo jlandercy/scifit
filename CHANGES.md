@@ -11,6 +11,7 @@
 
 ## v0.1.12
 
+ - [x] Remove dimension argument from scales
 
 ## v0.1.11
 

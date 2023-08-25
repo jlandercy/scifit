@@ -421,20 +421,19 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
         mode="lin",
         xmin=None,
         xmax=None,
-        dimension=None,
         resolution=100,
     ):
         """
         Generate features scales
         """
-        if (dimension is None) and (domains is None):
+        if domains is None and self.stored(error=False):
             domains = self.feature_domains()
         return self.scales(
             domains=domains,
             mode=mode,
             xmin=xmin,
             xmax=xmax,
-            dimension=dimension,
+            dimension=self.m,
             resolution=resolution,
         )
 
@@ -444,7 +443,6 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
         mode="lin",
         xmin=None,
         xmax=None,
-        dimension=None,
         resolution=10,
     ):
         """
@@ -456,7 +454,6 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
                 mode=mode,
                 xmin=xmin,
                 xmax=xmax,
-                dimension=dimension,
                 resolution=resolution,
             )
         )
@@ -467,7 +464,6 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
         mode="lin",
         xmin=None,
         xmax=None,
-        dimension=None,
         resolution=10,
     ):
         """
@@ -479,7 +475,6 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
             mode=mode,
             xmin=xmin,
             xmax=xmax,
-            dimension=dimension,
             resolution=resolution,
         )
         dataset = np.vstack([scale.ravel() for scale in space])
@@ -660,7 +655,6 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
         self,
         xdata=None,
         parameters=None,
-        dimension=1,
         mode="lin",
         xmin=-1.0,
         xmax=1.0,
@@ -708,7 +702,6 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
                 mode=mode,
                 xmin=xmin,
                 xmax=xmax,
-                dimension=dimension,
                 resolution=resolution,
             )
 
@@ -781,7 +774,6 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
         self,
         xdata=None,
         parameters=None,
-        dimension=1,
         mode="lin",
         xmin=-1.0,
         xmax=1.0,
@@ -795,7 +787,6 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
         target = self.target_dataset(
             xdata=xdata,
             parameters=parameters,
-            dimension=dimension,
             mode=mode,
             xmin=xmin,
             xmax=xmax,

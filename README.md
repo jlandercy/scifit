@@ -38,7 +38,7 @@ solver = HillEquationFitSolver()
 
 # Create some synthetic dataset:
 data = solver.synthetic_dataset(
-    xmin=0.0, xmax=5.0, dimension=1, resolution=50,
+    xmin=0.0, xmax=5.0, resolution=50,
     parameters=[3.75, 0.21],
     sigma=0.1, scale_mode="auto", seed=1234,
 )
