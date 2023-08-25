@@ -55,6 +55,19 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
         :return: Stored status as boolean
         :raise: Exception :class:`scifit.errors.base.NotStoredError` if check fails
         """
+        is_cleaned = not(hasattr(self, "_xdata") or hasattr(self, "_ydata"))
+        if not is_cleaned and error:
+            NotCleanedError("Input data are not cleaned")
+        return is_cleaned
+
+    def stored(self, error=False):
+        """
+        Boolean switch to indicate if the solver object has stored input data successfully
+
+        :param error: raise error instead of returning
+        :return: Stored status as boolean
+        :raise: Exception :class:`scifit.errors.base.NotStoredError` if check fails
+        """
         is_stored = hasattr(self, "_xdata") and hasattr(self, "_ydata")
         if not (is_stored) and error:
             NotStoredError("Input data must be stored prior to this operation")
