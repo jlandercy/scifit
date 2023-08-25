@@ -9,11 +9,14 @@
    - [ ] Gradient recovery
    - [ ] Distribution fit
 
+## v0.1.12
+
+
 ## v0.1.11
 
  - [x] Created mixins to generalize interfaces
  - [x] Migrated part of generic FitSolver interface to mixins
- - [x] Changing FitSolver interface data life cycle to make it compliant with sklearn life cycle
+ - [x] Breaking: Changed FitSolver interface data life cycle to make it compliant with sklearn life cycle
  - [x] Updated load, fit, refit definition and behaviours
 
 ## v0.1.10
