@@ -194,7 +194,7 @@ class GenericTestFitSolver:
             self.ynoise = data["ynoise"].values
 
         else:
-            data = self.solver.load(self.data_path, store=False)
+            data = self.solver.load(self.data_path)
             self.xdata = data.filter(regex="^x").values
             self.ydata = data["y"]
 
@@ -464,7 +464,8 @@ class GenericTestFitSolver:
         self.solver.dump(file1, summary=False)
 
         solver2 = self.factory(**self.configuration)
-        solver2.load(file1, store=True)
+        data = solver2.load(file1)
+        solver2.store(data=data)
         np.random.seed(self.seed)
         solution2 = solver2.fit()
         check2 = solver2.dataset()

@@ -171,7 +171,7 @@ class FitSolverMixin(ConfigurationMixin):
         self.clean_results()
         self.clean_data()
 
-    def load(self, file_or_frame, sep=";", store=False):
+    def load(self, file_or_frame, sep=";"):
         """
         Load and store data from frame or CSV file
         :param file_or_frame:
@@ -181,10 +181,7 @@ class FitSolverMixin(ConfigurationMixin):
         :return:
         """
 
-        if isinstance(file_or_frame, pd.DataFrame):
-            data = file_or_frame
-        else:
-            data = pd.read_csv(file_or_frame, sep=sep)
+        data = pd.read_csv(file_or_frame, sep=sep)
 
         subset = data.filter(regex="^x")
         if subset.shape[1] == 0:
@@ -203,9 +200,6 @@ class FitSolverMixin(ConfigurationMixin):
 
         logger.info("Loaded file '%s' with shape %s" % (file_or_frame, data.shape))
 
-        if store:
-            self.store(data=data)
-
         return data
 
     def dump(self, file_or_frame, data=None, summary=False):
@@ -222,29 +216,7 @@ class FitSolverMixin(ConfigurationMixin):
             data = self.summary(data=data)
         data.to_csv(file_or_frame, sep=";", index=True)
 
-    def store(self, xdata=None, ydata=None, sigma=None, data=None):
-        """
-        Validate and store features (variables), target and target uncertainties.
-
-        :param xdata: Features (variables) as a :code:`(n,m)` matrix
-        :param ydata: Target as a :code:`(n,)` matrix
-        :param sigma: Target uncertainties as :code:`(n,)` matrix
-        :param data: Full dataset including all xdata, ydata and sigma at once
-        :raise: Exception :class:`scifit.errors.base.InputDataError` if validation fails
-        """
-
-        # Partially import dataframe if provided, override with other fields
-        if data is not None:
-            if not isinstance(data, pd.DataFrame):
-                raise InputDataError(
-                    "Data must be of type DataFrame, got %s instead" % type(data)
-                )
-            if xdata is None:
-                xdata = data.filter(regex="^x[\d]+").values
-            if ydata is None:
-                ydata = data["y"].values
-            if sigma is None and "sy" in data.columns:
-                sigma = data["sy"].values
+    def validate(self, xdata=None, ydata=None, sigma=None):
 
         xdata = np.array(xdata)
         ydata = np.array(ydata)
@@ -292,6 +264,29 @@ class FitSolverMixin(ConfigurationMixin):
         else:
             raise InputDataError("Sigma must be a number or an array of number")
 
+        return xdata, ydata, sigma
+
+    def store(self, xdata=None, ydata=None, sigma=None, data=None):
+        """
+        Validate and store features (variables), target and target uncertainties.
+
+        :param xdata: Features (variables) as a :code:`(n,m)` matrix
+        :param ydata: Target as a :code:`(n,)` matrix
+        :param sigma: Target uncertainties as :code:`(n,)` matrix
+        :param data: Full dataset including all xdata, ydata and sigma at once
+        :raise: Exception :class:`scifit.errors.base.InputDataError` if validation fails
+        """
+
+        if data is not None:
+            if not isinstance(data, pd.DataFrame):
+                raise InputDataError(
+                    "Data must be of type DataFrame, got %s instead" % type(data)
+                )
+            xdata, ydata, sigma = self.split_dataset(data)
+
+        # Validate data:
+        xdata, ydata, sigma = self.validate(xdata=xdata, ydata=ydata, sigma=sigma)
+
         self._xdata = xdata
         self._ydata = ydata
         self._sigma = sigma
@@ -300,6 +295,24 @@ class FitSolverMixin(ConfigurationMixin):
             "Stored data into solver: X%s, y%s, s=%s"
             % (xdata.shape, ydata.shape, sigma is not None)
         )
+
+    # @abc.abstractmethod
+    # def _fit(self, xdata=None, ydata=None, sigma=None, data=None, **kwargs):
+    #     """Class defined fit method"""
+    #     pass
+    #
+    # def fit(self, xdata=None, ydata=None, sigma=None, data=None, **kwargs):
+    #     """Fit using data"""
+    #     self.clean()
+    #     self._fit(xdata=None, ydata=None, sigma=None, data=None, **kwargs)
+    #     # Fit
+    #     return self
+    #
+    # def refit(self, xdata=None, ydata=None, sigma=None, data=None, **kwargs):
+    #     """Merge data and fit again"""
+    #     data = self._merge(xdata=xdata, ydata=ydata, sigma=sigma, data=data)
+    #     self.fit(data=data, **kwargs)
+    #     return self
 
     def predict(self, xdata, parameters=None):
         """
@@ -694,6 +707,43 @@ class FitSolverMixin(ConfigurationMixin):
 
         return ydata
 
+    @staticmethod
+    def split_dataset(data):
+        """Split dataset into matrix and vectors"""
+        if not isinstance(data, pd.DataFrame):
+            raise InputDataError(
+                "Data must be of type DataFrame, got %s instead" % type(data)
+            )
+        xdata = data.filter(regex="^x[\d]+").values
+        ydata = data["y"].values
+        if "sy" in data.columns:
+            sigma = data["sy"].values
+        else:
+            sigma = None
+        return xdata, ydata, sigma
+
+    @staticmethod
+    def merge_dataset(xdata, ydata, sigma=None):
+        """
+        Merge matrix and vectors into dataset
+        :param xdata:
+        :param ydata:
+        :param sigma:
+        :return:
+        """
+
+        data = pd.DataFrame(xdata)
+        data.columns = data.columns.map(lambda x: "x%d" % x)
+
+        extra = {"y": ydata}
+        if sigma is not None:
+            extra["sy"] = sigma
+
+        extra = pd.DataFrame(extra)
+        data = pd.concat([data, extra], axis=1)
+
+        return data
+
     def synthetic_dataset(
         self,
         xdata=None,
@@ -746,20 +796,11 @@ class FitSolverMixin(ConfigurationMixin):
         """
 
         if self.stored(error=True):
-            data = pd.DataFrame(self._xdata)
-            data.columns = data.columns.map(lambda x: "x%d" % x)
 
-            extra = {"y": self._ydata}
-            if self._sigma is not None:
-                extra["sy"] = self._sigma
+            data = self.merge_dataset(self._xdata, self._ydata, self._sigma)
 
             if self.fitted(error=False):
-                extra["yhat"] = self._yhat
-
-            extra = pd.DataFrame(extra)
-            data = pd.concat([data, extra], axis=1)
-
-            if self.fitted(error=False):
+                data["yhat"] = self._yhat
                 data["yerr"] = data["y"] - data["yhat"]
                 data["yerrrel"] = data["yerr"] / data["yhat"]
                 data["yerrabs"] = np.abs(data["yerr"])
