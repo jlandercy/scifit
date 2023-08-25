@@ -11,8 +11,8 @@ from scifit.interfaces.generic import FitSolverInterface
 
 # Tests setup:
 print_fit = bool(int(os.getenv("TESTS_PRINT_FIT", 1)))
-print_chi2 = bool(int(os.getenv("TESTS_PRINT_CHI2", 1)))
-print_k2s = bool(int(os.getenv("TESTS_PRINT_K2S", 1)))
+print_chi2 = bool(int(os.getenv("TESTS_PRINT_CHI2", 0)))
+print_k2s = bool(int(os.getenv("TESTS_PRINT_K2S", 0)))
 print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 0)))
 print_loss_surface = bool(int(os.getenv("TESTS_PRINT_LOSS_SURFACE", 0)))
 print_loss_iterations = bool(int(os.getenv("TESTS_PRINT_LOSS_ITERATIONS", 0)))

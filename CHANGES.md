@@ -27,6 +27,10 @@ SO ``curve-fitting`` tag:
 
 ## v0.1.11
 
+ - [x] Created mixins to generalize interfaces
+ - [ ] Migrated fit solver interfaces to mixins
+ - [ ] Updated load, fit, refit definition and behaviours
+
 ## v0.1.10
 
  - [x] Updated documentation
