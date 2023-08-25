@@ -9,9 +9,6 @@
    - [ ] Gradient recovery
    - [ ] Distribution fit
  - [ ] Rethink how load, store and fit should work together
-   - load and store are the only way to push data
-   - then all function performs on stored data
-   - it cannot be changed, must create another object
 
 SO ``curve-fitting`` tag:
 
@@ -28,7 +25,8 @@ SO ``curve-fitting`` tag:
 ## v0.1.11
 
  - [x] Created mixins to generalize interfaces
- - [ ] Migrated fit solver interfaces to mixins
+ - [ ] Migrated part of generic FitSolver interface to mixins
+ - [ ] Changing FitSolver interface data life cycle to make it compliant with sklearn life cycle
  - [ ] Updated load, fit, refit definition and behaviours
 
 ## v0.1.10

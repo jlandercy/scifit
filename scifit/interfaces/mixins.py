@@ -229,6 +229,11 @@ class FitSolverMixin(ConfigurationMixin):
                 "Incompatible shapes between x %s and y %s" % (xdata.shape, ydata.shape)
             )
 
+        if xdata.shape[1] != self.m:
+            raise InputDataError(
+                "Incompatible second dimension for x, expected %d, got %d instead" % (self.m, xdata[1])
+            )
+
         if not (
             np.issubdtype(xdata.dtype, np.number)
             and np.issubdtype(ydata.dtype, np.number)

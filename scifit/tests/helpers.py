@@ -394,7 +394,8 @@ class GenericTestFitSolver:
 
     def test_load_and_store(self):
         if self.data_path:
-            data = self.solver.load(self.data_path, store=True)
+            data = self.solver.load(self.data_path)
+            self.solver.store(data=data)
             self.assertTrue(self.solver.stored(error=False))
             self.assertEqual(data.shape[0], self.solver._xdata.shape[0])
             self.assertEqual(data.shape[0], self.solver._ydata.shape[0])
