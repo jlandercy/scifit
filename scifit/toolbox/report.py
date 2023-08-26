@@ -14,7 +14,7 @@ import pypandoc
 class ReportProcessor:
 
     @staticmethod
-    def render(context=None, template="base.html", directory="scifit/toolbox/resources/reports/"):
+    def render(context=None, template="base.md", directory="scifit/toolbox/resources/reports/"):
         loader = jinja2.FileSystemLoader(searchpath=directory)
         environment = jinja2.Environment(loader=loader)
         template = environment.get_template(template)
@@ -24,7 +24,11 @@ class ReportProcessor:
     @staticmethod
     def convert(payload, file="report", path=".cache/media/reports", mode="pdf"):
         filename = pathlib.Path(path) / file
-        pypandoc.convert_text(payload, mode, format="html", outputfile="%s.%s" % (filename, mode))
+        pypandoc.convert_text(
+            payload, mode, format="md", outputfile="%s.%s" % (filename, mode),
+            #filters=["citeproc"],
+            extra_args=["--pdf-engine=pdflatex"],
+        )
 
     @staticmethod
     def serialize(item):
@@ -39,5 +43,5 @@ class ReportProcessor:
 
         elif isinstance(item, pd.DataFrame):
             stream = io.StringIO()
-            item.to_html(stream, float_format="{:.3g}".format)
+            item.to_markdown(stream) #, float_format="{:.3g}".format)
             return stream.getvalue()

@@ -31,9 +31,11 @@ class ConfigurationMixin:
 
 
 class FitSolverMixin(ConfigurationMixin, abc.ABC):
+
     _dimension = None
     _data_keys = ("_xdata", "_ydata", "_sigma")
     _result_keys = tuple()
+    _model_equation = None
 
     def __init__(self, dimension=None, *args, **kwargs):
         self._dimension = dimension or self._dimension

@@ -30,6 +30,9 @@ class ProportionalFitSolver(FitSolver1D):
 
 
 class LinearFitSolver(FitSolver1D):
+
+    _model_equation = r"y = a x + b"
+
     @staticmethod
     def model(x, a, b):
         """

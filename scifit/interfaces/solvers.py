@@ -580,6 +580,9 @@ class FitSolverInterface(FitSolverMixin):
             :alt: Fit Plot
         """
 
+        if not title and self._model_equation:
+            title = "$%s$" % self._model_equation
+
         if log_x:
             mode = "log"
 
@@ -703,6 +706,10 @@ class FitSolverInterface(FitSolverMixin):
         :param resolution:
         :return:
         """
+
+        if not title and self._model_equation:
+            title = "$%s$" % self._model_equation
+
         if self.fitted(error=True):
             full_title = "Fit $\chi^2$ Plot: {}\n{}".format(title, self.get_title())
 
@@ -778,6 +785,10 @@ class FitSolverInterface(FitSolverMixin):
         :param title:
         :return:
         """
+
+        if not title and self._model_equation:
+            title = "$%s$" % self._model_equation
+
         if self.fitted(error=True):
             full_title = "Fit Kolmogorov Plot: {}\n{}".format(title, self.get_title())
 
@@ -853,6 +864,9 @@ class FitSolverInterface(FitSolverMixin):
 
         See :meth:`FitSolverInterface.plot_loss` for full loss landscape.
         """
+
+        if not title and self._model_equation:
+            title = "$%s$" % self._model_equation
 
         if self.fitted(error=True):
             if axe is None:
@@ -1076,6 +1090,10 @@ class FitSolverInterface(FitSolverMixin):
         :param resolution:
         :return:
         """
+
+        if not title and self._model_equation:
+            title = "$%s$" % self._model_equation
+
         if self.k <= 2:
             axes = self.plot_loss_low_dimension(
                 mode=mode,
