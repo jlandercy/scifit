@@ -6,7 +6,6 @@ toc: true
 header-includes:
   - \usepackage{longtable}
   - \usepackage{siunitx}
-  - \setlength{\LTleft}{2em}
 ---
 
 # Summary
@@ -22,7 +21,7 @@ See our [repository](https://github.com/jlandercy/scifit) for methodology detail
 
 ## Fit
 
-Adjustment have been performed for a model of {{n}} variable(s) and {{k}} parameter(s)
+Adjustment have been performed for a model of {{m}} variable(s) and {{k}} parameter(s)
 with a dataset of {{n}} observation(s).
 
 {% if equation %}
@@ -36,6 +35,10 @@ Model has the following formulation:
 Figure \ref{fig:fit} presents data and adjustment.
 
 ![Data & fit\label{fig:fit}]({{fit_payload}}){width=350px}
+
+Adjustment returned following parameters:
+
+{{parameters}}
 
 {% if solved %}
 Model has **converged** through an optimum with the following message: {{message}}.

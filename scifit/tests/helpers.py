@@ -370,6 +370,10 @@ class GenericTestFitSolver:
         self.assertEqual(dataset.shape[0], 10**self.solver.m)
         self.assertEqual(dataset.shape[1], self.solver.m)
 
+    def test_parameters(self):
+        solution = self.solver.fit(self.xdata, self.ydata)
+        parameters = self.solver.parameters()
+
     def test_parameters_domain_linear_auto(self):
         solution = self.solver.fit(self.xdata, self.ydata)
         domains = self.solver.parameter_domains()

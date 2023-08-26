@@ -74,6 +74,9 @@ class ReportProcessor:
         data = solver.dataset().reset_index(drop=True).round(3)
         table = self.serialize(data)
 
+        parameters = solver.parameters().rename(columns={"b": r"$\beta_i$", "sb": r"$\sigma_{\beta_i}$"})
+        parameters = self.serialize(parameters)
+
         context = context | {
             "fit_payload": fit,
             "loss_payload": loss,
@@ -84,6 +87,7 @@ class ReportProcessor:
             "k": solver.k,
             "m": solver.m,
             "equation": solver._model_equation,
+            "parameters": parameters,
             "solved": solver.solved(),
             "message": solver._solution["message"],
             "chi2_significant": solver._gof["pvalue"] >= 0.05,

@@ -113,6 +113,15 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
             )
         return has_converged
 
+    def parameters(self):
+        """Return parameters and uncertainty as a frame"""
+        if self.fitted(error=True):
+            data = pd.DataFrame({
+                "b": self._solution["parameters"],
+                "sb": np.sqrt(np.diagonal(self._solution["covariance"])),
+            })
+            return data
+
     @staticmethod
     def model(x, *parameters):
         """
