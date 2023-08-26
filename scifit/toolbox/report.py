@@ -27,7 +27,7 @@ class ReportProcessor:
         pypandoc.convert_text(
             payload, mode, format="md", outputfile="%s.%s" % (filename, mode),
             #filters=["citeproc"],
-            extra_args=["--pdf-engine=pdflatex"],
+            extra_args=["--pdf-engine=pdflatex", "--biblatex"],
         )
 
     @staticmethod
@@ -45,3 +45,52 @@ class ReportProcessor:
             stream = io.StringIO()
             item.to_markdown(stream) #, float_format="{:.3g}".format)
             return stream.getvalue()
+
+    def report(self, solver, context=None, file="report", mode="pdf"):
+
+        if context is None:
+            context = {
+                "title": "Fit Report",
+                "author": "SciFit automatic report",
+                "supervisor": "Jean Landercy",
+            }
+
+        axe = solver.plot_fit()
+        fit = self.serialize(axe)
+        plt.close(axe.figure)
+
+        axe = solver.plot_loss()
+        loss = self.serialize(axe)
+        plt.close(axe.figure)
+
+        axe = solver.plot_chi_square()
+        chi2 = self.serialize(axe)
+        plt.close(axe.figure)
+
+        axe = solver.plot_kolmogorov()
+        k2s = self.serialize(axe)
+        plt.close(axe.figure)
+
+        data = solver.dataset().reset_index(drop=True).round(3)
+        table = self.serialize(data)
+
+        context = context | {
+            "fit_payload": fit,
+            "loss_payload": loss,
+            "chi2_payload": chi2,
+            "k2s_payload": k2s,
+            "table_payload": table,
+            "n": solver.n,
+            "k": solver.k,
+            "m": solver.m,
+            "equation": solver._model_equation,
+            "solved": solver.solved(),
+            "message": solver._solution["message"],
+            "chi2_significant": solver._gof["pvalue"] >= 0.05,
+            "chi2_pvalue": "%.4f" % solver._gof["pvalue"],
+            "k2s_significant": solver._k2s["pvalue"] >= 0.05,
+            "k2s_pvalue": "%.4f" % solver._k2s["pvalue"],
+        }
+
+        payload = self.render(context)
+        self.convert(payload, file=file, mode=mode)

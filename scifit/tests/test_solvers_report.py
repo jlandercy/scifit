@@ -4,8 +4,9 @@ from scifit.solvers import linear
 from scifit.toolbox import report
 
 
-class TestReportProcessor(TestCase):
+class TestBasicReportProcessor(TestCase):
 
+    file = "report_basic"
     context = {
         "title": "Fit Report",
         "author": "SciFit automatic report",
@@ -22,7 +23,7 @@ class TestReportProcessor(TestCase):
         payload = self.processor.render(self.context)
 
     def test_pandoc_converter(self):
-        self.processor.convert("# Hello world\n##Foo\n###Bar", file="dummy")
+        self.processor.convert("# Hello world\n\n##Foo\n\n###Bar", file="dummy")
 
     def test_serialize_figure(self):
         axe = self.solver.plot_fit()
@@ -32,36 +33,21 @@ class TestReportProcessor(TestCase):
         data = self.solver.dataset()
         payload = self.processor.serialize(data)
 
-    def test_full_chain(self):
+    def test_full_chain_pdf(self):
+        self.processor.report(self.solver, context=self.context, file=self.file, mode="pdf")
 
-        axe = self.solver.plot_fit()
-        fit = self.processor.serialize(axe)
+    def test_full_chain_docx(self):
+        self.processor.report(self.solver, context=self.context, file=self.file, mode="docx")
 
-        axe = self.solver.plot_loss()
-        loss = self.processor.serialize(axe)
+    def test_full_chain_html(self):
+        self.processor.report(self.solver, context=self.context, file=self.file, mode="html")
 
-        axe = self.solver.plot_chi_square()
-        chi2 = self.processor.serialize(axe)
 
-        axe = self.solver.plot_kolmogorov()
-        k2s = self.processor.serialize(axe)
+class TestBadReport(TestBasicReportProcessor):
 
-        data = self.solver.dataset().reset_index(drop=True).round(3)
-        table = self.processor.serialize(data)
+    file = "report_bad"
 
-        context = self.context | {
-            "fit_payload": fit,
-            "loss_payload": loss,
-            "chi2_payload": chi2,
-            "k2s_payload": k2s,
-            "table_payload": table,
-            "n": self.solver.n,
-            "k": self.solver.k,
-            "m": self.solver.m,
-            "equation": self.solver._model_equation,
-            "solved": self.solver.solved(),
-            "message": self.solver._solution["message"]
-        }
-
-        payload = self.processor.render(context)
-        self.processor.convert(payload, file="report", mode="pdf")
+    def setUp(self):
+        super().setUp()
+        self.solver = linear.ConstantFitSolver()
+        self.solver.fit(self.data)
