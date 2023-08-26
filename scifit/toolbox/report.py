@@ -43,7 +43,7 @@ class ReportProcessor:
 
         elif isinstance(item, pd.DataFrame):
             stream = io.StringIO()
-            item.to_markdown(stream) #, float_format="{:.3g}".format)
+            item.to_markdown(stream, index=False) #, float_format="{:.3g}".format)
             return stream.getvalue()
 
     def report(self, solver, context=None, file="report", mode="pdf"):
@@ -89,10 +89,11 @@ class ReportProcessor:
         })
         table = self.serialize(data)
 
-        parameters = solver.parameters()
+        parameters = solver.parameters().reset_index()
         parameters["pm"] = r"$\pm$"
-        parameters = parameters.reindex(["b", "pm", "sb"], axis=1)
+        parameters = parameters.reindex(["index", "b", "pm", "sb"], axis=1)
         parameters = parameters.rename(columns={
+            "index": r"$i$",
             "b": r"$\beta_i$",
             "pm": r"$\pm$",
             "sb": r"$\sigma_{\beta_i}$"
