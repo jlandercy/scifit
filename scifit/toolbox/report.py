@@ -72,9 +72,31 @@ class ReportProcessor:
         plt.close(axe.figure)
 
         data = solver.dataset().reset_index(drop=True).round(3)
+        data = data.drop(["yerrrel", "yerrabs"], axis=1)
+        data["pm"] = r"$\pm$"
+        data = data.reindex(["x0", "y", "sy", "yhat", "yerr", "yerrsqr", "chi2"], axis=1)
+        data = data.rename(columns={
+            "x0": r"$x_0$",
+            "y": r"$y$",
+            "pm": r"$\pm$",
+            "sy": r"$\sigma_y$",
+            "yhat": r"$\hat{y}$",
+            "yerr": r"$e$",
+            "yerrrel": r"$e\hat{y}$",
+            "yerrabs": r"$|e|$",
+            "yerrsqr": r"$e^2$",
+            "chi2": r"$\chi^2$",
+        })
         table = self.serialize(data)
 
-        parameters = solver.parameters().rename(columns={"b": r"$\beta_i$", "sb": r"$\sigma_{\beta_i}$"})
+        parameters = solver.parameters()
+        parameters["pm"] = r"$\pm$"
+        parameters = parameters.reindex(["b", "pm", "sb"], axis=1)
+        parameters = parameters.rename(columns={
+            "b": r"$\beta_i$",
+            "pm": r"$\pm$",
+            "sb": r"$\sigma_{\beta_i}$"
+        })
         parameters = self.serialize(parameters)
 
         context = context | {

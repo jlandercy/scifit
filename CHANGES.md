@@ -8,6 +8,9 @@
    - [ ] Mechanics
    - [ ] Gradient recovery
    - [ ] Distribution fit
+ - [ ] Refactor all models to get parameters name:
+   - [ ] Starting by 0 and get compliant with natural index
+   - [ ] Write all _model_equation
  - [ ] Make fit report using pandoc MD -> PDF
    - [ ] Add Jinja templating
    - [ ] Control directories, make it binary stream
@@ -17,6 +20,7 @@
 ## v0.1.12
 
  - [x] Remove dimension argument from scales
+ - [x] Started automatic report with MD/LaTeX/PDF
 
 ## v0.1.11
 

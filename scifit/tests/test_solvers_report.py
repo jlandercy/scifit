@@ -33,13 +33,13 @@ class TestBasicReportProcessor(TestCase):
         data = self.solver.dataset()
         payload = self.processor.serialize(data)
 
-    def test_full_chain_pdf(self):
+    def test_report_pdf(self):
         self.processor.report(self.solver, context=self.context, file=self.file, mode="pdf")
 
-    def test_full_chain_docx(self):
+    def test_report_docx(self):
         self.processor.report(self.solver, context=self.context, file=self.file, mode="docx")
 
-    def test_full_chain_html(self):
+    def test_report_html(self):
         self.processor.report(self.solver, context=self.context, file=self.file, mode="html")
 
 

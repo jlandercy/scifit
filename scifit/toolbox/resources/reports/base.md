@@ -81,7 +81,7 @@ The adjustment is **not statistically significant** with a Kolmogorov test p-val
 
 Table presents raw data and aggregates.
 
-\footnotesize
+\tiny
 {{table_payload}}
 \normalsize
 
