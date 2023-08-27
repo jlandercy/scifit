@@ -22,6 +22,8 @@
    - [x] Binary stream ready for figure and table
    - [x] Inline SVG through MD figure
    - [x] Added longtable and siunitx into the game
+ - [x] Added MD/docx report export
+ - [x] Added MD/HTML report export
 
 ## v0.1.11
 

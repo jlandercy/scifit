@@ -27,7 +27,6 @@ class ReportProcessor:
         filename = pathlib.Path(path) / file
         pypandoc.convert_text(
             payload, mode, format="md", outputfile="%s.%s" % (filename, mode),
-            #filters=["citeproc"],
             extra_args=["--pdf-engine=pdflatex", "--biblatex"],
         )
 
@@ -129,6 +128,8 @@ class ReportProcessor:
         parameters = ReportProcessor.serialize(parameters, table_mode=table_mode)
 
         context = context | {
+            "figure_mode": figure_mode,
+            "table_mode": table_mode,
             "fit_payload": fit,
             "loss_payload": loss,
             "chi2_payload": chi2,

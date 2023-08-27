@@ -29,10 +29,13 @@ with a dataset of {{n}} observation(s).
 
 {% if equation %}
 Model has the following formulation:
-
+{% if table_mode == "latex" %}
 \begin{equation}
 {{equation}}
 \end{equation}
+{% else %}
+$${{equation}}$$
+{% endif %}
 {% endif %}
 
 Figure \ref{fig:fit} presents data and adjustment.
