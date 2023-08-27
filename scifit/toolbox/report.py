@@ -98,6 +98,8 @@ class ReportProcessor:
         data = data.rename(columns={
             "id": r"id",
             "x0": r"$x_0$",
+            "x1": r"$x_1$",
+            "x2": r"$x_2$",
             "y": r"$y$",
             "pm": r"$\pm$",
             "sy": r"$\sigma_y$",
@@ -143,8 +145,10 @@ class ReportProcessor:
             "solved": solver.solved(),
             "message": solver._solution["message"],
             "chi2_significant": solver._gof["pvalue"] >= 0.05,
+            "chi2_statistic": "%.4g" % solver._gof["statistic"],
             "chi2_pvalue": "%.4f" % solver._gof["pvalue"],
             "k2s_significant": solver._k2s["pvalue"] >= 0.05,
+            "k2s_statistic": "%.4g" % solver._k2s["statistic"],
             "k2s_pvalue": "%.4f" % solver._k2s["pvalue"],
         }
         return context
