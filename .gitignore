@@ -113,3 +113,4 @@ venv.bak/
 /.pypirc
 /docs/source/notebooks/checks/figures/
 /scifit/tests/resources/reports/**/*.pdf
+/tex2pdf.*/

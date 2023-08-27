@@ -12,6 +12,7 @@ from scipy import optimize, stats
 from scifit import logger
 from scifit.errors.base import *
 from scifit.interfaces.mixins import *
+from scifit.toolbox.report import ReportProcessor
 
 
 class FitSolverInterface(FitSolverMixin):
@@ -1192,6 +1193,10 @@ class FitSolverInterface(FitSolverMixin):
                 axes.append(axe)
 
         return axes
+
+    def report(self, file, path=".cache/media/reports", mode="pdf"):
+        processor = ReportProcessor()
+        processor.report(self, file=file, path=path, mode=mode)
 
 
 class FitSolver1D(FitSolverInterface):

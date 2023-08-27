@@ -11,16 +11,16 @@
  - [ ] Refactor all models to get parameters name:
    - [ ] Starting by 0 and get compliant with natural index
    - [ ] Write all _model_equation
- - [ ] Make fit report using pandoc MD -> PDF
-   - [ ] Add Jinja templating
-   - [ ] Control directories, make it binary stream
-   - [ ] Add SVG inline
  - [ ] Give a try to Kivy in another package (userflow first)
+ - [ ] Find out why references are not all updated in report
 
 ## v0.1.12
 
  - [x] Remove dimension argument from scales
  - [x] Started automatic report with MD/LaTeX/PDF
+   - [x] With Jinja templating
+   - [x] Binary stream ready for figure and table
+   - [x] Inline SVG through MD figure
 
 ## v0.1.11
 

@@ -47,7 +47,7 @@ class ReportProcessor:
             item.to_markdown(stream, index=False) #, float_format="{:.3g}".format)
             return stream.getvalue()
 
-    def report(self, solver, context=None, file="report", mode="pdf"):
+    def report(self, solver, context=None, path=".cache/media/reports", file="report", mode="pdf"):
 
         if context is None:
             context = {
@@ -123,4 +123,4 @@ class ReportProcessor:
         }
 
         payload = self.render(context)
-        self.convert(payload, file=file, mode=mode)
+        self.convert(payload, path=path, file=file, mode=mode)

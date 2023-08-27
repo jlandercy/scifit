@@ -16,6 +16,7 @@ print_k2s = bool(int(os.getenv("TESTS_PRINT_K2S", 0)))
 print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 1)))
 print_loss_surface = bool(int(os.getenv("TESTS_PRINT_LOSS_SURFACE", 0)))
 print_loss_iterations = bool(int(os.getenv("TESTS_PRINT_LOSS_ITERATIONS", 0)))
+print_report = bool(int(os.getenv("TESTS_PRINT_REPORT", 0)))
 
 
 class GenericTestFitSolverInterface:
@@ -629,3 +630,11 @@ class GenericTestFitSolver:
                         )
                     )
                     plt.close(axe.figure)
+
+    def test_process_report(self):
+        if print_report:
+            name = self.__class__.__name__
+            file = r"{}_report".format(name)
+            self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+            self.solver.report(file=file, path=self.media_path, mode="pdf")
+
