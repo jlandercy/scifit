@@ -1,7 +1,12 @@
+import pathlib
 from unittest import TestCase
 
 from scifit.solvers import linear, scientific, specials
 from scifit.toolbox import report
+
+
+path = pathlib.Path(".cache/media/reports")
+path.mkdir(parents=True, exist_ok=True)
 
 
 class TestBasicReportProcessor(TestCase):
