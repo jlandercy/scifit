@@ -140,6 +140,7 @@ class ReportProcessor:
             "n": solver.n,
             "k": solver.k,
             "m": solver.m,
+            "nu": solver.dof,
             "equation": solver._model_equation,
             "parameters": parameters,
             "solved": solver.solved(),

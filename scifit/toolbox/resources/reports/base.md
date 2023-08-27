@@ -71,9 +71,9 @@ Figure \ref{fig:chi2} presents the Chi Square test for goodness of fit.
 ![Chi Square test\label{fig:chi2}]({{chi2_payload}}){width=250px}
 
 {% if chi2_significant %}
-The adjustment is **statistically significant** with a $\chi^2$ statistic of {{chi2_statistic}} and p-value of {{chi2_pvalue}}.
+The adjustment is **statistically significant** with a $\chi^2$ statistic of {{chi2_statistic}} ($\nu = {{nu}}$) and p-value of {{chi2_pvalue}}.
 {% else %}
-The adjustment is **not statistically significant** with a $\chi^2$ statistic of {{chi2_statistic}} and p-value of {{chi2_pvalue}}.
+The adjustment is **not statistically significant** with a $\chi^2$ statistic of {{chi2_statistic}} ($\nu = {{nu}}$) and p-value of {{chi2_pvalue}}.
 {% endif %}
 
 ### Kolmogorov
