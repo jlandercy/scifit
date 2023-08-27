@@ -41,9 +41,9 @@ Adjustment returned following parameters:
 {{parameters}}
 
 {% if solved %}
-Model has **converged** through an optimum with the following message: {{message}}.
+Model has **converged** through an optimum with the following message: *{{message}}*.
 {% else %}
-Model has **not converged** through an optimum with the following message: {{message}}.
+Model has **not converged** through an optimum with the following message: *{{message}}*.
 {% endif %}
 Have a look on the loss surface shown at figure \ref{fig:loss} to get more insight on the
 returned solution.
