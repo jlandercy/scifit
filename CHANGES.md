@@ -12,7 +12,7 @@
    - [ ] Starting by 0 and get compliant with natural index
    - [ ] Write all _model_equation
  - [ ] Give a try to Kivy in another package (userflow first)
- - [ ] Find out why references are not all updated in report
+ - [x] Find out why references are not all updated in report
 
 ## v0.1.12
 
@@ -21,6 +21,7 @@
    - [x] With Jinja templating
    - [x] Binary stream ready for figure and table
    - [x] Inline SVG through MD figure
+   - [x] Added longtable and siunitx into the game
 
 ## v0.1.11
 

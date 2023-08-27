@@ -83,7 +83,7 @@ class ReportProcessor:
         for key in data:
             data[key] = data[key].apply("{:.4g}".format)
         data = data.reset_index()
-        data = data.reindex(["id", "x0", "y", "sy", "yhat", "yerr", "yerrsqr", "chi2"], axis=1)
+        data = data.reindex(["id", "x0", "y", "sy", "yhat", "yerr", "chi2"], axis=1)
         data = data.rename(columns={
             "id": r"{id}",
             "x0": r"{$x_0$}",
@@ -104,7 +104,7 @@ class ReportProcessor:
             parameters[key] = parameters[key].apply("{:.4g}".format)
         parameters = parameters.reset_index()
         parameters["pm"] = r"{$\pm$}"
-        parameters = parameters.reindex(["index", "b", "sb"], axis=1)
+        parameters = parameters.reindex(["index", "b", "pm", "sb"], axis=1)
         parameters = parameters.rename(columns={
             "index": r"{$i$}",
             "b": r"{$\beta_i$}",
