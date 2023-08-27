@@ -7,9 +7,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 import jinja2
-import matplotlib.pyplot as plt
-import pandas as pd
 import pypandoc
+
+from scifit.errors.base import *
 
 
 class ReportProcessor:
@@ -32,25 +32,37 @@ class ReportProcessor:
         )
 
     @staticmethod
-    def serialize(item):
+    def serialize_figure(axe):
+        stream = io.BytesIO()
+        axe.figure.savefig(stream, format="svg")
+        payload = "data:image/svg+xml;base64,{}".format(
+            base64.b64encode(stream.getvalue()).decode()
+        )
+        return payload
+
+    @staticmethod
+    def serialize_table(frame, mode="latex", index=False):
+        stream = io.StringIO()
+        if mode == "latex":
+            frame.columns = frame.columns.map("{{{}}}".format)
+            frame.to_latex(stream, index=index, header=True, longtable=True, column_format="S" * frame.shape[1])
+        elif mode == "md":
+            frame.to_markdown(stream, index=index)
+        elif mode == "html":
+            frame.to_html(stream, index=index)
+        return stream.getvalue()
+
+    @staticmethod
+    def serialize(item, table_mode="latex"):
 
         if isinstance(item, plt.Axes):
-            stream = io.BytesIO()
-            item.figure.savefig(stream, format="svg")
-            payload = "data:image/svg+xml;base64,{}".format(
-                base64.b64encode(stream.getvalue()).decode()
-            )
-            return payload
+            return ReportProcessor.serialize_figure(item)
 
         elif isinstance(item, pd.DataFrame):
-            stream = io.StringIO()
-            #item.to_html(stream, index=False, float_format="{:.3g}".format)
-            #item.to_markdown(stream, index=False)
-            item.to_latex(stream, index=False, header=True, longtable=True, column_format="S"*item.shape[1])
-            payload = stream.getvalue()
-            return payload
+            return ReportProcessor.serialize_table(item, mode=table_mode)
 
-    def report(self, solver, context=None, path=".cache/media/reports", file="report", mode="pdf"):
+    @staticmethod
+    def context(solver, context=None, table_mode="latex", figure_mode="svg"):
 
         if context is None:
             context = {
@@ -60,21 +72,21 @@ class ReportProcessor:
             }
 
         axe = solver.plot_fit()
-        fit = self.serialize(axe)
+        fit = ReportProcessor.serialize(axe)
         plt.close(axe.figure)
 
         axe = solver.plot_loss()
         if isinstance(axe, Iterable):
             axe = axe[0][0]
-        loss = self.serialize(axe)
+        loss = ReportProcessor.serialize(axe)
         plt.close(axe.figure)
 
         axe = solver.plot_chi_square()
-        chi2 = self.serialize(axe)
+        chi2 = ReportProcessor.serialize(axe)
         plt.close(axe.figure)
 
         axe = solver.plot_kolmogorov()
-        k2s = self.serialize(axe)
+        k2s = ReportProcessor.serialize(axe)
         plt.close(axe.figure)
 
         data = solver.dataset()
@@ -85,33 +97,36 @@ class ReportProcessor:
         data = data.reset_index()
         data = data.reindex(["id", "x0", "y", "sy", "yhat", "yerr", "chi2"], axis=1)
         data = data.rename(columns={
-            "id": r"{id}",
-            "x0": r"{$x_0$}",
-            "y": r"{$y$}",
-            "pm": r"{$\pm$}",
-            "sy": r"{$\sigma_y$}",
-            "yhat": r"{$\hat{y}$}",
-            "yerr": r"{$e$}",
-            "yerrrel": r"{$e\hat{y}$}",
-            "yerrabs": r"{$|e|$}",
-            "yerrsqr": r"{$e^2$}",
-            "chi2": r"{$\chi^2$}",
+            "id": r"id",
+            "x0": r"$x_0$",
+            "y": r"$y$",
+            "pm": r"$\pm$",
+            "sy": r"$\sigma_y$",
+            "yhat": r"$\hat{y}$",
+            "yerr": r"$e$",
+            "yerrrel": r"$e\hat{y}$",
+            "yerrabs": r"$|e|$",
+            "yerrsqr": r"$e^2$",
+            "chi2": r"$\chi^2$",
         })
-        table = self.serialize(data)
+        table = ReportProcessor.serialize(data, table_mode=table_mode)
 
         parameters = solver.parameters()
         for key in parameters:
             parameters[key] = parameters[key].apply("{:.4g}".format)
         parameters = parameters.reset_index()
-        parameters["pm"] = r"{$\pm$}"
+        if table_mode == "latex":
+            parameters["pm"] = r"{$\pm$}"
+        else:
+            parameters["pm"] = r"$\pm$"
         parameters = parameters.reindex(["index", "b", "pm", "sb"], axis=1)
         parameters = parameters.rename(columns={
-            "index": r"{$i$}",
-            "b": r"{$\beta_i$}",
-            "pm": r"{$\pm$}",
-            "sb": r"{$\sigma_{\beta_i}$}"
+            "index": r"$i$",
+            "b": r"$\beta_i$",
+            "pm": r"$\pm$",
+            "sb": r"$\sigma_{\beta_i}$"
         })
-        parameters = self.serialize(parameters)
+        parameters = ReportProcessor.serialize(parameters, table_mode=table_mode)
 
         context = context | {
             "fit_payload": fit,
@@ -131,6 +146,19 @@ class ReportProcessor:
             "k2s_significant": solver._k2s["pvalue"] >= 0.05,
             "k2s_pvalue": "%.4f" % solver._k2s["pvalue"],
         }
+        return context
 
-        payload = self.render(context)
-        self.convert(payload, path=path, file=file, mode=mode)
+    @staticmethod
+    def report(solver, context=None, path=".cache/media/reports", file="report", mode="pdf"):
+        modes = {"pdf", "html", "docx"}
+        if mode not in modes:
+            raise ConfigurationError("Mode must be in %s, got '%s' instead" % (modes, mode))
+        if mode == "pdf":
+            table_mode = "latex"
+        elif mode == "html":
+            table_mode = "html"
+        else:
+            table_mode = "md"
+        context = ReportProcessor.context(solver, context=context, table_mode=table_mode)
+        payload = ReportProcessor.render(context)
+        ReportProcessor.convert(payload, path=path, file=file, mode=mode)

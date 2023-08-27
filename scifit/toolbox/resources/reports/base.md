@@ -1,6 +1,6 @@
 ---
 title: {{title}}
-author: {{author}} supervised by {{supervisor}}
+author: {{author}}
 numbersections: true
 toc: true
 urlcolor: blue
