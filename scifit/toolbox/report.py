@@ -1,6 +1,7 @@
 import base64
 import io
 import pathlib
+from collections.abc import Iterable
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -60,6 +61,8 @@ class ReportProcessor:
         plt.close(axe.figure)
 
         axe = solver.plot_loss()
+        if isinstance(axe, Iterable):
+            axe = axe[0][0]
         loss = self.serialize(axe)
         plt.close(axe.figure)
 

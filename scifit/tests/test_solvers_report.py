@@ -1,12 +1,12 @@
 from unittest import TestCase
 
-from scifit.solvers import linear
+from scifit.solvers import linear, scientific, specials
 from scifit.toolbox import report
 
 
 class TestBasicReportProcessor(TestCase):
 
-    file = "report_basic"
+    file = "report_linear"
     context = {
         "title": "Fit Report",
         "author": "SciFit automatic report",
@@ -43,11 +43,32 @@ class TestBasicReportProcessor(TestCase):
         self.processor.report(self.solver, context=self.context, file=self.file, mode="html")
 
 
-class TestBadReport(TestBasicReportProcessor):
+class TestBadReportConstant(TestBasicReportProcessor):
 
-    file = "report_bad"
+    file = "report_constant"
+    factory = linear.ConstantFitSolver
 
     def setUp(self):
         super().setUp()
-        self.solver = linear.ConstantFitSolver()
+        self.solver = self.factory()
         self.solver.fit(self.data)
+
+
+class TestBadReportPropotional(TestBadReportConstant):
+    file = "report_proportional"
+    factory = linear.ProportionalFitSolver
+
+
+class TestBadReportParabola(TestBadReportConstant):
+    file = "report_parabola"
+    factory = linear.ParabolicFitSolver
+
+
+class TestBadReportCube(TestBadReportConstant):
+    file = "report_cube"
+    factory = linear.CubicFitSolver
+
+
+class TestBadReportExponential(TestBadReportConstant):
+    file = "report_exponential"
+    factory = scientific.ExponentialFitSolver
