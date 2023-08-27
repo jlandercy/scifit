@@ -81,7 +81,7 @@ class ReportProcessor:
         data = data.drop(["yerrrel", "yerrabs"], axis=1)
         # Too bad pandas fails now for formatting
         for key in data:
-            data[key] = data[key].apply(r"\num{{{:.4g}}}".format)
+            data[key] = data[key].apply("{:.4g}".format)
         data = data.reset_index()
         data = data.reindex(["id", "x0", "y", "sy", "yhat", "yerr", "yerrsqr", "chi2"], axis=1)
         data = data.rename(columns={
@@ -100,8 +100,8 @@ class ReportProcessor:
         table = self.serialize(data)
 
         parameters = solver.parameters()
-        # for key in parameters:
-        #     parameters[key] = parameters[key].apply(r"\num{{{:.4g}}}".format)
+        for key in parameters:
+            parameters[key] = parameters[key].apply("{:.4g}".format)
         parameters = parameters.reset_index()
         parameters["pm"] = r"{$\pm$}"
         parameters = parameters.reindex(["index", "b", "sb"], axis=1)
