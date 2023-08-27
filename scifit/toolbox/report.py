@@ -44,8 +44,11 @@ class ReportProcessor:
 
         elif isinstance(item, pd.DataFrame):
             stream = io.StringIO()
-            item.to_markdown(stream, index=False) #, float_format="{:.3g}".format)
-            return stream.getvalue()
+            #item.to_html(stream, index=False, float_format="{:.3g}".format)
+            #item.to_markdown(stream, index=False)
+            item.to_latex(stream, index=False, header=True, longtable=True, column_format="S"*item.shape[1])
+            payload = stream.getvalue()
+            return payload
 
     def report(self, solver, context=None, path=".cache/media/reports", file="report", mode="pdf"):
 
@@ -78,35 +81,35 @@ class ReportProcessor:
         data = data.drop(["yerrrel", "yerrabs"], axis=1)
         # Too bad pandas fails now for formatting
         for key in data:
-            data[key] = data[key].apply(r"$\num{{{:.4g}}}$".format)
+            data[key] = data[key].apply(r"\num{{{:.4g}}}".format)
         data = data.reset_index()
-        data["pm"] = r"$\pm$"
         data = data.reindex(["id", "x0", "y", "sy", "yhat", "yerr", "yerrsqr", "chi2"], axis=1)
         data = data.rename(columns={
-            "x0": r"$x_0$",
-            "y": r"$y$",
-            "pm": r"$\pm$",
-            "sy": r"$\sigma_y$",
-            "yhat": r"$\hat{y}$",
-            "yerr": r"$e$",
-            "yerrrel": r"$e\hat{y}$",
-            "yerrabs": r"$|e|$",
-            "yerrsqr": r"$e^2$",
-            "chi2": r"$\chi^2$",
+            "id": r"{id}",
+            "x0": r"{$x_0$}",
+            "y": r"{$y$}",
+            "pm": r"{$\pm$}",
+            "sy": r"{$\sigma_y$}",
+            "yhat": r"{$\hat{y}$}",
+            "yerr": r"{$e$}",
+            "yerrrel": r"{$e\hat{y}$}",
+            "yerrabs": r"{$|e|$}",
+            "yerrsqr": r"{$e^2$}",
+            "chi2": r"{$\chi^2$}",
         })
         table = self.serialize(data)
 
         parameters = solver.parameters()
-        for key in parameters:
-            parameters[key] = parameters[key].apply(r"$\num{{{:.4g}}}$".format)
+        # for key in parameters:
+        #     parameters[key] = parameters[key].apply(r"\num{{{:.4g}}}".format)
         parameters = parameters.reset_index()
-        parameters["pm"] = r"$\pm$"
-        parameters = parameters.reindex(["index", "b", "pm", "sb"], axis=1)
+        parameters["pm"] = r"{$\pm$}"
+        parameters = parameters.reindex(["index", "b", "sb"], axis=1)
         parameters = parameters.rename(columns={
-            "index": r"$i$",
-            "b": r"$\beta_i$",
-            "pm": r"$\pm$",
-            "sb": r"$\sigma_{\beta_i}$"
+            "index": r"{$i$}",
+            "b": r"{$\beta_i$}",
+            "pm": r"{$\pm$}",
+            "sb": r"{$\sigma_{\beta_i}$}"
         })
         parameters = self.serialize(parameters)
 

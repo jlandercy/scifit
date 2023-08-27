@@ -5,6 +5,7 @@ numbersections: true
 toc: true
 header-includes:
   - \usepackage{longtable}
+  - \usepackage{booktabs}
   - \usepackage{siunitx}
 ---
 
