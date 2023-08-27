@@ -79,9 +79,9 @@ The adjustment is **not statistically significant** with a Kolmogorov test p-val
 
 ## Data
 
-Table presents raw data and aggregates.
+Table \ref{tab:data} presents raw data and aggregates.
 
 \tiny
-{{table_payload}}
+{{table_payload}}\ref{tab:data}
 \normalsize
 
