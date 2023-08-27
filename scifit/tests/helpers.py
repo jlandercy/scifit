@@ -16,7 +16,7 @@ print_k2s = bool(int(os.getenv("TESTS_PRINT_K2S", 0)))
 print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 1)))
 print_loss_surface = bool(int(os.getenv("TESTS_PRINT_LOSS_SURFACE", 0)))
 print_loss_iterations = bool(int(os.getenv("TESTS_PRINT_LOSS_ITERATIONS", 0)))
-print_report = bool(int(os.getenv("TESTS_PRINT_REPORT", 1)))
+print_report = bool(int(os.getenv("TESTS_PRINT_REPORT", 0)))
 
 
 class GenericTestFitSolverInterface:
