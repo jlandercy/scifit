@@ -292,7 +292,7 @@ def notebooks(session):
             "jupyter", "nbconvert",  # "--debug",
             "--ExecutePreprocessor.timeout=1200",
             #"--ExecutePreprocessor.kernel_name=venv",
-            "--InlineBackend.rc={'figure.dpi': 72}",
+            "--InlineBackend.rc={'figure.dpi': 72, 'savefig.dpi': 120}",
             "--inplace", "--clear-output", "--allow-errors", "--to", "notebook",
             "--execute", "./docs/source/notebooks/**/*.ipynb",
             stderr=handler,

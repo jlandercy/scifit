@@ -358,7 +358,7 @@ class GenericTestFitSolver:
             {"statistic", "pvalue"},
         )
         if self.sigma is not None and self.sigma > 0.0:
-            self.assertTrue(test["pvalue"] >= 0.05)
+            self.assertTrue(test["pvalue"] >= 0.10)
 
     def test_feature_dataset_auto(self):
         self.solver._store(self.xdata, self.ydata)
