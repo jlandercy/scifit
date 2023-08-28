@@ -50,7 +50,11 @@ solution = solver.fit(data)
 axe = solver.plot_fit()
 ```
 
+We have a nice adjustments for such noisy data:
+
 ![Fit figure](./docs/source/media/branding/FitFigure.png)
+
+Or even better a full fit report to check each key points at once:
 
 ```python
 solver.report("hill_report")
@@ -58,6 +62,7 @@ solver.report("hill_report")
 
 ![Report page](./docs/source/media/branding/ReportPage.png)
 
+Which produces a PDF file called `hill_report.pdf`.
 
 ## Resources
 
