@@ -137,8 +137,8 @@ class ReportProcessor:
         chi2_abacus = solver.chi_square_table()
         chi2_abacus = chi2_abacus.groupby(["alpha", "key"])[["low-value", "high-value"]].first().unstack().dropna(how="all", axis=1)
         chi2_abacus = chi2_abacus.droplevel(0, axis=1)
-        chi2_abacus.columns = ["Left-sided", "Left two-sided", "Right-sided", "Right two-sided"]
-        chi2_abacus = chi2_abacus.reindex(["Left two-sided", "Left-sided", "Right-sided", "Right two-sided"], axis=1).reset_index()
+        chi2_abacus.columns = ["Left one-sided", "Left two-sided", "Right one-sided", "Right two-sided"]
+        chi2_abacus = chi2_abacus.reindex(["Left two-sided", "Left one-sided", "Right one-sided", "Right two-sided"], axis=1).reset_index()
         for key in chi2_abacus:
             chi2_abacus[key] = chi2_abacus[key].apply("{:.4g}".format)
         chi2_abacus = chi2_abacus.rename(columns={

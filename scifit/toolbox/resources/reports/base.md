@@ -9,8 +9,8 @@ header-includes:
   - \usepackage{longtable}
   - \usepackage{booktabs}
   - \usepackage{siunitx}
+  - \sisetup{tight-spacing=true,round-precision=4}
 ---
-
 # Summary
 
 ## Information
@@ -110,10 +110,10 @@ The adjustment is **not statistically significant** with a Kolmogorov statistic 
 
 \clearpage
 
+
 # Annexe
 
 ## Data
-
 Table \ref{tab:data} presents raw data and aggregates.
 
 \tiny

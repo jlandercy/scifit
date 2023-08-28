@@ -34,6 +34,8 @@ class GompertzFitSolver(FitSolver1D):
     `Gompertz function model (calculus) <https://en.wikipedia.org/wiki/Gompertz_function>`_
     """
 
+    _model_equation = r"y = a \cdot \exp\left( - b \cdot \exp \left( - c \cdot x\right) \right)"
+
     @staticmethod
     def model(x, a, b, c):
         """
@@ -56,6 +58,8 @@ class LogisticFitSolver(FitSolver1D):
     """
     `Logistic function model (calculus) <https://en.wikipedia.org/wiki/Logit>`_
     """
+    
+    _model_equation = r"y = \frac{1}{1 + \exp\left[- k \cdot (x - x_0)\right]}"
 
     @staticmethod
     def model(x, k, x0):
@@ -79,6 +83,8 @@ class AlgebraicSigmoidFitSolver(FitSolver1D):
     `Algebraic sigmoid function model (calculus) <https://en.wikipedia.org/wiki/Algebraic_function>`_
     """
 
+    _model_equation = r"y = \frac{x}{\left(1 + |x|^k\right)^{\frac{1}{k}}}"
+
     @staticmethod
     def model(x, k):
         """
@@ -99,6 +105,8 @@ class RichardGeneralizedSigmoidFitSolver(FitSolver1D):
     """
     `Richard's generalized sigmoid function model (calculus) <https://en.wikipedia.org/wiki/Generalised_logistic_function>`_
     """
+    
+    _model_equation = r"y = A + \frac{K - A}{\left(C + Q\cdot\exp(-B\cdot t)\right)^{\frac{1}{\nu}}}"
 
     @staticmethod
     def model(x, A, B, C, K, Q, nu):
@@ -180,6 +188,8 @@ class DoubleInverseBoxCoxSigmoidFitSolver(FitSolver1D):
     """
     Double Inverse Box-Cox sigmoid model (calculus)
     """
+    
+    _model_equation = r"y = \varphi(\varphi(x, \beta), \alpha), \quad \alpha < 1, \, \beta < 1"
 
     @staticmethod
     def model(x, alpha, beta):
@@ -205,6 +215,8 @@ class MichaelisMentenKineticFitSolver(FitSolver1D):
     """
     `Michaëlis-Menten kinetic model (biochemistry) <https://en.wikipedia.org/wiki/Michaelis%E2%80%93Menten_kinetics>`_
     """
+    
+    _model_equation = r"y = \frac{v_\max \cdot x}{K_\mathrm{m} + x}"
 
     @staticmethod
     def model(x, vmax, km):
@@ -253,6 +265,8 @@ class GaussianPeakFitSolver(FitSolver1D):
     `Gaussian function model (calculus) <https://en.wikipedia.org/wiki/Gaussian_function>`_
     """
 
+    _model_equation = r"y = H \exp\left[- \frac{1}{2} \cdot \left(\frac{x - x_0}{\sigma}\right)^2\right]"
+
     @staticmethod
     def model(x, H, sigma, x0):
         """
@@ -275,6 +289,8 @@ class GaussianPeakWithBaselineFitSolver(FitSolver1D):
     """
     Gaussian peak with baseline
     """
+
+    _model_equation = r"y = H \exp\left[- \frac{1}{2} \cdot \left(\frac{x - x_0}{\sigma}\right)^2\right] + a x + b"
 
     @staticmethod
     def model(x, H, sigma, x0, a, b):
@@ -301,6 +317,7 @@ class EMGPeakFitSolver(FitSolver1D):
     `Exponential Modified Gaussian Peak function model (calculus) <https://www.researchgate.net/publication/231172511_Equations_for_chromatographic_peak_modeling_and_calculation_of_peak_area>`_
     """
 
+    _model_equation = r"y = \frac{A}{x_0} \exp\left[-\frac{1}{2}\left(\frac{\sigma_G}{x_0}\right)^2 -\frac{x - x_G}{x_0} \right] \cdot \frac{1}{\sqrt{2\pi}}\int\limits_{\infty}^{z} \exp\left[-\frac{y^2}{2}\right]\mathrm{d}y"
     cdf = np.vectorize(stats.norm(loc=0.0, scale=1.0).cdf)
 
     @staticmethod

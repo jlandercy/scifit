@@ -9,7 +9,7 @@ from scifit.toolbox import report
 path = pathlib.Path(".cache/media/reports")
 path.mkdir(parents=True, exist_ok=True)
 
-print_report = bool(int(os.getenv("TESTS_PRINT_REPORT", 0)))
+print_report = bool(int(os.getenv("TESTS_PRINT_REPORT", 1)))
 
 
 class TestBasicReportProcessor(TestCase):

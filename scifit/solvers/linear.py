@@ -84,19 +84,25 @@ class CubicFitSolver(FitSolver1D):
 
 
 class LinearRootFitSolver(FitSolver1D):
+
+    _model_equation = r"y = \beta_2 \cdot x + \beta_1 \cdot \sqrt{|x| + 1} + \beta_0"
+
     @staticmethod
-    def model(x, a, b, c):
+    def model(x, b0, b1, b2):
         """
         Linear Root model defined as follows:
 
         .. math::
 
-            y = a \\cdot x + b \\cdot \\sqrt{|x| + 1} + c
+            y = \\beta_2 \\cdot x + \\beta_1 \\cdot \\sqrt{|x| + 1} + \\beta_0
         """
-        return a * x[:, 0] + b * np.sqrt(np.abs(x[:, 0]) + 1.0) + c
+        return b2 * x[:, 0] + b1 * np.sqrt(np.abs(x[:, 0]) + 1.0) + b0
 
 
 class PlaneFitSolver(FitSolver2D):
+
+    _model_equation = "y = a \cdot x_0 + b \cdot x_1 + c"
+
     @staticmethod
     def model(x, a, b, c):
         """
@@ -110,6 +116,9 @@ class PlaneFitSolver(FitSolver2D):
 
 
 class QuadricFitSolver(FitSolver2D):
+
+    _model_equation = r"y = a \cdot x^2_0 + b \cdot x^2_1 + c"
+
     @staticmethod
     def model(x, a, b, c):
         """
@@ -123,6 +132,9 @@ class QuadricFitSolver(FitSolver2D):
 
 
 class FullQuadricFitSolver(FitSolver2D):
+
+    _model_equation = r"y = a \cdot x^2_0 + b \cdot x^2_1 + c \cdot x_0x_1 + d \cdot x_0 + e \cdot x_1 + f"
+
     @staticmethod
     def model(x, a, b, c, d, e, f):
         """
