@@ -228,6 +228,8 @@ class HillEquationFitSolver(FitSolver1D):
     `Hill equation model (biochemistry) <https://en.wikipedia.org/wiki/Hill_equation_(biochemistry)>`_
     """
 
+    _model_equation = r"y = \frac{\beta_1 \cdot x^{\beta_0}}{1 + \beta_1 \cdot x^{\beta_0}}"
+
     @staticmethod
     def model(x, n, k):
         """

@@ -47,7 +47,7 @@ data = solver.synthetic_dataset(
 solution = solver.fit(data)
 
 # Render results:
-axe = solver.plot_fit(title="SciFit Quick Start Guide")
+axe = solver.plot_fit()
 ```
 
 ![Fit figure](./docs/source/media/branding/FitFigure.png)
