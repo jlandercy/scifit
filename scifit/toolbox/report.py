@@ -72,7 +72,7 @@ class ReportProcessor:
                 "supervisor": "Jean Landercy",
             }
 
-        axe = solver.plot_fit()
+        axe = solver.plot_fit(errors=True)
         fit = ReportProcessor.serialize(axe)
         plt.close(axe.figure)
 
