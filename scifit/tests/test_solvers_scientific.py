@@ -13,6 +13,31 @@ from scifit.tests.helpers import GenericTestFitSolver
 from scifit.tests.test_solvers_linear import GenericLinearRegression
 
 
+class ExponentialRegression(GenericLinearRegression):
+    factory = scientific.ExponentialFitSolver
+    parameters = np.array([2.51, 3.23, 0.57])
+    xmin = -5.0
+    xmax = 5.0
+
+
+class ExponentialRegressionNoiseL0(
+    ExponentialRegression, TestCase
+):
+    sigma = 1e-6
+
+
+class ExponentialRegressionNoiseL1(
+    ExponentialRegression, TestCase
+):
+    sigma = 2.5e-2
+
+
+class ExponentialRegressionNoiseL2(
+    ExponentialRegression, TestCase
+):
+    sigma = 1e-1
+
+
 class GompertzRegression(GenericLinearRegression):
     factory = scientific.GompertzFitSolver
     parameters = np.array([2.0, 0.5, 5.0])

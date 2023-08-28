@@ -8,12 +8,31 @@
    - [ ] Mechanics
    - [ ] Gradient recovery
    - [ ] Distribution fit
+ - [ ] Refactor all models to get parameters name:
+   - [ ] Starting by 0 and get compliant with natural index
+   - [ ] Write all _model_equation
+ - [ ] Give a try to Kivy in another package (userflow first)
+ - [x] Find out why references are not all updated in report
+
+
+## v0.1.13
+
+## v0.1.12
+
+ - [x] Remove dimension argument from scales
+ - [x] Started automatic report with MD/LaTeX/PDF
+   - [x] With Jinja templating
+   - [x] Binary stream ready for figure and table
+   - [x] Inline SVG through MD figure
+   - [x] Added longtable and siunitx into the game
+ - [x] Added MD/docx report export
+ - [x] Added MD/HTML report export
 
 ## v0.1.11
 
  - [x] Created mixins to generalize interfaces
  - [x] Migrated part of generic FitSolver interface to mixins
- - [x] Changing FitSolver interface data life cycle to make it compliant with sklearn life cycle
+ - [x] Breaking: Changed FitSolver interface data life cycle to make it compliant with sklearn life cycle
  - [x] Updated load, fit, refit definition and behaviours
 
 ## v0.1.10

@@ -26,7 +26,7 @@ copyright = '2023, Jean Landercy'
 author = 'Jean Landercy'
 
 # The full version, including alpha/beta/rc tags
-release = "0.1.11"
+release = "0.1.12"
 
 
 # -- General to_dict ---------------------------------------------------
@@ -68,6 +68,17 @@ source_suffix = {
 # a list of builtin themes.
 html_theme = 'furo'
 
+# https://sphinx-rtd-theme.readthedocs.io/en/stable/configuring.html
+# Not effective
+# html_theme_options = {
+#     # Toc options:
+#     'collapse_navigation': True,
+#     'sticky_navigation': True,
+#     'navigation_depth': 2,
+#     'includehidden': True,
+#     'titles_only': False
+# }
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
@@ -76,7 +87,7 @@ html_static_path = ['static']
 # Notebook Sphinx:
 nbsphinx_execute_arguments = [
     "--InlineBackend.figure_formats={'svg', 'pdf'}",
-    "--InlineBackend.rc={'figure.dpi': 96}",
+    "--InlineBackend.rc={'figure.dpi': 72}",
 ]
 html_scaled_image_link = False
 nbsphinx_input_prompt = '[%s]'
@@ -86,3 +97,5 @@ nbsphinx_output_prompt = '[%s]'
 suppress_warnings = [
     'nbsphinx',
 ]
+
+github_url = "https://github.com"

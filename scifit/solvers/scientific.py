@@ -4,6 +4,31 @@ from scipy import stats
 from scifit.interfaces.solvers import FitSolver1D
 
 
+class ExponentialFitSolver(FitSolver1D):
+    """
+    `Exponential function model (calculus) <https://en.wikipedia.org/wiki/Exponential_function>`_
+    """
+
+    _model_equation = r"y = \beta_1 \exp(-\beta_2 x) + \beta_0"
+
+    @staticmethod
+    def model(x, b0, b1, b2):
+        """
+        Exponential function is defined as follows:
+
+        .. math::
+
+            y = \\beta_1 \\cdot \\exp \\left( - \\beta_2 \\cdot x \\right) + \\beta_0
+
+        :param x: :math:`x`
+        :param b0:
+        :param b1:
+        :param b2:
+        :return: Gompertz function :math:`y`
+        """
+        return b1 * np.exp(-b2 * x[:, 0]) + b0
+
+
 class GompertzFitSolver(FitSolver1D):
     """
     `Gompertz function model (calculus) <https://en.wikipedia.org/wiki/Gompertz_function>`_
@@ -202,6 +227,8 @@ class HillEquationFitSolver(FitSolver1D):
     """
     `Hill equation model (biochemistry) <https://en.wikipedia.org/wiki/Hill_equation_(biochemistry)>`_
     """
+
+    _model_equation = r"y = \frac{\beta_1 \cdot x^{\beta_0}}{1 + \beta_1 \cdot x^{\beta_0}}"
 
     @staticmethod
     def model(x, n, k):

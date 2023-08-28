@@ -4,68 +4,83 @@ from scifit.interfaces.solvers import FitSolver1D, FitSolver2D
 
 
 class ConstantFitSolver(FitSolver1D):
+
+    _model_equation = r"y = \beta_0"
+
     @staticmethod
-    def model(x, a):
+    def model(x, b0):
         """
         Constant model defined as follows:
 
         .. math::
 
-            y = a
+            y = \\beta_0
         """
-        return np.full(x.shape[0], a)
+        return np.full(x.shape[0], b0)
 
 
 class ProportionalFitSolver(FitSolver1D):
+
+    _model_equation = r"y = \beta_0 x"
+
     @staticmethod
-    def model(x, a):
+    def model(x, b0):
         """
         Proportional model defined as follows:
 
         .. math::
 
-            y = a \\cdot x
+            y = \\beta_0 \\cdot x
         """
-        return a * x[:, 0]
+        return b0 * x[:, 0]
 
 
 class LinearFitSolver(FitSolver1D):
+
+    _model_equation = r"y = \beta_1 x + \beta_0"
+
     @staticmethod
-    def model(x, a, b):
+    def model(x, b0, b1):
         """
         Linear model defined as follows:
 
         .. math::
 
-            y = a \\cdot x + b
+            y = \\beta_1 \\cdot x + \\beta_0
         """
-        return a * x[:, 0] + b
+        return b1 * x[:, 0] + b0
 
 
 class ParabolicFitSolver(FitSolver1D):
+
+    _model_equation = r"y = \beta_2 \cdot x^2 + \beta_1 \cdot x + \beta_0"
+
     @staticmethod
-    def model(x, a, b, c):
+    def model(x, b0, b1, b2):
         """
         Parabolic model defined as follows:
 
         .. math::
 
-            y = a \\cdot x^2 + b \\cdot x + c
+            y = \\beta_2 \\cdot x^2 + \\beta_1 \\cdot x + \\beta_0
         """
-        return a * np.power(x[:, 0], 2) + b * x[:, 0] + c
+        return b2 * np.power(x[:, 0], 2) + b1 * x[:, 0] + b0
 
 
 class CubicFitSolver(FitSolver1D):
+
+    _model_equation = r"y = \beta_3 \cdot x^3 + \beta_2 \cdot x^2 + \beta_1 \cdot x + \beta_0"
+
     @staticmethod
-    def model(x, a, b, c, d):
+    def model(x, b0, b1, b2, b3):
         """
         Cubic model defined as follows:
 
         .. math::
 
-            y = a \\cdot x^3 + b \\cdot x^2 + c \\cdot x + d
+            y = \\beta_3 \\cdot x^3 + \\beta_2 \\cdot x^2 + \\beta_1 \\cdot x + \\beta_0
         """
-        return a * np.power(x[:, 0], 3) + b * np.power(x[:, 0], 2) + c * x[:, 0] + d
+        return b3 * np.power(x[:, 0], 3) + b2 * np.power(x[:, 0], 2) + b1 * x[:, 0] + b0
 
 
 class LinearRootFitSolver(FitSolver1D):

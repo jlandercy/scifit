@@ -12,6 +12,7 @@ from scipy import optimize, stats
 from scifit import logger
 from scifit.errors.base import *
 from scifit.interfaces.mixins import *
+from scifit.toolbox.report import ReportProcessor
 
 
 class FitSolverInterface(FitSolverMixin):
@@ -336,7 +337,7 @@ class FitSolverInterface(FitSolverMixin):
         """
         return np.sum(np.power(ydata - ydata.mean(), 2))
 
-    def score(self, xdata, ydata, sigma=None, parameters=None, estimated=True):
+    def score(self, xdata, ydata, sigma=None, parameters=None, estimated=False):
         """
         Compute Coefficient of Determination :math:`R^2` as follows:
 
@@ -359,6 +360,7 @@ class FitSolverInterface(FitSolverMixin):
         :param ydata: Target as :code:`(n,)` matrix
         :param sigma: Uncertainty on target as :code:`(n,)` matrix or scalar or :code:`None`
         :param parameters: Sequence of :code:`k` parameters
+        :param estimated:
         :return: Coefficient of Determination :math:`R^2`
         """
 
@@ -432,12 +434,12 @@ class FitSolverInterface(FitSolverMixin):
                 # Left Sided Test:
                 chi = law.ppf(alpha)
                 result["significance"]["left-sided"].append(
-                    {"alpha": alpha, "value": chi, "H0": chi <= statistic}
+                    {"alpha": alpha, "low-value": chi, "H0": chi <= statistic}
                 )
                 # Right Sided Test:
                 chi = law.ppf(1.0 - alpha)
                 result["significance"]["right-sided"].append(
-                    {"alpha": alpha, "value": chi, "H0": statistic <= chi}
+                    {"alpha": alpha, "high-value": chi, "H0": statistic <= chi}
                 )
                 # Two Sided Test:
                 low = law.ppf(alpha / 2.0)
@@ -579,6 +581,9 @@ class FitSolverInterface(FitSolverMixin):
             :alt: Fit Plot
         """
 
+        if not title and self._model_equation:
+            title = "$%s$" % self._model_equation
+
         if log_x:
             mode = "log"
 
@@ -702,6 +707,10 @@ class FitSolverInterface(FitSolverMixin):
         :param resolution:
         :return:
         """
+
+        if not title and self._model_equation:
+            title = "$%s$" % self._model_equation
+
         if self.fitted(error=True):
             full_title = "Fit $\chi^2$ Plot: {}\n{}".format(title, self.get_title())
 
@@ -777,6 +786,10 @@ class FitSolverInterface(FitSolverMixin):
         :param title:
         :return:
         """
+
+        if not title and self._model_equation:
+            title = "$%s$" % self._model_equation
+
         if self.fitted(error=True):
             full_title = "Fit Kolmogorov Plot: {}\n{}".format(title, self.get_title())
 
@@ -852,6 +865,9 @@ class FitSolverInterface(FitSolverMixin):
 
         See :meth:`FitSolverInterface.plot_loss` for full loss landscape.
         """
+
+        if not title and self._model_equation:
+            title = "$%s$" % self._model_equation
 
         if self.fitted(error=True):
             if axe is None:
@@ -1075,6 +1091,10 @@ class FitSolverInterface(FitSolverMixin):
         :param resolution:
         :return:
         """
+
+        if not title and self._model_equation:
+            title = "$%s$" % self._model_equation
+
         if self.k <= 2:
             axes = self.plot_loss_low_dimension(
                 mode=mode,
@@ -1173,6 +1193,18 @@ class FitSolverInterface(FitSolverMixin):
                 axes.append(axe)
 
         return axes
+
+    def chi_square_table(self):
+        if self.fitted(error=True):
+            frames = []
+            for key in ["left-sided", "two-sided", "right-sided"]:
+                frames.append(pd.DataFrame(self._gof["significance"][key]).assign(key=key))
+            frame = pd.concat(frames, axis=0)
+            return frame
+
+    def report(self, file, path=".", mode="pdf"):
+        processor = ReportProcessor()
+        processor.report(self, file=file, path=path, mode=mode)
 
 
 class FitSolver1D(FitSolverInterface):

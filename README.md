@@ -38,7 +38,7 @@ solver = HillEquationFitSolver()
 
 # Create some synthetic dataset:
 data = solver.synthetic_dataset(
-    xmin=0.0, xmax=5.0, dimension=1, resolution=50,
+    xmin=0.0, xmax=5.0, resolution=50,
     parameters=[3.75, 0.21],
     sigma=0.1, scale_mode="auto", seed=1234,
 )
@@ -47,10 +47,17 @@ data = solver.synthetic_dataset(
 solution = solver.fit(data)
 
 # Render results:
-axe = solver.plot_fit(title="SciFit Quick Start Guide")
+axe = solver.plot_fit()
 ```
 
-![QuickStart](./docs/source/media/branding/QuickStart.png)
+![Fit figure](./docs/source/media/branding/FitFigure.png)
+
+```python
+solver.report("hill_report")
+```
+
+![Report page](./docs/source/media/branding/ReportPage.png)
+
 
 ## Resources
 

@@ -38,6 +38,7 @@ jobs:
           TESTS_PRINT_LOSS_CONTOUR: 1
           TESTS_PRINT_LOSS_SURFACE: 1
           TESTS_PRINT_LOSS_ITERATIONS: 1
+          TESTS_PRINT_REPORT: 1
         run: |
           nox --session tests
 
