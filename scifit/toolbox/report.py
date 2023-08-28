@@ -15,15 +15,17 @@ from scifit.errors.base import *
 class ReportProcessor:
 
     @staticmethod
-    def render(context=None, template="base.md", directory="scifit/toolbox/resources/reports/"):
-        loader = jinja2.FileSystemLoader(searchpath=directory)
+    def render(context=None, template="base.md", directory=None):
+        if directory is None:
+            directory = pathlib.Path(__file__).parent / "resources/reports/"
+        loader = jinja2.FileSystemLoader(searchpath=str(directory))
         environment = jinja2.Environment(loader=loader)
         template = environment.get_template(template)
         payload = template.render(**(context or {}))
         return payload
 
     @staticmethod
-    def convert(payload, file="report", path=".cache/media/reports", mode="pdf"):
+    def convert(payload, file="report", path=".", mode="pdf"):
         filename = pathlib.Path(path) / file
         pypandoc.convert_text(
             payload, mode, format="md", outputfile="%s.%s" % (filename, mode),
@@ -88,6 +90,7 @@ class ReportProcessor:
         k2s = ReportProcessor.serialize(axe)
         plt.close(axe.figure)
 
+        # Dataset
         data = solver.dataset()
         data = data.drop(["yerrrel", "yerrabs"], axis=1)
         # Too bad pandas fails now for formatting
@@ -112,6 +115,7 @@ class ReportProcessor:
         })
         table = ReportProcessor.serialize(data, table_mode=table_mode)
 
+        # Fit parameters:
         parameters = solver.parameters()
         for key in parameters:
             parameters[key] = parameters[key].apply("{:.4g}".format)
@@ -128,6 +132,19 @@ class ReportProcessor:
             "sb": r"$\sigma_{\beta_i}$"
         })
         parameters = ReportProcessor.serialize(parameters, table_mode=table_mode)
+
+        # Chi 2 Abacus
+        chi2_abacus = solver.chi_square_table()
+        chi2_abacus = chi2_abacus.groupby(["alpha", "key"])[["low-value", "high-value"]].first().unstack().dropna(how="all", axis=1)
+        chi2_abacus = chi2_abacus.droplevel(0, axis=1)
+        chi2_abacus.columns = ["Left-sided", "Left two-sided", "Right-sided", "Right two-sided"]
+        chi2_abacus = chi2_abacus.reindex(["Left two-sided", "Left-sided", "Right-sided", "Right two-sided"], axis=1).reset_index()
+        for key in chi2_abacus:
+            chi2_abacus[key] = chi2_abacus[key].apply("{:.4g}".format)
+        chi2_abacus = chi2_abacus.rename(columns={
+            "alpha": r"$\alpha$"
+        })
+        chi2_abacus = ReportProcessor.serialize(chi2_abacus, table_mode=table_mode)
 
         context = context | {
             "figure_mode": figure_mode,
@@ -148,6 +165,7 @@ class ReportProcessor:
             "chi2_significant": solver._gof["pvalue"] >= 0.05,
             "chi2_statistic": "%.4g" % solver._gof["statistic"],
             "chi2_pvalue": "%.4f" % solver._gof["pvalue"],
+            "chi2_abacus": chi2_abacus,
             "k2s_significant": solver._k2s["pvalue"] >= 0.05,
             "k2s_statistic": "%.4g" % solver._k2s["statistic"],
             "k2s_pvalue": "%.4f" % solver._k2s["pvalue"],
@@ -155,7 +173,7 @@ class ReportProcessor:
         return context
 
     @staticmethod
-    def report(solver, context=None, path=".cache/media/reports", file="report", mode="pdf"):
+    def report(solver, context=None, path=".", file="report", mode="pdf"):
         modes = {"pdf", "html", "docx"}
         if mode not in modes:
             raise ConfigurationError("Mode must be in %s, got '%s' instead" % (modes, mode))

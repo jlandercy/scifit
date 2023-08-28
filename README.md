@@ -50,7 +50,14 @@ solution = solver.fit(data)
 axe = solver.plot_fit(title="SciFit Quick Start Guide")
 ```
 
-![QuickStart](./docs/source/media/branding/QuickStart.png)
+![Fit figure](./docs/source/media/branding/FitFigure.png)
+
+```python
+solver.report("hill_report")
+```
+
+![Report page](./docs/source/media/branding/ReportPage.png)
+
 
 ## Resources
 

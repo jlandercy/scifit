@@ -1,1 +1,6 @@
 include **/*.toml
+include **/*.yaml
+include **/*.md
+include **/*.tex
+include **/*.html
+include **/*.ipynb

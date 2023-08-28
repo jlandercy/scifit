@@ -28,7 +28,7 @@ class TestBasicReportProcessor(TestCase):
         payload = self.processor.render(self.context)
 
     def test_pandoc_converter(self):
-        self.processor.convert("# Hello world\n\n##Foo\n\n###Bar", file="dummy")
+        self.processor.convert("# Hello world\n\n##Foo\n\n###Bar", file="dummy", path=".cache/media/reports/")
 
     def test_serialize_figure(self):
         axe = self.solver.plot_fit()
@@ -39,13 +39,13 @@ class TestBasicReportProcessor(TestCase):
         payload = self.processor.serialize(data)
 
     def test_report_pdf(self):
-        self.processor.report(self.solver, context=self.context, file=self.file, mode="pdf")
+        self.processor.report(self.solver, context=self.context, path=".cache/media/reports", file=self.file, mode="pdf")
 
     def test_report_docx(self):
-        self.processor.report(self.solver, context=self.context, file=self.file, mode="docx")
+        self.processor.report(self.solver, context=self.context, path=".cache/media/reports", file=self.file, mode="docx")
 
     def test_report_html(self):
-        self.processor.report(self.solver, context=self.context, file=self.file, mode="html")
+        self.processor.report(self.solver, context=self.context, path=".cache/media/reports", file=self.file, mode="html")
 
 
 class TestBadReportConstant(TestBasicReportProcessor):

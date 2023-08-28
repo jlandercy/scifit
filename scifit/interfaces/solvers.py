@@ -434,12 +434,12 @@ class FitSolverInterface(FitSolverMixin):
                 # Left Sided Test:
                 chi = law.ppf(alpha)
                 result["significance"]["left-sided"].append(
-                    {"alpha": alpha, "value": chi, "H0": chi <= statistic}
+                    {"alpha": alpha, "low-value": chi, "H0": chi <= statistic}
                 )
                 # Right Sided Test:
                 chi = law.ppf(1.0 - alpha)
                 result["significance"]["right-sided"].append(
-                    {"alpha": alpha, "value": chi, "H0": statistic <= chi}
+                    {"alpha": alpha, "high-value": chi, "H0": statistic <= chi}
                 )
                 # Two Sided Test:
                 low = law.ppf(alpha / 2.0)
@@ -1194,7 +1194,15 @@ class FitSolverInterface(FitSolverMixin):
 
         return axes
 
-    def report(self, file, path=".cache/media/reports", mode="pdf"):
+    def chi_square_table(self):
+        if self.fitted(error=True):
+            frames = []
+            for key in ["left-sided", "two-sided", "right-sided"]:
+                frames.append(pd.DataFrame(self._gof["significance"][key]).assign(key=key))
+            frame = pd.concat(frames, axis=0)
+            return frame
+
+    def report(self, file, path=".", mode="pdf"):
         processor = ReportProcessor()
         processor.report(self, file=file, path=path, mode=mode)
 

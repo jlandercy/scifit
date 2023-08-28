@@ -62,6 +62,21 @@ Figure \ref{fig:loss} presents loss function landscape in the neighborhood of th
 
 ![Loss function\label{fig:loss}]({{loss_payload}}){width=250px}
 
+{% if solved %}
+The regression **has converged**, by inspecting the loss surface we can confirm the locality of the optimum.\footnote{
+If the model is linear we can confirm this is the global optimum.
+If the model is not linear we may have found the optimum, but we should confirm it by inspecting the loss surface.
+}
+{% else %}
+The regression **has not converged**, we must inspect the loss surface to check out the reason.
+You may investigate the following potential solutions:
+
+  - Change the initial guess for parameters;
+  - Refine or reformulate the model (parameters decoupling);
+  - Standardize dataset (normalization);
+  - Assess numerical stability of the model.
+{% endif %}
+
 ## Statistical tests
 
 ### Goodness of fit
@@ -75,6 +90,11 @@ The adjustment is **statistically significant** with a $\chi^2$ statistic of {{c
 {% else %}
 The adjustment is **not statistically significant** with a $\chi^2$ statistic of {{chi2_statistic}} ($\nu = {{nu}}$) and p-value of {{chi2_pvalue}}.
 {% endif %}
+
+Following abacus \ref{tab:chi2_abacus} presents critical values for $\chi^2$ for several $\alpha$ in three versions:
+unilateral (left and right) and bilateral.
+
+{{chi2_abacus}}\label{tab:chi2_abacus}
 
 ### Kolmogorov
 
@@ -97,6 +117,5 @@ The adjustment is **not statistically significant** with a Kolmogorov statistic 
 Table \ref{tab:data} presents raw data and aggregates.
 
 \tiny
-{{table_payload}}
-\label{tab:data}
+{{table_payload}}\label{tab:data}
 \normalsize
