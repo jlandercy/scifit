@@ -77,3 +77,23 @@ class SimpleKinetic03(GenericASMKineticTest, TestCase):
     x0 = np.array([2e-3, 0.0, 0.0, 0.0])
     k0 = np.array([1e-2, 1e-3, 1e-1])
     t = np.linspace(0.0, 3600.0, 500)
+
+
+class SimpleKinetic04(GenericASMKineticTest, TestCase):
+    nur = np.array([
+        [-1, -1, 1],
+    ])
+    nup = None
+    x0 = np.array([2e-3, 3e-3, 0.0])
+    k0 = np.array([1e+1])
+    t = np.linspace(0.0, 3600.0, 500)
+
+
+class SimpleKinetic05(GenericASMKineticTest, TestCase):
+    nur = np.array([
+        [-1, -2, 1],
+    ])
+    nup = None
+    x0 = np.array([2e-3, 3e-3, 0.0])
+    k0 = np.array([1e+4])
+    t = np.linspace(0.0, 3600.0, 500)
