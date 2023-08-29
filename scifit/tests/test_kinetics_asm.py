@@ -34,13 +34,9 @@ class GenericASMKineticTest:
     def test_solve(self):
         solution = self.solver.solve(t=self.t)
 
-    # def test_model_formula(self):
-    #     formula = self.solver.model_formula()
-    #     print(formula)
-    #
-    # def test_latex_formula(self):
-    #     formula = self.solver.model_latex_formula()
-    #     print(formula)
+    def test_model_formula(self):
+        formula = self.solver.model_formula()
+        print(formula)
 
     def test_plot_solve(self):
         name = self.__class__.__name__

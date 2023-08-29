@@ -104,11 +104,11 @@ class ActivatedStateModelKinetic:
     def k(self):
         return self._nur.shape[1]
 
-    def reactant_indices(self):
-        return np.where(self._nur < 0.0)[0]
+    def reactant_indices(self, j):
+        return np.where(self._nur[j, :] < 0.0)[0]
 
-    def product_indices(self):
-        return np.where(self._nup > 0.0)[0]
+    def product_indices(self, j):
+        return np.where(self._nup[j, :] > 0.0)[0]
 
     @property
     def nus(self):
@@ -127,46 +127,30 @@ class ActivatedStateModelKinetic:
 
         return substance_rates
 
+    def arrow(self):
+        if self._mode == "direct":
+            return " -> "
+        elif self._mode == "indirect":
+            return " <- "
+        else:
+            return " <=> "
+
     def model_formula(self):
         formula = " + ".join(
             [
-                "{:.2g}{:s}".format(-self._nur[k], self._names[k])
-                for k in self.reactant_indices()
+                "{:.2g}{:s}".format(-self._nur[0, k], self._names[k])
+                for k in self.reactant_indices(0)
             ]
         )
-        if self._mode == "direct":
-            formula += " -> "
-        elif self._mode == "indirect":
-            formula += " <- "
-        else:
-            formula += " <=> "
-        formula += " + ".join(
-            [
-                "{:.2g}{:s}".format(self._nup[k], self._names[k])
-                for k in self.product_indices()
-            ]
-        )
-        return formula
+        for j in range(self.n):
+            formula += self.arrow()
+            formula += " + ".join(
+                [
+                    "{:.2g}{:s}".format(-self._nur[j, k], self._names[k])
+                    for k in self.product_indices(j)
+                ]
+            )
 
-    def model_latex_formula(self):
-        formula = " + ".join(
-            [
-                "{:.2g}{:s}".format(-self._nur[k], self._names[k])
-                for k in self.reactant_indices()
-            ]
-        )
-        if self._mode == "direct":
-            formula += r" \Rightarrow "
-        elif self._mode == "indirect":
-            formula += r" \Leftarrow "
-        else:
-            formula += r" \Leftrightarrow "
-        formula += " + ".join(
-            [
-                "{:.2g}{:s}".format(self._nup[k], self._names[k])
-                for k in self.product_indices()
-            ]
-        )
         return formula
 
     def solve(self, t):
