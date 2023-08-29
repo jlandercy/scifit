@@ -34,7 +34,9 @@ class GompertzFitSolver(FitSolver1D):
     `Gompertz function model (calculus) <https://en.wikipedia.org/wiki/Gompertz_function>`_
     """
 
-    _model_equation = r"y = a \cdot \exp\left( - b \cdot \exp \left( - c \cdot x\right) \right)"
+    _model_equation = (
+        r"y = a \cdot \exp\left( - b \cdot \exp \left( - c \cdot x\right) \right)"
+    )
 
     @staticmethod
     def model(x, a, b, c):
@@ -58,7 +60,7 @@ class LogisticFitSolver(FitSolver1D):
     """
     `Logistic function model (calculus) <https://en.wikipedia.org/wiki/Logit>`_
     """
-    
+
     _model_equation = r"y = \frac{1}{1 + \exp\left[- k \cdot (x - x_0)\right]}"
 
     @staticmethod
@@ -105,8 +107,10 @@ class RichardGeneralizedSigmoidFitSolver(FitSolver1D):
     """
     `Richard's generalized sigmoid function model (calculus) <https://en.wikipedia.org/wiki/Generalised_logistic_function>`_
     """
-    
-    _model_equation = r"y = A + \frac{K - A}{\left(C + Q\cdot\exp(-B\cdot t)\right)^{\frac{1}{\nu}}}"
+
+    _model_equation = (
+        r"y = A + \frac{K - A}{\left(C + Q\cdot\exp(-B\cdot t)\right)^{\frac{1}{\nu}}}"
+    )
 
     @staticmethod
     def model(x, A, B, C, K, Q, nu):
@@ -188,8 +192,10 @@ class DoubleInverseBoxCoxSigmoidFitSolver(FitSolver1D):
     """
     Double Inverse Box-Cox sigmoid model (calculus)
     """
-    
-    _model_equation = r"y = \varphi(\varphi(x, \beta), \alpha), \quad \alpha < 1, \, \beta < 1"
+
+    _model_equation = (
+        r"y = \varphi(\varphi(x, \beta), \alpha), \quad \alpha < 1, \, \beta < 1"
+    )
 
     @staticmethod
     def model(x, alpha, beta):
@@ -215,8 +221,8 @@ class MichaelisMentenKineticFitSolver(FitSolver1D):
     """
     `Michaëlis-Menten kinetic model (biochemistry) <https://en.wikipedia.org/wiki/Michaelis%E2%80%93Menten_kinetics>`_
     """
-    
-    #_model_equation = r"y = \frac{v_{\max} \cdot x}{K_{\mathrm{m}} + x}"
+
+    # _model_equation = r"y = \frac{v_{\max} \cdot x}{K_{\mathrm{m}} + x}"
 
     @staticmethod
     def model(x, vmax, km):
@@ -240,7 +246,9 @@ class HillEquationFitSolver(FitSolver1D):
     `Hill equation model (biochemistry) <https://en.wikipedia.org/wiki/Hill_equation_(biochemistry)>`_
     """
 
-    _model_equation = r"y = \frac{\beta_1 \cdot x^{\beta_0}}{1 + \beta_1 \cdot x^{\beta_0}}"
+    _model_equation = (
+        r"y = \frac{\beta_1 \cdot x^{\beta_0}}{1 + \beta_1 \cdot x^{\beta_0}}"
+    )
 
     @staticmethod
     def model(x, n, k):

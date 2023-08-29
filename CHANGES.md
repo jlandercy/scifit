@@ -17,6 +17,8 @@
 
 ## v0.1.13
 
+ - [x] Added Activated State Model Kinetic solver
+
 ## v0.1.12
 
  - [x] Remove dimension argument from scales

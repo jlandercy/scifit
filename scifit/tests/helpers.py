@@ -79,6 +79,7 @@ class GenericTestFitSolverInterface:
             self.assertEqual(spaces[i].ndim, self.solver.m)
             for k in range(self.solver.m):
                 self.assertEqual(spaces[i].shape[k], 10)
+
     #
     # def test_feature_dataset_1D(self):
     #     dataset = self.solver.feature_dataset(resolution=10)
@@ -637,4 +638,3 @@ class GenericTestFitSolver:
             file = r"{}_report".format(name)
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
             self.solver.report(file=file, path=self.media_path, mode="pdf")
-

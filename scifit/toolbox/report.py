@@ -3,17 +3,15 @@ import io
 import pathlib
 from collections.abc import Iterable
 
-import pandas as pd
-import matplotlib.pyplot as plt
-
 import jinja2
+import matplotlib.pyplot as plt
+import pandas as pd
 import pypandoc
 
 from scifit.errors.base import *
 
 
 class ReportProcessor:
-
     @staticmethod
     def render(context=None, template="base.md", directory=None):
         if directory is None:
@@ -28,7 +26,10 @@ class ReportProcessor:
     def convert(payload, file="report", path=".", mode="pdf"):
         filename = pathlib.Path(path) / file
         pypandoc.convert_text(
-            payload, mode, format="md", outputfile="%s.%s" % (filename, mode),
+            payload,
+            mode,
+            format="md",
+            outputfile="%s.%s" % (filename, mode),
             extra_args=["--pdf-engine=pdflatex", "--biblatex"],
         )
 
@@ -46,7 +47,13 @@ class ReportProcessor:
         stream = io.StringIO()
         if mode == "latex":
             frame.columns = frame.columns.map("{{{}}}".format)
-            frame.to_latex(stream, index=index, header=True, longtable=True, column_format="S" * frame.shape[1])
+            frame.to_latex(
+                stream,
+                index=index,
+                header=True,
+                longtable=True,
+                column_format="S" * frame.shape[1],
+            )
         elif mode == "md":
             frame.to_markdown(stream, index=index)
         elif mode == "html":
@@ -55,7 +62,6 @@ class ReportProcessor:
 
     @staticmethod
     def serialize(item, table_mode="latex"):
-
         if isinstance(item, plt.Axes):
             return ReportProcessor.serialize_figure(item)
 
@@ -64,7 +70,6 @@ class ReportProcessor:
 
     @staticmethod
     def context(solver, context=None, table_mode="latex", figure_mode="svg"):
-
         if context is None:
             context = {
                 "title": "Fit Report",
@@ -98,21 +103,23 @@ class ReportProcessor:
             data[key] = data[key].apply("{:.4g}".format)
         data = data.reset_index()
         data = data.reindex(["id", "x0", "y", "sy", "yhat", "yerr", "chi2"], axis=1)
-        data = data.rename(columns={
-            "id": r"id",
-            "x0": r"$x_0$",
-            "x1": r"$x_1$",
-            "x2": r"$x_2$",
-            "y": r"$y$",
-            "pm": r"$\pm$",
-            "sy": r"$\sigma_y$",
-            "yhat": r"$\hat{y}$",
-            "yerr": r"$e$",
-            "yerrrel": r"$e\hat{y}$",
-            "yerrabs": r"$|e|$",
-            "yerrsqr": r"$e^2$",
-            "chi2": r"$\chi^2$",
-        })
+        data = data.rename(
+            columns={
+                "id": r"id",
+                "x0": r"$x_0$",
+                "x1": r"$x_1$",
+                "x2": r"$x_2$",
+                "y": r"$y$",
+                "pm": r"$\pm$",
+                "sy": r"$\sigma_y$",
+                "yhat": r"$\hat{y}$",
+                "yerr": r"$e$",
+                "yerrrel": r"$e\hat{y}$",
+                "yerrabs": r"$|e|$",
+                "yerrsqr": r"$e^2$",
+                "chi2": r"$\chi^2$",
+            }
+        )
         table = ReportProcessor.serialize(data, table_mode=table_mode)
 
         # Fit parameters:
@@ -125,25 +132,38 @@ class ReportProcessor:
         else:
             parameters["pm"] = r"$\pm$"
         parameters = parameters.reindex(["index", "b", "pm", "sb"], axis=1)
-        parameters = parameters.rename(columns={
-            "index": r"$i$",
-            "b": r"$\beta_i$",
-            "pm": r"$\pm$",
-            "sb": r"$\sigma_{\beta_i}$"
-        })
+        parameters = parameters.rename(
+            columns={
+                "index": r"$i$",
+                "b": r"$\beta_i$",
+                "pm": r"$\pm$",
+                "sb": r"$\sigma_{\beta_i}$",
+            }
+        )
         parameters = ReportProcessor.serialize(parameters, table_mode=table_mode)
 
         # Chi 2 Abacus
         chi2_abacus = solver.chi_square_table()
-        chi2_abacus = chi2_abacus.groupby(["alpha", "key"])[["low-value", "high-value"]].first().unstack().dropna(how="all", axis=1)
+        chi2_abacus = (
+            chi2_abacus.groupby(["alpha", "key"])[["low-value", "high-value"]]
+            .first()
+            .unstack()
+            .dropna(how="all", axis=1)
+        )
         chi2_abacus = chi2_abacus.droplevel(0, axis=1)
-        chi2_abacus.columns = ["Left one-sided", "Left two-sided", "Right one-sided", "Right two-sided"]
-        chi2_abacus = chi2_abacus.reindex(["Left two-sided", "Left one-sided", "Right one-sided", "Right two-sided"], axis=1).reset_index()
+        chi2_abacus.columns = [
+            "Left one-sided",
+            "Left two-sided",
+            "Right one-sided",
+            "Right two-sided",
+        ]
+        chi2_abacus = chi2_abacus.reindex(
+            ["Left two-sided", "Left one-sided", "Right one-sided", "Right two-sided"],
+            axis=1,
+        ).reset_index()
         for key in chi2_abacus:
             chi2_abacus[key] = chi2_abacus[key].apply("{:.4g}".format)
-        chi2_abacus = chi2_abacus.rename(columns={
-            "alpha": r"$\alpha$"
-        })
+        chi2_abacus = chi2_abacus.rename(columns={"alpha": r"$\alpha$"})
         chi2_abacus = ReportProcessor.serialize(chi2_abacus, table_mode=table_mode)
 
         context = context | {
@@ -154,7 +174,7 @@ class ReportProcessor:
             "chi2_payload": chi2,
             "k2s_payload": k2s,
             "table_payload": table,
-            "n": solver.n,
+            "n": solver.k,
             "k": solver.k,
             "m": solver.m,
             "nu": solver.dof,
@@ -176,13 +196,17 @@ class ReportProcessor:
     def report(solver, context=None, path=".", file="report", mode="pdf"):
         modes = {"pdf", "html", "docx"}
         if mode not in modes:
-            raise ConfigurationError("Mode must be in %s, got '%s' instead" % (modes, mode))
+            raise ConfigurationError(
+                "Mode must be in %s, got '%s' instead" % (modes, mode)
+            )
         if mode == "pdf":
             table_mode = "latex"
         elif mode == "html":
             table_mode = "html"
         else:
             table_mode = "md"
-        context = ReportProcessor.context(solver, context=context, table_mode=table_mode)
+        context = ReportProcessor.context(
+            solver, context=context, table_mode=table_mode
+        )
         payload = ReportProcessor.render(context)
         ReportProcessor.convert(payload, path=path, file=file, mode=mode)

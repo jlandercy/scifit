@@ -31,7 +31,6 @@ class ConfigurationMixin:
 
 
 class FitSolverMixin(ConfigurationMixin, abc.ABC):
-
     _dimension = None
     _data_keys = ("_xdata", "_ydata", "_sigma")
     _result_keys = tuple()
@@ -116,10 +115,12 @@ class FitSolverMixin(ConfigurationMixin, abc.ABC):
     def parameters(self):
         """Return parameters and uncertainty as a frame"""
         if self.fitted(error=True):
-            data = pd.DataFrame({
-                "b": self._solution["parameters"],
-                "sb": np.sqrt(np.diagonal(self._solution["covariance"])),
-            })
+            data = pd.DataFrame(
+                {
+                    "b": self._solution["parameters"],
+                    "sb": np.sqrt(np.diagonal(self._solution["covariance"])),
+                }
+            )
             return data
 
     @staticmethod

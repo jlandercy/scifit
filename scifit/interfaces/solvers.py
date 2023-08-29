@@ -2,7 +2,6 @@ import itertools
 
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
-
 from scipy import optimize, stats
 
 from scifit import logger
@@ -1194,7 +1193,9 @@ class FitSolverInterface(FitSolverMixin):
         if self.fitted(error=True):
             frames = []
             for key in ["left-sided", "two-sided", "right-sided"]:
-                frames.append(pd.DataFrame(self._gof["significance"][key]).assign(key=key))
+                frames.append(
+                    pd.DataFrame(self._gof["significance"][key]).assign(key=key)
+                )
             frame = pd.concat(frames, axis=0)
             return frame
 
