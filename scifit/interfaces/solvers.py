@@ -1,12 +1,8 @@
-import inspect
 import itertools
-import numbers
-from collections.abc import Iterable
 
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
+
 from scipy import optimize, stats
 
 from scifit import logger

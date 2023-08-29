@@ -216,7 +216,7 @@ class MichaelisMentenKineticFitSolver(FitSolver1D):
     `Michaëlis-Menten kinetic model (biochemistry) <https://en.wikipedia.org/wiki/Michaelis%E2%80%93Menten_kinetics>`_
     """
     
-    _model_equation = r"y = \frac{v_\max \cdot x}{K_\mathrm{m} + x}"
+    #_model_equation = r"y = \frac{v_{\max} \cdot x}{K_{\mathrm{m}} + x}"
 
     @staticmethod
     def model(x, vmax, km):
