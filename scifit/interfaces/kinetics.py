@@ -119,11 +119,13 @@ class ActivatedStateModelKinetic:
 
         if self._mode == "direct" or self._mode == "equilibrium":
             reaction_rates = self._k0 * np.prod(np.power(np.row_stack([x]*self.n), np.abs(self._nur)), axis=1)
-            substance_rates += np.sum(self.nus * np.column_stack([reaction_rates]*self.k), axis=0)
+            substance_rates += np.sum(self._nur * np.column_stack([reaction_rates] * self.k), axis=0)
+            substance_rates += np.sum(self._nup * np.column_stack([reaction_rates] * self.k), axis=0)
 
         if self._mode == "indirect" or self._mode == "equilibrium":
             reaction_rates = self._k0inv * np.prod(np.power(np.row_stack([x]*self.n), np.abs(self._nup)), axis=1)
-            substance_rates += np.sum(self.nus * np.column_stack([reaction_rates]*self.k), axis=0)
+            substance_rates += np.sum(self._nup * np.column_stack([reaction_rates] * self.k), axis=0)
+            substance_rates += np.sum(self._nur * np.column_stack([reaction_rates] * self.k), axis=0)
 
         return substance_rates
 
@@ -166,10 +168,11 @@ class ActivatedStateModelKinetic:
     def plot_solve(self):
         fig, axe = plt.subplots()
         axe.plot(self._solution.t, self._solution.y.T)
-        axe.set_title("Activated State Model Kinetic: $%s$" % self.model_formula(mode="latex"))
+        axe.set_title("Activated State Model Kinetic:\n$%s$" % self.model_formula(mode="latex"))
         axe.set_xlabel("Time, $t$")
         axe.set_ylabel("Concentrations, $x_i$")
         axe.legend(list(self._names[: self.k]))
+        #axe.set_yscale("log")
         axe.grid()
-        fig.subplots_adjust(top=0.9, left=0.2)
+        fig.subplots_adjust(top=0.85, left=0.2)
         return axe

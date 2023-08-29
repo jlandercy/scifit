@@ -97,3 +97,47 @@ class SimpleKinetic05(GenericASMKineticTest, TestCase):
     x0 = np.array([2e-3, 3e-3, 0.0])
     k0 = np.array([1e+4])
     t = np.linspace(0.0, 3600.0, 500)
+
+
+class SimpleKinetic06(GenericASMKineticTest, TestCase):
+    nur = np.array([
+        [-1, 1, 0, 0, 0],
+        [0, -1, 1, 0, 0],
+        [0, -1, 0, 1, 0],
+        [0, 0, -1, -1, 1]
+    ])
+    nup = None
+    x0 = np.array([2e-3, 0.0, 0.0, 0.0, 0.0])
+    k0 = np.array([1e-2, 3e-2, 1e-1, 1e-2])
+    t = np.linspace(0.0, 500.0, 500)
+
+
+class SimpleKinetic07(GenericASMKineticTest, TestCase):
+    nur = np.array([
+        [-5, -1, 2,  2, 4, 0],
+        [-5, 1, -2, -2, 6, 5],
+    ])
+    nup = None
+    x0 = np.array([2e-1, 5.e-2, 0.0, 0.0, 0.0, 0.0])
+    k0 = np.array([9e+1, 1e+2])
+    t = np.linspace(0.0, 2000.0, 500)
+
+
+class SimpleKinetic08(GenericASMKineticTest, TestCase):
+    # https://en.wikipedia.org/wiki/Brusselator
+    nur = np.array([
+        [-1, 0, 0,  0, 0, 0],
+        [0, 0, 0, 0, -2, -1],
+        [0, -1, 0, 0, -1, 0],
+        [0, 0, 0, 0,  -1, 0],
+    ])
+    nup = np.array([
+        [0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 3, 0],
+        [0, 0, 1, 0, 0, 1],
+        [0, 0, 0, 1, 0, 0]
+    ])
+    x0 = np.array([1, 3, 1, 1, 1, 1])
+    k0 = np.array([1, 1, 1, 1])
+    t = np.linspace(0.0, 500.0, 500)
+
