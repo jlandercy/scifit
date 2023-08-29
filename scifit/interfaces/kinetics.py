@@ -127,31 +127,32 @@ class ActivatedStateModelKinetic:
 
         return substance_rates
 
-    def arrow(self):
+    def arrow(self, mode="normal"):
         if self._mode == "direct":
-            return " -> "
+            return r" \rightarrow " if mode == "latex" else " -> "
         elif self._mode == "indirect":
-            return " <- "
+            return r" \leftarrow " if mode == "latex" else " <- "
         else:
-            return " <=> "
+            return r" \Leftrightarrow " if mode == "latex" else " <=> "
 
-    def model_formula(self):
-        formula = " + ".join(
-            [
-                "{:.2g}{:s}".format(-self._nur[0, k], self._names[k])
-                for k in self.reactant_indices(0)
-            ]
-        )
+    def model_formula(self, mode="normal"):
+        formulas = []
         for j in range(self.n):
-            formula += self.arrow()
+            formula = " + ".join(
+                [
+                    "{:.2g}{:s}".format(-self.nus[j, k], self._names[k])
+                    for k in self.reactant_indices(j)
+                ]
+            )
+            formula += self.arrow(mode="latex")
             formula += " + ".join(
                 [
-                    "{:.2g}{:s}".format(-self._nur[j, k], self._names[k])
+                    "{:.2g}{:s}".format(self.nus[j, k], self._names[k])
                     for k in self.product_indices(j)
                 ]
             )
-
-        return formula
+            formulas.append(formula)
+        return "; ".join(formulas)
 
     def solve(self, t):
         t = np.array(t)
@@ -165,7 +166,7 @@ class ActivatedStateModelKinetic:
     def plot_solve(self):
         fig, axe = plt.subplots()
         axe.plot(self._solution.t, self._solution.y.T)
-        axe.set_title("Activated State Model Kinetic") #: %s" % self.model_formula())
+        axe.set_title("Activated State Model Kinetic: $%s$" % self.model_formula(mode="latex"))
         axe.set_xlabel("Time, $t$")
         axe.set_ylabel("Concentrations, $x_i$")
         axe.legend(list(self._names[: self.k]))
