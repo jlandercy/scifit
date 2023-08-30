@@ -32,7 +32,7 @@ class GenericASMKineticTest:
         )
 
     def test_solve(self):
-        solution = self.solver.solve(t=self.t)
+        solution = self.solver.fit(t=self.t)
 
     def test_reactant_references(self):
         references = self.solver.references
@@ -41,31 +41,31 @@ class GenericASMKineticTest:
         formula = self.solver.model_formulas()
 
     def test_conversion_ratio(self):
-        self.solver.solve(t=self.t)
+        self.solver.fit(t=self.t)
         ratio = self.solver.convertion_ratio()
 
     def test_first_derivative(self):
-        self.solver.solve(t=self.t)
+        self.solver.fit(t=self.t)
         dxdt = self.solver.derivative(derivative_order=1)
 
     def test_second_derivative(self):
-        self.solver.solve(t=self.t)
+        self.solver.fit(t=self.t)
         d2xdt2 = self.solver.derivative(derivative_order=2)
 
     def test_selectivities(self):
-        self.solver.solve(t=self.t)
+        self.solver.fit(t=self.t)
         selectivities = self.solver.selectivities()
 
     def test_plot_solve(self):
         name = self.__class__.__name__
-        self.solver.solve(t=self.t)
+        self.solver.fit(t=self.t)
         axe = self.solver.plot_solve()
         axe.figure.savefig("{}/{}_solve.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
     def test_plot_solve_ratio(self):
         name = self.__class__.__name__
-        self.solver.solve(t=self.t)
+        self.solver.fit(t=self.t)
         axe = self.solver.plot_solve_ratio()
         axe.figure.savefig(
             "{}/{}_solve_ratio.{}".format(self.media_path, name, self.format)
@@ -74,28 +74,28 @@ class GenericASMKineticTest:
 
     def test_plot_first_derivative(self):
         name = self.__class__.__name__
-        self.solver.solve(t=self.t)
+        self.solver.fit(t=self.t)
         axe = self.solver.plot_first_derivative()
         axe.figure.savefig("{}/{}_dxdt.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
     def test_plot_second_derivative(self):
         name = self.__class__.__name__
-        self.solver.solve(t=self.t)
+        self.solver.fit(t=self.t)
         axe = self.solver.plot_second_derivative()
         axe.figure.savefig("{}/{}_d2xdt2.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
     def test_plot_selectivities(self):
         name = self.__class__.__name__
-        self.solver.solve(t=self.t)
+        self.solver.fit(t=self.t)
         axe = self.solver.plot_selectivities()
         axe.figure.savefig("{}/{}_selectivities.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
     def test_plot_quotients(self):
         name = self.__class__.__name__
-        self.solver.solve(t=self.t)
+        self.solver.fit(t=self.t)
         axe = self.solver.plot_quotients()
         axe.figure.savefig(
             "{}/{}_quotients.{}".format(self.media_path, name, self.format)

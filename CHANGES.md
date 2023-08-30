@@ -4,7 +4,7 @@
 
  - [ ] Implement ODE Solver (special case for Kinetics) make it FitSolvable as well
  - [ ] Implement complex models (see StackOverflow 10 years feed of fit and personal website)
-   - [ ] Kinetics
+   - [x] Kinetics
    - [ ] Mechanics
    - [ ] Gradient recovery
    - [ ] Distribution fit
@@ -12,7 +12,9 @@
    - [ ] Starting by 0 and get compliant with natural index
    - [ ] Write all _model_equation
  - [ ] Give a try to Kivy in another package (userflow first)
- - [x] Find out why references are not all updated in report
+ - [ ] Bind solving a kinetic with a data fit
+ - [ ] Add reference index for substance in tests and bind indirect properly
+ - [ ] Analyse why instantenaous selectivies jitter occurs in some scenario
 
 
 ## v0.1.13

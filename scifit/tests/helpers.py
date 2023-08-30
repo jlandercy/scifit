@@ -259,7 +259,7 @@ class GenericTestFitSolver:
         self.assertEqual(self.solver.k, domains.loc["max", :].size)
 
     def test_model_solve_signature_no_sigma(self):
-        solution = self.solver.solve(self.xdata, self.ydata, sigma=None)
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=None)
         self.assertIsInstance(solution, dict)
         self.assertSetEqual(
             {"success", "parameters", "covariance", "info", "message", "status"},
@@ -267,7 +267,7 @@ class GenericTestFitSolver:
         )
 
     def test_model_solve_signature_sigma(self):
-        solution = self.solver.solve(self.xdata, self.ydata, sigma=self.sigma)
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigma)
         self.assertIsInstance(solution, dict)
         self.assertSetEqual(
             {"success", "parameters", "covariance", "info", "message", "status"},
@@ -275,7 +275,7 @@ class GenericTestFitSolver:
         )
 
     def test_model_solve_signature_sigmas(self):
-        solution = self.solver.solve(self.xdata, self.ydata, sigma=self.sigmas)
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         self.assertIsInstance(solution, dict)
         self.assertSetEqual(
             {"success", "parameters", "covariance", "info", "message", "status"},

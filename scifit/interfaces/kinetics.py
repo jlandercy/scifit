@@ -254,12 +254,6 @@ class KineticSolverInterface:
         return substance_rates
 
     def solve(self, t):
-        """
-        Solve the ODE system defined as follows:
-
-        :param t:
-        :return:
-        """
         t = np.array(t)
         tspan = np.array([t.min(), t.max()])
         solution = integrate.solve_ivp(
@@ -272,12 +266,21 @@ class KineticSolverInterface:
             atol=1e-14,
             rtol=1e-8,
         )
-        self._solution = solution
+        return solution
+
+    def fit(self, t):
+        """
+        Solve the ODE system defined as follows:
+
+        :param t:
+        :return:
+        """
+        self._solution = self.solve(t)
         self._quotients = np.apply_along_axis(self.quotient, 0, self._solution.y)
         self._dxdt = self.derivative(derivative_order=1)
         self._d2xdt2 = self.derivative(derivative_order=2)
         self._selectivities = self.selectivities()
-        return solution
+        return self._solution
 
     def quotient(self, x):
         """
