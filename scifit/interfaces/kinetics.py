@@ -150,23 +150,27 @@ class KineticSolverInterface:
         """
         return self._nur.shape[1]
 
-    def reactant_indices(self, j):
+    def reactant_indices(self, reaction_index):
         """
         Return reactant indices for a given reaction
 
-        :param j:
+        :param reaction_index:
         :return:
         """
-        return np.where(self._nur[j, :] < 0.0)[0]
+        return np.where(self._nur[reaction_index, :] < 0.0)[0]
 
-    def product_indices(self, j):
+    def product_indices(self, reaction_index):
         """
         Return product indices for a given reaction
 
-        :param j:
+        :param reaction_index:
         :return:
         """
-        return np.where(self._nup[j, :] > 0.0)[0]
+        return np.where(self._nup[reaction_index, :] > 0.0)[0]
+
+    @property
+    def references(self):
+        return np.array([self.reactant_indices(i)[0] for i in range(self.n)])
 
     @property
     def nus(self):
@@ -242,6 +246,23 @@ class KineticSolverInterface:
 
         return substance_rates
 
+    def solve(self, t):
+        """
+        Solve the ODE system defined as follows:
+
+        :param t:
+        :return:
+        """
+        t = np.array(t)
+        tspan = np.array([t.min(), t.max()])
+        solution = integrate.solve_ivp(
+            self.model, tspan, self._x0, t_eval=t, dense_output=True,
+            atol=1e-14, rtol=1e-8,
+        )
+        self._solution = solution
+        self._quotients = np.apply_along_axis(self.quotient, 0, self._solution.y)
+        return solution
+
     def quotient(self, x):
         """
         Return Reaction quotient for each reaction at the given concentration
@@ -264,22 +285,6 @@ class KineticSolverInterface:
         """
         return self._k0 / self._k0inv
 
-    def solve(self, t):
-        """
-        Solve the ODE system defined as follows:
-
-        :param t:
-        :return:
-        """
-        t = np.array(t)
-        tspan = np.array([t.min(), t.max()])
-        solution = integrate.solve_ivp(
-            self.model, tspan, self._x0, t_eval=t, dense_output=True, atol=1e-14, rtol=1e-8
-        )
-        self._solution = solution
-        self._quotients = np.apply_along_axis(self.quotient, 0, self._solution.y)
-        return solution
-
     def arrow(self, mode="normal"):
         """
         Generate arrow for reactions
@@ -292,7 +297,7 @@ class KineticSolverInterface:
         elif self._mode == "indirect":
             return r" \leftarrow " if mode == "latex" else " <- "
         else:
-            return r" \Leftrightarrow " if mode == "latex" else " <=> "
+            return r" \leftrightharpoons " if mode == "latex" else " <=> "
 
     def model_formula(self, index, mode="normal"):
         """
