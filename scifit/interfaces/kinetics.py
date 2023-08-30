@@ -257,6 +257,7 @@ class KineticSolverInterface:
         tspan = np.array([t.min(), t.max()])
         solution = integrate.solve_ivp(
             self.model, tspan, self._x0, t_eval=t, dense_output=True,
+            method="LSODA",
             atol=1e-14, rtol=1e-8,
         )
         self._solution = solution
@@ -284,6 +285,12 @@ class KineticSolverInterface:
         :return:
         """
         return self._k0 / self._k0inv
+
+    def convertion_ratio(self, substance_index=None):
+        substance_index = substance_index or 0
+        x = self._solution.y.T
+        x0 = self._x0[substance_index]
+        return (x0 - x[:, substance_index])/x0
 
     def arrow(self, mode="normal"):
         """
@@ -342,6 +349,25 @@ class KineticSolverInterface:
         axe.plot(self._solution.t, self._solution.y.T)
         axe.set_title("Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex"))
         axe.set_xlabel("Time, $t$")
+        axe.set_ylabel("Concentrations, $x_i$")
+        axe.legend(list(self._names[: self.k]))
+        #axe.set_yscale("log")
+        axe.grid()
+        fig.subplots_adjust(top=0.85, left=0.2)
+
+        return axe
+
+    def plot_solve_ratio(self):
+        """
+        Plot ODE solution figure wrt to conversion ratio
+
+        :return:
+        """
+        r = self.convertion_ratio()
+        fig, axe = plt.subplots()
+        axe.plot(r, self._solution.y.T)
+        axe.set_title("Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex"))
+        axe.set_xlabel(r"Conversion Ratio, $\rho$")
         axe.set_ylabel("Concentrations, $x_i$")
         axe.legend(list(self._names[: self.k]))
         #axe.set_yscale("log")

@@ -37,6 +37,10 @@ class GenericASMKineticTest:
     def test_reactant_references(self):
         references = self.solver.references
 
+    def test_conversion_ratio(self):
+        self.solver.solve(t=self.t)
+        ratio = self.solver.convertion_ratio()
+
     def test_model_formula(self):
         formula = self.solver.model_formulas()
 
@@ -45,6 +49,13 @@ class GenericASMKineticTest:
         self.solver.solve(t=self.t)
         axe = self.solver.plot_solve()
         axe.figure.savefig("{}/{}_solve.{}".format(self.media_path, name, self.format))
+        plt.close(axe.figure)
+
+    def test_plot_solve_ratio(self):
+        name = self.__class__.__name__
+        self.solver.solve(t=self.t)
+        axe = self.solver.plot_solve_ratio()
+        axe.figure.savefig("{}/{}_solve_ratio.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
     def test_plot_quotients(self):
