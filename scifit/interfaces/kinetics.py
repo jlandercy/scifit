@@ -1,5 +1,6 @@
 import inspect
 import itertools
+import functools
 import numbers
 from collections.abc import Iterable
 
@@ -198,7 +199,7 @@ class KineticSolverInterface:
         """
         return np.sum(self._nup, axis=1)
 
-    def model(self, t, x):
+    def model(self, t, x, k0, k0inv):
         """
         Compute reaction rate for each reaction, then compute substance rates
         in order to solve the ODE system of the kinetic.
@@ -236,7 +237,7 @@ class KineticSolverInterface:
         substance_rates = np.full(self._x0.shape, 0.0)
 
         if self._mode == "direct" or self._mode == "equilibrium":
-            reaction_rates = self._k0 * np.prod(
+            reaction_rates = k0 * np.prod(
                 np.power(np.row_stack([x] * self.n), np.abs(self._nur)), axis=1
             )
             substance_rates += np.sum(
@@ -244,7 +245,7 @@ class KineticSolverInterface:
             )
 
         if self._mode == "indirect" or self._mode == "equilibrium":
-            reaction_rates = self._k0inv * np.prod(
+            reaction_rates = k0inv * np.prod(
                 np.power(np.row_stack([x] * self.n), np.abs(self._nup)), axis=1
             )
             substance_rates += np.sum(
@@ -253,29 +254,42 @@ class KineticSolverInterface:
 
         return substance_rates
 
-    def solve(self, t):
+    def parametered_model(self, k0, k0inv):
+        def wrapped(t, x):
+            return self.model(t, x, k0=k0, k0inv=k0inv)
+        return wrapped
+
+    def solve(self, t, k0, k0inv):
         t = np.array(t)
         tspan = np.array([t.min(), t.max()])
+        model = self.parametered_model(k0, k0inv)
         solution = integrate.solve_ivp(
-            self.model,
+            model,
             tspan,
             self._x0,
             t_eval=t,
             dense_output=True,
             method="LSODA",
-            atol=1e-14,
+            atol=1e-8,
             rtol=1e-8,
         )
         return solution
 
-    def fit(self, t):
+    def fit(self, t, k0=None, k0inv=None):
         """
         Solve the ODE system defined as follows:
 
         :param t:
         :return:
         """
-        self._solution = self.solve(t)
+
+        if k0 is None:
+            k0 = self._k0
+
+        if k0inv is None:
+            k0inv = self._k0inv
+
+        self._solution = self.solve(t, k0, k0inv)
         self._quotients = np.apply_along_axis(self.quotient, 0, self._solution.y)
         self._dxdt = self.derivative(derivative_order=1)
         self._d2xdt2 = self.derivative(derivative_order=2)

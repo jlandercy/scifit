@@ -10,7 +10,7 @@ from scifit.tests.test_solvers_linear import GenericLinearRegression
 
 class SimpleKineticRegression(GenericLinearRegression):
     factory = kinetics.SimpleKineticSolver
-    parameters = np.array([3.1])
+    parameters = np.array([2.1e-2, 4e-5])
     xmin = 0.0
     xmax = 1000.0
     resolution = 2000
