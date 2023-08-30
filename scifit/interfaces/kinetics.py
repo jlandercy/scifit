@@ -16,10 +16,24 @@ from scifit.toolbox.report import ReportProcessor
 
 
 class ActivatedStateModelKinetic:
+    """
+    Class solving the Activated State Model Kinetics for several setups
+    """
+
     _names = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     _modes = {"direct", "indirect", "equilibrium"}
 
     def __init__(self, nur, x0, k0, nup=None, k0inv=None, mode="direct"):
+        """
+        Initialize class with reactions setup
+
+        :param nur:
+        :param x0:
+        :param k0:
+        :param nup:
+        :param k0inv:
+        :param mode:
+        """
         nur, x0, k0, nup, k0inv, mode = self.validate(
             nur, x0, k0, nup=nup, k0inv=k0inv, mode=mode
         )
@@ -32,13 +46,34 @@ class ActivatedStateModelKinetic:
 
     @staticmethod
     def split_nus(nus):
+        """
+        Split stoechiometric coefficients matrix into reactants and products
+
+        :param nus:
+        :return:
+        """
+
         nur = np.copy(nus)
         nur[nur > 0.0] = 0.0
+
         nup = np.copy(nus)
         nup[nup < 0.0] = 0.0
+
         return nur, nup
 
     def validate(self, nur, x0, k0, nup=None, k0inv=None, mode=None):
+
+        """
+        Validate and sanitize user input
+
+        :param nur:
+        :param x0:
+        :param k0:
+        :param nup:
+        :param k0inv:
+        :param mode:
+        :return:
+        """
 
         # Split nu to make it easier to encode:
         if nup is None and np.any(nur < 0.0):
@@ -99,23 +134,58 @@ class ActivatedStateModelKinetic:
 
     @property
     def n(self):
+        """
+        Return the number of reactions
+
+        :return:
+        """
         return self._nur.shape[0]
 
     @property
     def k(self):
+        """
+        Return the number of substances envolved into reactions
+
+        :return:
+        """
         return self._nur.shape[1]
 
     def reactant_indices(self, j):
+        """
+        Return reactant indices for a given reaction
+
+        :param j:
+        :return:
+        """
         return np.where(self._nur[j, :] < 0.0)[0]
 
     def product_indices(self, j):
+        """
+        Return product indices for a given reaction
+
+        :param j:
+        :return:
+        """
         return np.where(self._nup[j, :] > 0.0)[0]
 
     @property
     def nus(self):
+        """
+        Return the complete stoechiometric coefficient matrix
+
+        :return:
+        """
         return self._nur + self._nup
 
     def model(self, t, x):
+        """
+        Compute reaction rate for each reaction, then compute substance rates
+        in order to solve the ODE system of the kinetic.
+
+        :param t:
+        :param x:
+        :return:
+        """
 
         substance_rates = np.full(self._x0.shape, 0.0)
 
@@ -130,12 +200,29 @@ class ActivatedStateModelKinetic:
         return substance_rates
 
     def quotient(self, x):
+        """
+        Return Reaction quotient for each reaction at the given concentration
+
+        :param x:
+        :return:
+        """
         return np.prod(np.power(np.row_stack([x]*self.n), np.abs(self.nus)), axis=1)
 
     def equilibrium(self):
+        """
+        Return Reaction Equilibrium constant for each reaction
+
+        :return:
+        """
         return self._k0 / self._k0inv
 
     def solve(self, t):
+        """
+        Solve the ODE system defined as follows:
+
+        :param t:
+        :return:
+        """
         t = np.array(t)
         tspan = np.array([t.min(), t.max()])
         solution = integrate.solve_ivp(
@@ -146,6 +233,12 @@ class ActivatedStateModelKinetic:
         return solution
 
     def arrow(self, mode="normal"):
+        """
+        Generate arrow for reactions
+
+        :param mode:
+        :return:
+        """
         if self._mode == "direct":
             return r" \rightarrow " if mode == "latex" else " -> "
         elif self._mode == "indirect":
@@ -154,6 +247,13 @@ class ActivatedStateModelKinetic:
             return r" \Leftrightarrow " if mode == "latex" else " <=> "
 
     def model_formula(self, index, mode="normal"):
+        """
+        Generate reaction formula
+
+        :param index:
+        :param mode:
+        :return:
+        """
         formula = " + ".join(
             [
                 "{:.2g}{:s}".format(-self.nus[index, k], self._names[k])
@@ -170,9 +270,21 @@ class ActivatedStateModelKinetic:
         return formula
 
     def model_formulas(self, mode="normal"):
+        """
+        Generate reaction formulas
+
+        :param mode:
+        :return:
+        """
         return "; ".join([self.model_formula(j) for j in range(self.n)])
 
     def plot_solve(self):
+        """
+        Plot ODE solution figure
+
+        :return:
+        """
+
         fig, axe = plt.subplots()
         axe.plot(self._solution.t, self._solution.y.T)
         axe.set_title("Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex"))
@@ -182,9 +294,16 @@ class ActivatedStateModelKinetic:
         #axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
+
         return axe
 
     def plot_quotients(self):
+        """
+        Plot the reaction quotient for the solved system
+
+        :return:
+        """
+
         fig, axe = plt.subplots()
         axe.plot(self._solution.t, self._quotients.T)
         axe.set_title("Activated State Model Kinetic:\nReaction Quotient Evolutions")
@@ -194,4 +313,5 @@ class ActivatedStateModelKinetic:
         #axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
+
         return axe
