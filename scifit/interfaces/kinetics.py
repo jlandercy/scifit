@@ -294,6 +294,7 @@ class KineticSolverInterface:
         self._dxdt = self.derivative(derivative_order=1)
         self._d2xdt2 = self.derivative(derivative_order=2)
         self._selectivities = self.selectivities()
+        self._levenspiel = self.levenspiel()
         return self._solution
 
     def quotient(self, x):
@@ -330,7 +331,7 @@ class KineticSolverInterface:
         x0 = self._x0[substance_index]
         return (x0 - x[:, substance_index]) / x0
 
-    def derivative(self, derivative_order=1, polynomial_order=3, window=11):
+    def derivative(self, derivative_order=1, polynomial_order=7, window=25):
         """
         Return the n-th derivative of a kinetic using Savitsky-Golay filter for estimation
 
@@ -359,6 +360,19 @@ class KineticSolverInterface:
         substance_index = substance_index or 0
         dxdt = self.derivative(derivative_order=1)
         return (dxdt.T / dxdt[:, substance_index]).T
+
+    def levenspiel(self, substance_index=None):
+        """
+        Return Levenspiel integration using concentration first derivative estimates
+
+        :param substance_index:
+        :return:
+        """
+        substance_index = substance_index or 0
+        L = np.abs(1./self.derivative(derivative_order=1))
+        C = self._solution.y.T[:, substance_index]
+        I = integrate.cumulative_trapezoid(L, C, axis=0)
+        return I
 
     def arrow(self, mode="normal"):
         """
@@ -504,6 +518,27 @@ class KineticSolverInterface:
         )
         axe.set_xlabel("Time, $t$")
         axe.set_ylabel("Instataneous Selectivities, $S_i$")
+        axe.legend(list(self._names[: self.k]))
+        # axe.set_yscale("log")
+        axe.grid()
+        fig.subplots_adjust(top=0.85, left=0.2)
+
+        return axe
+
+    def plot_levenspiel(self):
+        """
+        Plot ODE solution Levenspiel integration figure
+
+        :return:
+        """
+
+        fig, axe = plt.subplots()
+        axe.plot(self._solution.t[:-1], self._levenspiel)
+        axe.set_title(
+            "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
+        )
+        axe.set_xlabel("Time, $t$")
+        axe.set_ylabel("Levenspiel Integral, $L_i$")
         axe.legend(list(self._names[: self.k]))
         # axe.set_yscale("log")
         axe.grid()

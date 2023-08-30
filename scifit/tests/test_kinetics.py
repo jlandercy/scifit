@@ -56,6 +56,10 @@ class GenericASMKineticTest:
         self.solver.fit(t=self.t)
         selectivities = self.solver.selectivities()
 
+    def test_levenspiel(self):
+        self.solver.fit(t=self.t)
+        L = self.solver.levenspiel()
+
     def test_plot_solve(self):
         name = self.__class__.__name__
         self.solver.fit(t=self.t)
@@ -93,6 +97,13 @@ class GenericASMKineticTest:
         axe.figure.savefig("{}/{}_selectivities.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
+    def test_plot_levenspiel(self):
+        name = self.__class__.__name__
+        self.solver.fit(t=self.t)
+        axe = self.solver.plot_levenspiel()
+        axe.figure.savefig("{}/{}_levenspiel.{}".format(self.media_path, name, self.format))
+        plt.close(axe.figure)
+
     def test_plot_quotients(self):
         name = self.__class__.__name__
         self.solver.fit(t=self.t)
@@ -101,6 +112,9 @@ class GenericASMKineticTest:
             "{}/{}_quotients.{}".format(self.media_path, name, self.format)
         )
         plt.close(axe.figure)
+
+
+N = 2500
 
 
 class SimpleKinetic01(GenericASMKineticTest):
@@ -112,7 +126,7 @@ class SimpleKinetic01(GenericASMKineticTest):
     nup = None
     x0 = np.array([2e-3, 0.0])
     k0 = np.array([1e-2])
-    t = np.linspace(0.0, 500.0, 1000)
+    t = np.linspace(0.0, 500.0, N)
 
 
 class SimpleKinetic01K0L0(SimpleKinetic01, TestCase):
@@ -136,7 +150,7 @@ class SimpleKinetic02(GenericASMKineticTest):
     nup = None
     x0 = np.array([2e-3, 5e-3, 0.0])
     k0 = np.array([1e-0])
-    t = np.linspace(0.0, 500.0, 1000)
+    t = np.linspace(0.0, 500.0, N)
 
 
 class SimpleKinetic02K0L0(SimpleKinetic02, TestCase):
@@ -162,7 +176,7 @@ class SimpleKinetic03(GenericASMKineticTest):
     x0 = np.array([0.0, 2e-3])
     k0 = np.array([1e-2])
     k0inv = np.array([1e-2])
-    t = np.linspace(0.0, 500.0, 1000)
+    t = np.linspace(0.0, 500.0, N)
 
 
 class SimpleKinetic03K0L0(SimpleKinetic03, TestCase):
@@ -188,7 +202,7 @@ class SimpleKinetic04(GenericASMKineticTest):
     x0 = np.array([3e-3, 1e-3])
     k0 = np.array([1e-2])
     k0inv = np.array([1e-2])
-    t = np.linspace(0.0, 500.0, 1000)
+    t = np.linspace(0.0, 500.0, N)
 
 
 class SimpleKinetic043K0L0(SimpleKinetic04, TestCase):
@@ -216,7 +230,7 @@ class SimpleKinetic05(GenericASMKineticTest):
     )
     x0 = np.array([5e-3, 2e-3])
     k0 = np.array([1e-1])
-    t = np.linspace(0.0, 500.0, 1000)
+    t = np.linspace(0.0, 500.0, N)
 
 
 class SimpleKinetic05K0L0(SimpleKinetic05, TestCase):
@@ -241,7 +255,7 @@ class MultipleKinetics01(GenericASMKineticTest, TestCase):
     nup = None
     x0 = np.array([2e-3, 0.0, 0.0])
     k0 = np.array([1e-2, 1e-3])
-    t = np.linspace(0.0, 3600.0, 500)
+    t = np.linspace(0.0, 500.0, N)
 
 
 class MultipleKinetics02(GenericASMKineticTest, TestCase):
@@ -255,7 +269,7 @@ class MultipleKinetics02(GenericASMKineticTest, TestCase):
     nup = None
     x0 = np.array([2e-3, 0.0, 0.0, 0.0])
     k0 = np.array([1e-2, 1e-3, 1e-1])
-    t = np.linspace(0.0, 3600.0, 500)
+    t = np.linspace(0.0, 500.0, N)
 
 
 class MultipleKinetics03(GenericASMKineticTest, TestCase):
@@ -265,7 +279,7 @@ class MultipleKinetics03(GenericASMKineticTest, TestCase):
     nup = None
     x0 = np.array([2e-3, 0.0, 0.0, 0.0, 0.0])
     k0 = np.array([1e-2, 3e-2, 1e-1, 1e-2])
-    t = np.linspace(0.0, 500.0, 500)
+    t = np.linspace(0.0, 500.0, N)
 
 
 # class SimpleKinetic07(GenericASMKineticTest, TestCase):
