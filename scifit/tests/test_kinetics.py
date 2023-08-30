@@ -5,14 +5,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from scifit.interfaces.kinetics import ActivatedStateModelKinetic
+from scifit.interfaces.kinetics import KineticSolverInterface
 
 
 class GenericASMKineticTest:
     root_path = ".cache/media/tests/"
     format = "png"
 
-    factory = ActivatedStateModelKinetic
+    factory = KineticSolverInterface
 
     nur = None
     nup = None
