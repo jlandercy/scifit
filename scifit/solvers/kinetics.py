@@ -6,6 +6,8 @@ from scifit.interfaces.solvers import FitSolver1D
 
 class SimpleKineticSolver(FitSolver1D):
 
+    _model_equation = r"A(t) \xrightarrow{\beta_0} B"
+
     kinetic = KineticSolverInterface(
         nur=np.array([[-1, 1]]),
         k0=np.array([1e-2]),
@@ -13,12 +15,14 @@ class SimpleKineticSolver(FitSolver1D):
     )
 
     @classmethod
-    def model(cls, x, k0):
-        solution = cls.kinetic.solve(x[:, 0], [k0], None).y.T[:, 0]
+    def model(cls, x, b0):
+        solution = cls.kinetic.solve(x[:, 0], [b0], None).y.T[:, 0]
         return solution
 
 
 class SequenceKineticSolver(FitSolver1D):
+
+    _model_equation = r"A \xrightarrow{\beta_0} B(t) \xrightarrow{\beta_1} C"
 
     kinetic = KineticSolverInterface(
         nur=np.array([
@@ -30,6 +34,6 @@ class SequenceKineticSolver(FitSolver1D):
     )
 
     @classmethod
-    def model(cls, x, k0, k1):
-        solution = cls.kinetic.solve(x[:, 0], [k0, k1], None).y.T[:, 1]
+    def model(cls, x, b0, b1):
+        solution = cls.kinetic.solve(x[:, 0], [b0, b1], None).y.T[:, 1]
         return solution
