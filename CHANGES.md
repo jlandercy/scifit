@@ -17,7 +17,15 @@
 
 ## v0.1.13
 
- - [x] Added Activated State Model Kinetic solver
+ - [x] Added Activated State Model Kinetic solver:
+   - [x] Capable of direct, indirect and equilibrium reactions
+   - [x] Capable of multiple kinetics
+   - [x] Capable of auto-catalytic kinetics
+   - [x] Added Reaction Quotient
+   - [x] Added Conversion Ratio
+   - [x] Added Concentration velocities and accelerations
+   - [x] Added Instantaneous Selectivity
+   - [ ] Levenspiel diagram
 
 ## v0.1.12
 

@@ -7,7 +7,7 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy import integrate, optimize, stats
+from scipy import integrate, signal, stats
 
 from scifit import logger
 from scifit.errors.base import *
@@ -62,7 +62,6 @@ class KineticSolverInterface:
         return nur, nup
 
     def validate(self, nur, x0, k0, nup=None, k0inv=None, mode=None):
-
         """
         Validate and sanitize user input
 
@@ -237,12 +236,20 @@ class KineticSolverInterface:
         substance_rates = np.full(self._x0.shape, 0.0)
 
         if self._mode == "direct" or self._mode == "equilibrium":
-            reaction_rates = self._k0 * np.prod(np.power(np.row_stack([x]*self.n), np.abs(self._nur)), axis=1)
-            substance_rates += np.sum((+self.nus) * np.column_stack([reaction_rates] * self.k), axis=0)
+            reaction_rates = self._k0 * np.prod(
+                np.power(np.row_stack([x] * self.n), np.abs(self._nur)), axis=1
+            )
+            substance_rates += np.sum(
+                (+self.nus) * np.column_stack([reaction_rates] * self.k), axis=0
+            )
 
         if self._mode == "indirect" or self._mode == "equilibrium":
-            reaction_rates = self._k0inv * np.prod(np.power(np.row_stack([x]*self.n), np.abs(self._nup)), axis=1)
-            substance_rates += np.sum((-self.nus) * np.column_stack([reaction_rates] * self.k), axis=0)
+            reaction_rates = self._k0inv * np.prod(
+                np.power(np.row_stack([x] * self.n), np.abs(self._nup)), axis=1
+            )
+            substance_rates += np.sum(
+                (-self.nus) * np.column_stack([reaction_rates] * self.k), axis=0
+            )
 
         return substance_rates
 
@@ -256,12 +263,20 @@ class KineticSolverInterface:
         t = np.array(t)
         tspan = np.array([t.min(), t.max()])
         solution = integrate.solve_ivp(
-            self.model, tspan, self._x0, t_eval=t, dense_output=True,
+            self.model,
+            tspan,
+            self._x0,
+            t_eval=t,
+            dense_output=True,
             method="LSODA",
-            atol=1e-14, rtol=1e-8,
+            atol=1e-14,
+            rtol=1e-8,
         )
         self._solution = solution
         self._quotients = np.apply_along_axis(self.quotient, 0, self._solution.y)
+        self._dxdt = self.derivative(derivative_order=1)
+        self._d2xdt2 = self.derivative(derivative_order=2)
+        self._selectivities = self.selectivities()
         return solution
 
     def quotient(self, x):
@@ -276,7 +291,7 @@ class KineticSolverInterface:
         :param x:
         :return:
         """
-        return np.prod(np.power(np.row_stack([x]*self.n), np.abs(self.nus)), axis=1)
+        return np.prod(np.power(np.row_stack([x] * self.n), np.abs(self.nus)), axis=1)
 
     def equilibrium(self):
         """
@@ -287,10 +302,46 @@ class KineticSolverInterface:
         return self._k0 / self._k0inv
 
     def convertion_ratio(self, substance_index=None):
+        """
+        Return the conversion ration of a given substance
+
+        :param substance_index:
+        :return:
+        """
         substance_index = substance_index or 0
         x = self._solution.y.T
         x0 = self._x0[substance_index]
-        return (x0 - x[:, substance_index])/x0
+        return (x0 - x[:, substance_index]) / x0
+
+    def derivative(self, derivative_order=1, polynomial_order=3, window=11):
+        """
+        Return the n-th derivative of a kinetic using Savitsky-Golay filter for estimation
+
+        :param derivative_order:
+        :param polynomial_order:
+        :param window:
+        :return:
+        """
+        return signal.savgol_filter(
+            self._solution.y.T,
+            window_length=window,
+            polyorder=polynomial_order,
+            deriv=derivative_order,
+            delta=np.diff(self._solution.t)[0],
+            axis=0,
+            mode="interp",
+        )
+
+    def selectivities(self, substance_index=None):
+        """
+        Return instantaneous selectivities using concentration first derivative estimates
+
+        :param substance_index:
+        :return:
+        """
+        substance_index = substance_index or 0
+        dxdt = self.derivative(derivative_order=1)
+        return (dxdt.T / dxdt[:, substance_index]).T
 
     def arrow(self, mode="normal"):
         """
@@ -347,11 +398,13 @@ class KineticSolverInterface:
 
         fig, axe = plt.subplots()
         axe.plot(self._solution.t, self._solution.y.T)
-        axe.set_title("Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex"))
+        axe.set_title(
+            "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
+        )
         axe.set_xlabel("Time, $t$")
         axe.set_ylabel("Concentrations, $x_i$")
         axe.legend(list(self._names[: self.k]))
-        #axe.set_yscale("log")
+        # axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
 
@@ -366,11 +419,76 @@ class KineticSolverInterface:
         r = self.convertion_ratio()
         fig, axe = plt.subplots()
         axe.plot(r, self._solution.y.T)
-        axe.set_title("Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex"))
+        axe.set_title(
+            "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
+        )
         axe.set_xlabel(r"Conversion Ratio, $\rho$")
         axe.set_ylabel("Concentrations, $x_i$")
         axe.legend(list(self._names[: self.k]))
-        #axe.set_yscale("log")
+        # axe.set_yscale("log")
+        axe.grid()
+        fig.subplots_adjust(top=0.85, left=0.2)
+
+        return axe
+
+    def plot_first_derivative(self):
+        """
+        Plot ODE solution first derivative figure
+
+        :return:
+        """
+
+        fig, axe = plt.subplots()
+        axe.plot(self._solution.t, self._dxdt)
+        axe.set_title(
+            "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
+        )
+        axe.set_xlabel("Time, $t$")
+        axe.set_ylabel("Concentration Velocities, $\partial x_i / \partial t$")
+        axe.legend(list(self._names[: self.k]))
+        # axe.set_yscale("log")
+        axe.grid()
+        fig.subplots_adjust(top=0.85, left=0.2)
+
+        return axe
+
+    def plot_second_derivative(self):
+        """
+        Plot ODE solution first derivative figure
+
+        :return:
+        """
+
+        fig, axe = plt.subplots()
+        axe.plot(self._solution.t, self._d2xdt2)
+        axe.set_title(
+            "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
+        )
+        axe.set_xlabel("Time, $t$")
+        axe.set_ylabel("Concentration Accelerations, $\partial^2 x_i / \partial t^2$")
+        axe.legend(list(self._names[: self.k]))
+        # axe.set_yscale("log")
+        axe.grid()
+        fig.subplots_adjust(top=0.85, left=0.2)
+
+        return axe
+
+    def plot_selectivities(self):
+        """
+        Plot ODE solution selectivities figure
+
+        :return:
+        """
+
+        fig, axe = plt.subplots()
+        axe.plot(self._solution.t, self._selectivities)
+        axe.set_title(
+            "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
+        )
+        axe.set_xlabel("Time, $t$")
+        axe.set_ylabel("Instataneous Selectivities, $S_i$")
+        axe.legend(list(self._names[: self.k]))
+        # axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
 
@@ -388,8 +506,10 @@ class KineticSolverInterface:
         axe.set_title("Activated State Model Kinetic:\nReaction Quotient Evolutions")
         axe.set_xlabel("Time, $t$")
         axe.set_ylabel("Reaction Quotients, $Q_i$")
-        axe.legend(["$Q_{%d}$: $%s$" % (i, self.model_formula(i)) for i in range(self.n)])
-        #axe.set_yscale("log")
+        axe.legend(
+            ["$Q_{%d}$: $%s$" % (i, self.model_formula(i)) for i in range(self.n)]
+        )
+        # axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
 
