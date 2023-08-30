@@ -270,8 +270,8 @@ class KineticSolverInterface:
             t_eval=t,
             dense_output=True,
             method="LSODA",
-            atol=1e-8,
-            rtol=1e-8,
+            atol=1e-14,
+            rtol=1e-10,
         )
         return solution
 

@@ -27,6 +27,7 @@
    - [x] Added Conversion Ratio
    - [x] Added Concentration velocities and accelerations
    - [x] Added Instantaneous Selectivity
+   - [x] Succeeded to bind KineticSolver w/ FitSolver
    - [ ] Levenspiel diagram
 
 ## v0.1.12
