@@ -96,6 +96,31 @@ class SimpleKinetic02K0L2(SimpleKinetic02, TestCase):
     k0 = np.array([1e+2])
 
 
+class SimpleKinetic03(GenericASMKineticTest):
+    nur = np.array([
+        [-1, 1],
+    ])
+    nup = None
+    mode = "indirect"
+    x0 = np.array([0.0, 2e-3])
+    k0 = np.array([1e-2])
+    k0inv = np.array([1e-2])
+    t = np.linspace(0.0, 500.0, 1000)
+
+
+class SimpleKinetic03K0L0(SimpleKinetic03, TestCase):
+    k0inv = np.array([1e-2])
+
+
+class SimpleKinetic03K0L1(SimpleKinetic03, TestCase):
+    k0inv = np.array([1e-1])
+
+
+class SimpleKinetic03K0L2(SimpleKinetic03, TestCase):
+    k0inv = np.array([1e+0])
+
+
+
 #
 # class SimpleKinetic02(GenericASMKineticTest, TestCase):
 #     nur = np.array([
