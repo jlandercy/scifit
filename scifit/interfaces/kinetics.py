@@ -270,7 +270,8 @@ class KineticSolverInterface:
             t_eval=t,
             dense_output=True,
             method="LSODA",
-            atol=1e-14,
+            min_step=1e-8,
+            atol=1e-12,
             rtol=1e-10,
         )
         return solution
@@ -331,7 +332,7 @@ class KineticSolverInterface:
         x0 = self._x0[substance_index]
         return (x0 - x[:, substance_index]) / x0
 
-    def derivative(self, derivative_order=1, polynomial_order=7, window=25):
+    def derivative(self, derivative_order=1, polynomial_order=3, window=21):
         """
         Return the n-th derivative of a kinetic using Savitsky-Golay filter for estimation
 
