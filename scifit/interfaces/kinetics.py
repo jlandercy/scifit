@@ -1,6 +1,6 @@
+import functools
 import inspect
 import itertools
-import functools
 import numbers
 from collections.abc import Iterable
 
@@ -8,7 +8,7 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy import integrate, signal, interpolate
+from scipy import integrate, interpolate, signal
 
 from scifit import logger
 from scifit.errors.base import *
@@ -24,7 +24,9 @@ class KineticSolverInterface:
     _names = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     _modes = {"direct", "indirect", "equilibrium"}
 
-    def __init__(self, nur, x0, k0, nup=None, k0inv=None, mode="direct", substance_index=0):
+    def __init__(
+        self, nur, x0, k0, nup=None, k0inv=None, mode="direct", substance_index=0
+    ):
         """
         Initialize class with reactions setup
 
@@ -215,7 +217,7 @@ class KineticSolverInterface:
 
         .. math::
 
-            r_i^{\\leftarrow} = \\frac{1}{V}\\frac{\\partial \\xi}{\\partial t} = k_i^{\\leftarrow} \\cdot \\prod\\limits_{j=1}^{j=k} x_j^{|\\nu_{i,j}^P|} \\, , \\quad \\forall i \\in \\{1,\\dots, n\\}
+            -r_i^{\\leftarrow} = \\frac{1}{V}\\frac{\\partial \\xi}{\\partial t} = k_i^{\\leftarrow} \\cdot \\prod\\limits_{j=1}^{j=k} x_j^{|\\nu_{i,j}^P|} \\, , \\quad \\forall i \\in \\{1,\\dots, n\\}
 
 
         And each substance reaction rate is defined as:
@@ -260,6 +262,7 @@ class KineticSolverInterface:
     def parametered_model(self, k0, k0inv):
         def wrapped(t, x):
             return self.model(t, x, k0=k0, k0inv=k0inv)
+
         return wrapped
 
     def solve(self, t, k0, k0inv):
@@ -309,15 +312,25 @@ class KineticSolverInterface:
 
             Q_i = \\prod\\limits_{j=1}^{j=k} x_j^{\\nu_{i,j}} \\, , \\quad \\forall i \\in \\{1,\\dots, n\\}
 
+        Computed as:
+
+        .. math::
+
+            Q_i = 10^{\\sum\\limits_{j=1}^{j=k} \\log_{10}(x_j) \\cdot \\nu_{i,j}} \\, , \\quad \\forall i \\in \\{1,\\dots, n\\}
 
         :param x:
         :return:
         """
-        return np.prod(np.power(np.row_stack([x] * self.n), self.nus), axis=1)
+        #return np.prod(np.power(np.row_stack([x] * self.n), self.nus), axis=1)
+        return np.power(10, np.sum(np.log10(np.row_stack([x] * self.n)) * self.nus, axis=1))
 
     def equilibrium_constants(self):
         """
         Return Reaction Equilibrium constant for each reaction
+
+        .. math::
+
+            K_i^\\leftrightharpoons = \\frac{k_i^\\rightarrow}{k_i^\\leftarrow} \\, , \\quad \\forall i \\in \\{1,\\dots, n\\}
 
         :return:
         """
@@ -360,6 +373,10 @@ class KineticSolverInterface:
         """
         Return instantaneous selectivities using concentration first derivative estimates
 
+        .. math::
+
+            \\mathcal{S}_{i,j} = \\frac{\\frac{\\partial x_j}{\\partial t}}{\\frac{\\partial x_i}{\\partial t}}
+
         :param substance_index:
         :return:
         """
@@ -376,7 +393,9 @@ class KineticSolverInterface:
         :return:
         """
         substance_index = substance_index or self._substance_index or 0
-        L = 1./(np.abs(self.derivative(derivative_order=1)) + np.finfo(np.longdouble).eps)
+        L = 1.0 / (
+            np.abs(self.derivative(derivative_order=1)) + np.finfo(np.longdouble).eps
+        )
         x0 = self._solution.y.T[:, substance_index]
         I = integrate.cumulative_trapezoid(L, x0, axis=0)
         return I
@@ -438,9 +457,7 @@ class KineticSolverInterface:
         quotients = pd.DataFrame(
             self._quotients.T, columns=["Q%d" % i for i in range(self.n)]
         )
-        data = pd.concat([
-            data, concentrations, derivatives, quotients
-        ], axis=1)
+        data = pd.concat([data, concentrations, derivatives, quotients], axis=1)
         return data
 
     def plot_solve(self):
@@ -578,7 +595,9 @@ class KineticSolverInterface:
 
         fig, axe = plt.subplots()
         for i, Q in enumerate(self._quotients):
-            axe.plot(self._solution.t, Q, label="$Q_{%d}$: $%s$" % (i, self.model_formula(i)))
+            axe.plot(
+                self._solution.t, Q, label="$Q_{%d}$: $%s$" % (i, self.model_formula(i))
+            )
 
         if self._mode == "equilibrium":
             for i, K in enumerate(self.equilibrium_constants()):
@@ -588,7 +607,7 @@ class KineticSolverInterface:
         axe.set_xlabel("Time, $t$")
         axe.set_ylabel("Reaction Quotients, $Q_i$")
         axe.legend()
-        # axe.set_yscale("log")
+        axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
 

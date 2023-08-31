@@ -9,7 +9,6 @@ from scifit.tests.test_solvers_linear import GenericLinearRegression
 
 
 class GenericKineticRegression(GenericTestFitSolver):
-
     def test_dataset_serialization_equivalence(self):
         pass
 
@@ -63,4 +62,3 @@ class SequenceKineticRegressionNoiseL1(SequenceKineticRegression, TestCase):
 
 class SequenceKineticRegressionNoiseL2(SequenceKineticRegression, TestCase):
     sigma = 1e-1
-
