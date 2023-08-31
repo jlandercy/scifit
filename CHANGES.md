@@ -27,7 +27,7 @@
    - [x] Added Instantaneous Selectivity
    - [x] Succeeded to bind KineticSolver w/ FitSolver
    - [x] Add reference index for substance
-   - [ ] Levenspiel diagram
+   - [x] Levenspiel diagram
 
 ## v0.1.12
 

@@ -386,9 +386,9 @@ class KineticSolverInterface:
         :return:
         """
         substance_index = substance_index or self._substance_index or 0
-        L = np.abs(1./self.derivative(derivative_order=1))
-        C = self._solution.y.T[:, substance_index]
-        I = integrate.cumulative_trapezoid(L, C, axis=0)
+        L = 1./(np.abs(self.derivative(derivative_order=1)) + np.finfo(np.longdouble).eps)
+        x0 = self._solution.y.T[:, substance_index]
+        I = integrate.cumulative_trapezoid(L, x0, axis=0)
         return I
 
     def arrow(self, mode="normal"):
