@@ -344,7 +344,7 @@ class KineticSolverInterface:
         :param window:
         :return:
         """
-        return signal.savgol_filter(
+        dxdt = signal.savgol_filter(
             self._solution.y.T,
             window_length=window,
             polyorder=polynomial_order,
@@ -353,6 +353,15 @@ class KineticSolverInterface:
             axis=0,
             mode="interp",
         )
+        dxdt = np.round(dxdt, np.finfo(np.longdouble).precision)
+        return dxdt
+
+    # @staticmethod
+    # def interpolate(x, t, mode="cubic"):
+    #     indices = np.where(np.isfinite(x))[0]
+    #     interpolator = interpolate.interp1d(t[indices], x[indices], kind=mode)
+    #     interpolated = interpolator(t)
+    #     return interpolated
 
     def selectivities(self, substance_index=None):
         """
@@ -363,7 +372,11 @@ class KineticSolverInterface:
         """
         substance_index = substance_index or self._substance_index or 0
         dxdt = self.derivative(derivative_order=1)
-        return (dxdt.T / dxdt[:, substance_index]).T
+        selectivities = (dxdt.T / (dxdt[:, substance_index])).T
+        # selectivities = np.apply_along_axis(
+        #     self.interpolate, 0, selectivities, self._solution.t, mode="linear"
+        # )
+        return selectivities
 
     def levenspiel(self, substance_index=None):
         """

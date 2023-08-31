@@ -293,11 +293,15 @@ class MultipleKinetics02(GenericASMKineticTest, TestCase):
 
 class MultipleKinetics03(GenericASMKineticTest, TestCase):
     nur = np.array(
-        [[-1, 1, 0, 0, 0], [0, -1, 1, 0, 0], [0, -1, 0, 1, 0], [0, 0, -1, -1, 1]]
+        [
+            [-1, 1, 0, 0, 0],
+            [0, -1, 1, 0, 0],
+            [0, -1, 0, 1, 0],
+            [0, 0, -1, -1, 1]]
     )
     nup = None
     x0 = np.array([2e-3, 0.0, 0.0, 0.0, 0.0])
-    k0 = np.array([1e-2, 3e-2, 1e-1, 1e-2])
+    k0 = np.array([1e-2, 3e-2, 1e-1, 2e-1])
     t = np.linspace(0.0, 500.0, resolution)
 
 
