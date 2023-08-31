@@ -421,26 +421,37 @@ class MultipleKinetics04(GenericKineticTest, TestCase):
             +self.k0[3] * x[2] * x[3],
         ])
 
-#
-# class MultipleKinetics05(GenericKineticTest, TestCase):
-#     nur = np.array(
-#         [
-#         #    A  B  D  E  X  Y
-#             [-1, 0, 0, 0, 0, 0],
-#             [0, 0, 0, 0, -2, -1],
-#             [0, -1, 0, 0, -1, 0],
-#             [0, 0, 0, 0, -1, 0],
-#         ]
-#     )
-#     nup = np.array(
-#         [
-#         #    A  B  D  E  X  Y
-#             [0, 0, 0, 0, 1, 0],
-#             [0, 0, 0, 0, 3, 0],
-#             [0, 0, 1, 0, 0, 1],
-#             [0, 0, 0, 1, 0, 0],
-#         ]
-#     )
-#     x0 = np.array([10., 10., 0., 0., 0., 0.])
-#     k0 = np.array([1e-3, 2e-1, 1e-2, 1e-3])
-#     t = np.linspace(0.0, 5000.0, resolution)
+
+class MultipleKinetics05(GenericKineticTest, TestCase):
+    nur = np.array(
+        [
+        #    A  B  D  E  X  Y
+            [-1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, -2, -1],
+            [0, -1, 0, 0, -1, 0],
+            [0, 0, 0, 0, -1, 0],
+        ]
+    )
+    nup = np.array(
+        [  # 0  1  2  3  4  5
+        #    A  B  D  E  X  Y
+            [0, 0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 3, 0],
+            [0, 0, 1, 0, 0, 1],
+            [0, 0, 0, 1, 0, 0],
+        ]
+    )
+
+    def model(self, t, x):
+        return np.array([
+            -self.k0[0] * x[0],  # A
+            -self.k0[2] * x[1] * x[4],  # B
+            +self.k0[2] * x[1] * x[4],  # D
+            +self.k0[3] * x[4],  # E
+            +self.k0[0] * x[0]   +self.k0[1] * x[4]**2 * x[5]   -self.k0[2] * x[1] * x[4]   -self.k0[3] * x[4],  # X
+            -self.k0[1] * x[4]**2 * x[5]   +self.k0[2] * x[1] * x[4],  # Y
+        ])
+
+    x0 = np.array([10., 10., 0., 0., 0., 0.])
+    k0 = np.array([1e-3, 2e-1, 1e-2, 1e-3])
+    t = np.linspace(0.0, 5000.0, resolution)
