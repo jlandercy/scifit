@@ -12,8 +12,8 @@
    - [ ] Starting by 0 and get compliant with natural index
    - [ ] Write all _model_equation
  - [ ] Give a try to Kivy in another package (userflow first)
- - [ ] Analyse why instantenaous selectivies jitter occurs in some scenario
-
+ 
+## v0.1.14
 
 ## v0.1.13
 
