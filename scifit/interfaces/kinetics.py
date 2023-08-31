@@ -8,7 +8,7 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy import integrate, signal, stats
+from scipy import integrate, signal, interpolate
 
 from scifit import logger
 from scifit.errors.base import *
@@ -24,7 +24,7 @@ class KineticSolverInterface:
     _names = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     _modes = {"direct", "indirect", "equilibrium"}
 
-    def __init__(self, nur, x0, k0, nup=None, k0inv=None, mode="direct"):
+    def __init__(self, nur, x0, k0, nup=None, k0inv=None, mode="direct", substance_index=0):
         """
         Initialize class with reactions setup
 
@@ -38,6 +38,9 @@ class KineticSolverInterface:
         nur, x0, k0, nup, k0inv, mode = self.validate(
             nur, x0, k0, nup=nup, k0inv=k0inv, mode=mode
         )
+
+        self._substance_index = substance_index
+
         self._nur = nur
         self._nup = nup
         self._x0 = x0
@@ -252,7 +255,7 @@ class KineticSolverInterface:
                 (-self.nus) * np.column_stack([reaction_rates] * self.k), axis=0
             )
 
-        return substance_rates
+        return np.round(substance_rates, np.finfo(np.longdouble).precision)
 
     def parametered_model(self, k0, k0inv):
         def wrapped(t, x):
@@ -327,7 +330,7 @@ class KineticSolverInterface:
         :param substance_index:
         :return:
         """
-        substance_index = substance_index or 0
+        substance_index = substance_index or self._substance_index or 0
         x = self._solution.y.T
         x0 = self._x0[substance_index]
         return (x0 - x[:, substance_index]) / x0
@@ -358,7 +361,7 @@ class KineticSolverInterface:
         :param substance_index:
         :return:
         """
-        substance_index = substance_index or 0
+        substance_index = substance_index or self._substance_index or 0
         dxdt = self.derivative(derivative_order=1)
         return (dxdt.T / dxdt[:, substance_index]).T
 
@@ -369,7 +372,7 @@ class KineticSolverInterface:
         :param substance_index:
         :return:
         """
-        substance_index = substance_index or 0
+        substance_index = substance_index or self._substance_index or 0
         L = np.abs(1./self.derivative(derivative_order=1))
         C = self._solution.y.T[:, substance_index]
         I = integrate.cumulative_trapezoid(L, C, axis=0)
@@ -399,14 +402,14 @@ class KineticSolverInterface:
         """
         formula = " + ".join(
             [
-                "{:.2g}{:s}".format(-self.nus[index, k], self._names[k])
+                "{:.2g}{:s}".format(-self._nur[index, k], self._names[k])
                 for k in self.reactant_indices(index)
             ]
         )
         formula += self.arrow(mode="latex")
         formula += " + ".join(
             [
-                "{:.2g}{:s}".format(self.nus[index, k], self._names[k])
+                "{:.2g}{:s}".format(self._nup[index, k], self._names[k])
                 for k in self.product_indices(index)
             ]
         )

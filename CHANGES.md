@@ -12,8 +12,6 @@
    - [ ] Starting by 0 and get compliant with natural index
    - [ ] Write all _model_equation
  - [ ] Give a try to Kivy in another package (userflow first)
- - [ ] Bind solving a kinetic with a data fit
- - [ ] Add reference index for substance in tests and bind indirect properly
  - [ ] Analyse why instantenaous selectivies jitter occurs in some scenario
 
 
@@ -28,6 +26,7 @@
    - [x] Added Concentration velocities and accelerations
    - [x] Added Instantaneous Selectivity
    - [x] Succeeded to bind KineticSolver w/ FitSolver
+   - [x] Add reference index for substance
    - [ ] Levenspiel diagram
 
 ## v0.1.12
