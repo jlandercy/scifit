@@ -223,7 +223,7 @@ class SimpleKinetic04(GenericASMKineticTest):
     mode = "equilibrium"
     x0 = np.array([3e-3, 1e-3])
     k0 = np.array([1e-2])
-    k0inv = np.array([1e-2])
+    k0inv = np.array([1e-4])
     t = np.linspace(0.0, 500.0, resolution)
 
 

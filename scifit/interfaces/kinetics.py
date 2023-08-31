@@ -315,7 +315,7 @@ class KineticSolverInterface:
         """
         return np.prod(np.power(np.row_stack([x] * self.n), self.nus), axis=1)
 
-    def equilibrium(self):
+    def equilibrium_constants(self):
         """
         Return Reaction Equilibrium constant for each reaction
 
@@ -577,13 +577,17 @@ class KineticSolverInterface:
         """
 
         fig, axe = plt.subplots()
-        axe.plot(self._solution.t, self._quotients.T)
+        for i, Q in enumerate(self._quotients):
+            axe.plot(self._solution.t, Q, label="$Q_{%d}$: $%s$" % (i, self.model_formula(i)))
+
+        if self._mode == "equilibrium":
+            for i, K in enumerate(self.equilibrium_constants()):
+                axe.axhline(K, linestyle="-.", color="black", label=r"$K_{%d}$" % i)
+
         axe.set_title("Activated State Model Kinetic:\nReaction Quotient Evolutions")
         axe.set_xlabel("Time, $t$")
         axe.set_ylabel("Reaction Quotients, $Q_i$")
-        axe.legend(
-            ["$Q_{%d}$: $%s$" % (i, self.model_formula(i)) for i in range(self.n)]
-        )
+        axe.legend()
         # axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
