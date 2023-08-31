@@ -62,6 +62,12 @@ class GenericASMKineticTest:
         self.solver.fit(t=self.t)
         L = self.solver.levenspiel()
 
+    def test_dataset(self):
+        name = self.__class__.__name__
+        self.solver.fit(t=self.t)
+        data = self.solver.dataset()
+        data.to_csv("{}/{}_data.csv".format(self.media_path, name), sep=";")
+
     def test_plot_solve(self):
         name = self.__class__.__name__
         self.solver.fit(t=self.t)
@@ -244,7 +250,7 @@ class SimpleKinetic05(GenericASMKineticTest):
     )
     nup = np.array(
         [
-            [0, 2],
+            [0,  2],
         ]
     )
     x0 = np.array([5e-3, 2e-3])

@@ -313,7 +313,7 @@ class KineticSolverInterface:
         :param x:
         :return:
         """
-        return np.prod(np.power(np.row_stack([x] * self.n), np.abs(self.nus)), axis=1)
+        return np.prod(np.power(np.row_stack([x] * self.n), self.nus), axis=1)
 
     def equilibrium(self):
         """
@@ -356,13 +356,6 @@ class KineticSolverInterface:
         dxdt = np.round(dxdt, np.finfo(np.longdouble).precision)
         return dxdt
 
-    # @staticmethod
-    # def interpolate(x, t, mode="cubic"):
-    #     indices = np.where(np.isfinite(x))[0]
-    #     interpolator = interpolate.interp1d(t[indices], x[indices], kind=mode)
-    #     interpolated = interpolator(t)
-    #     return interpolated
-
     def selectivities(self, substance_index=None):
         """
         Return instantaneous selectivities using concentration first derivative estimates
@@ -373,9 +366,6 @@ class KineticSolverInterface:
         substance_index = substance_index or self._substance_index or 0
         dxdt = self.derivative(derivative_order=1)
         selectivities = (dxdt.T / (dxdt[:, substance_index])).T
-        # selectivities = np.apply_along_axis(
-        #     self.interpolate, 0, selectivities, self._solution.t, mode="linear"
-        # )
         return selectivities
 
     def levenspiel(self, substance_index=None):
@@ -436,6 +426,22 @@ class KineticSolverInterface:
         :return:
         """
         return "; ".join([self.model_formula(j) for j in range(self.n)])
+
+    def dataset(self):
+        data = pd.DataFrame({"t": self._solution.t})
+        concentrations = pd.DataFrame(
+            self._solution.y.T, columns=[self._names[i] for i in range(self.k)]
+        )
+        derivatives = pd.DataFrame(
+            self._dxdt, columns=["d%s/dt" % self._names[i] for i in range(self.k)]
+        )
+        quotients = pd.DataFrame(
+            self._quotients.T, columns=["Q%d" % i for i in range(self.n)]
+        )
+        data = pd.concat([
+            data, concentrations, derivatives, quotients
+        ], axis=1)
+        return data
 
     def plot_solve(self):
         """
