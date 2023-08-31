@@ -25,7 +25,15 @@ class KineticSolverInterface:
     _modes = {"direct", "indirect", "equilibrium"}
 
     def __init__(
-        self, nur, x0, k0, nup=None, k0inv=None, mode="direct", substance_index=0
+        self,
+        nur,
+        x0,
+        k0,
+        nup=None,
+        k0inv=None,
+        mode="direct",
+        substance_index=0,
+        steady=None,
     ):
         """
         Initialize class with reactions setup
@@ -49,6 +57,10 @@ class KineticSolverInterface:
         self._k0 = k0
         self._k0inv = k0inv
         self._mode = mode
+
+        if steady is None:
+            steady = np.array([1.0] * self.k)
+        self._steady = steady
 
     @staticmethod
     def split_nus(nus):
@@ -260,7 +272,9 @@ class KineticSolverInterface:
                 (-self.nus) * np.column_stack([reaction_rates] * self.k), axis=0
             )
 
-        return np.round(substance_rates, np.finfo(np.longdouble).precision)
+        return (
+            np.round(substance_rates, np.finfo(np.longdouble).precision) * self._steady
+        )
 
     def parametered_model(self, k0, k0inv):
         def wrapped(t, x):
@@ -324,8 +338,10 @@ class KineticSolverInterface:
         :param x:
         :return:
         """
-        #return np.prod(np.power(np.row_stack([x] * self.n), self.nus), axis=1)
-        return np.power(10, np.sum(np.log10(np.row_stack([x] * self.n)) * self.nus, axis=1))
+        # return np.prod(np.power(np.row_stack([x] * self.n), self.nus), axis=1)
+        return np.power(
+            10, np.sum(np.log10(np.row_stack([x] * self.n)) * self.nus, axis=1)
+        )
 
     def equilibrium_constants(self):
         """
@@ -463,57 +479,67 @@ class KineticSolverInterface:
         data = pd.concat([data, concentrations, derivatives, quotients], axis=1)
         return data
 
-    def plot_solve(self):
+    def plot_solve(self, substance_indices=None):
         """
         Plot ODE solution figure
 
         :return:
         """
 
+        if substance_indices is None:
+            substance_indices = np.arange(self.k)
+
         fig, axe = plt.subplots()
-        axe.plot(self._solution.t, self._solution.y.T)
+        axe.plot(self._solution.t, self._solution.y.T[:, substance_indices])
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
         axe.set_xlabel("Time, $t$")
         axe.set_ylabel("Concentrations, $x_i$")
         axe.legend(list(self._names[: self.k]))
-        #axe.set_yscale("log")
+        # axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
 
         return axe
 
-    def plot_solve_ratio(self):
+    def plot_solve_ratio(self, substance_indices=None):
         """
         Plot ODE solution figure wrt to conversion ratio
 
         :return:
         """
+
+        if substance_indices is None:
+            substance_indices = np.arange(self.k)
+
         r = self.convertion_ratio()
         fig, axe = plt.subplots()
-        axe.plot(r, self._solution.y.T)
+        axe.plot(r, self._solution.y.T[:, substance_indices])
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
         axe.set_xlabel(r"Conversion Ratio, $\rho$")
         axe.set_ylabel("Concentrations, $x_i$")
         axe.legend(list(self._names[: self.k]))
-        #axe.set_yscale("log")
+        # axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
 
         return axe
 
-    def plot_first_derivative(self):
+    def plot_first_derivative(self, substance_indices=None):
         """
         Plot ODE solution first derivative figure
 
         :return:
         """
 
+        if substance_indices is None:
+            substance_indices = np.arange(self.k)
+
         fig, axe = plt.subplots()
-        axe.plot(self._solution.t, self._dxdt)
+        axe.plot(self._solution.t, self._dxdt[:, substance_indices])
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
@@ -526,15 +552,18 @@ class KineticSolverInterface:
 
         return axe
 
-    def plot_second_derivative(self):
+    def plot_second_derivative(self, substance_indices=None):
         """
         Plot ODE solution first derivative figure
 
         :return:
         """
 
+        if substance_indices is None:
+            substance_indices = np.arange(self.k)
+
         fig, axe = plt.subplots()
-        axe.plot(self._solution.t, self._d2xdt2)
+        axe.plot(self._solution.t, self._d2xdt2[:, substance_indices])
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
@@ -547,15 +576,18 @@ class KineticSolverInterface:
 
         return axe
 
-    def plot_selectivities(self):
+    def plot_selectivities(self, substance_indices=None):
         """
         Plot ODE solution selectivities figure
 
         :return:
         """
 
+        if substance_indices is None:
+            substance_indices = np.arange(self.k)
+
         fig, axe = plt.subplots()
-        axe.plot(self._solution.t, self._selectivities)
+        axe.plot(self._solution.t, self._selectivities[:, substance_indices])
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
@@ -568,15 +600,18 @@ class KineticSolverInterface:
 
         return axe
 
-    def plot_levenspiel(self):
+    def plot_levenspiel(self, substance_indices=None):
         """
         Plot ODE solution Levenspiel integration figure
 
         :return:
         """
 
+        if substance_indices is None:
+            substance_indices = np.arange(self.k)
+
         fig, axe = plt.subplots()
-        axe.plot(self._solution.t[:-1], self._levenspiel)
+        axe.plot(self._solution.t[:-1], self._levenspiel[:, substance_indices])
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )

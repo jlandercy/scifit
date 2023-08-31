@@ -16,6 +16,9 @@
  
 ## v0.1.14
 
+ - [x] Validated ODE matrix system against manually writen ODE systems
+ - [x] Added Brusselator
+
 ## v0.1.13
 
  - [x] Added Activated State Model Kinetic solver:
