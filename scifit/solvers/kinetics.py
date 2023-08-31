@@ -6,7 +6,7 @@ from scifit.interfaces.solvers import FitSolver1D
 
 class SimpleKineticSolver(FitSolver1D):
 
-    _model_equation = r"A(t) \xrightarrow{\beta_0} B"
+    _model_equation = r"A(t) \overset{\beta_0}{\longrightarrow} B"
 
     kinetic = KineticSolverInterface(
         nur=np.array([[-1, 1]]),
@@ -22,7 +22,7 @@ class SimpleKineticSolver(FitSolver1D):
 
 class SequenceKineticSolver(FitSolver1D):
 
-    _model_equation = r"A \xrightarrow{\beta_0} B(t) \xrightarrow{\beta_1} C"
+    _model_equation = r"A \overset{\beta_0}{\longrightarrow} B(t) \overset{\beta_1}{\longrightarrow} C"
 
     kinetic = KineticSolverInterface(
         nur=np.array([

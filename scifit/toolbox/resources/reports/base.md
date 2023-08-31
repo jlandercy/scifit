@@ -6,6 +6,8 @@ toc: true
 urlcolor: blue
 linkcolor: red
 header-includes:
+  - \usepackage{amsmath}
+  - \usepackage{mathtools}
   - \usepackage{longtable}
   - \usepackage{booktabs}
   - \usepackage{siunitx}

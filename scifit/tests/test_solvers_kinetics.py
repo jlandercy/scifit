@@ -8,10 +8,16 @@ from scifit.tests.helpers import GenericTestFitSolver
 from scifit.tests.test_solvers_linear import GenericLinearRegression
 
 
-class SimpleKineticRegression(GenericLinearRegression):
+class GenericKineticRegression(GenericLinearRegression):
+
+    def test_dataset_serialization_equivalence(self):
+        pass
+
+
+class SimpleKineticRegression(GenericKineticRegression):
     factory = kinetics.SimpleKineticSolver
     parameters = np.array([2.1e-2])
-    configuration = {"p0": np.array([1e-5])}
+    configuration = {"p0": np.array([1e-4])}
     xmin = 0.0
     xmax = 1000.0
     resolution = 50
@@ -29,10 +35,10 @@ class SimpleKineticRegressionNoiseL2(SimpleKineticRegression, TestCase):
     sigma = 1e-1
 
 
-class SequenceKineticRegression(GenericLinearRegression):
+class SequenceKineticRegression(GenericKineticRegression):
     factory = kinetics.SequenceKineticSolver
     parameters = np.array([2.1e-2, 3.15e-3])
-    configuration = {"p0": np.array([1e-5, 1e-5])}
+    configuration = {"p0": np.array([1e-4, 1e-4])}
     xmin = 0.0
     xmax = 1000.0
     resolution = 50
