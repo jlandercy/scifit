@@ -245,6 +245,9 @@ class KineticSolverInterface:
             reaction_rates = k0 * np.prod(
                 np.power(np.row_stack([x] * self.n), np.abs(self._nur)), axis=1
             )
+            # reaction_rates = k0 * np.power(10., np.sum(
+            #     np.log10(np.row_stack([x] * self.n) * np.abs(self._nur)), axis=1
+            # ))
             substance_rates += np.sum(
                 (+self.nus) * np.column_stack([reaction_rates] * self.k), axis=0
             )

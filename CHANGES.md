@@ -12,6 +12,7 @@
    - [ ] Starting by 0 and get compliant with natural index
    - [ ] Write all _model_equation
  - [ ] Give a try to Kivy in another package (userflow first)
+ - [ ] Apply 10^log10 to model for Kinetic in order to reduce errors
  
 ## v0.1.14
 
