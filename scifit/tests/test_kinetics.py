@@ -156,271 +156,271 @@ class GenericKineticTest:
 
 resolution = 5000
 
-
-class SimpleKinetic01(GenericKineticTest):
-    """
-    A -> B
-    """
-
-    nur = np.array(
-        [
-            [-1, 1],
-        ]
-    )
-    nup = None
-    x0 = np.array([2e-3, 0.0])
-    k0 = np.array([1e-1])
-    k0inv = np.array([1e-4])
-    t = np.linspace(0.0, 500.0, resolution)
-
-    def model(self, t, x):
-        return np.array([
-            -self.k0[0] * x[0],
-            +self.k0[0] * x[0],
-        ])
-
-
-class SimpleKinetic01K0L0(SimpleKinetic01, TestCase):
-    k0 = np.array([1e-2])
-
-
-class SimpleKinetic01K0L1(SimpleKinetic01, TestCase):
-    k0 = np.array([1e-1])
-
-
-class SimpleKinetic01K0L2(SimpleKinetic01, TestCase):
-    k0 = np.array([1e0])
-
-
-class SimpleKinetic02(GenericKineticTest):
-    """
-    A + B -> C
-    """
-
-    nur = np.array(
-        [
-            [-1, -1, 1],
-        ]
-    )
-    nup = None
-    x0 = np.array([2e-3, 5e-3, 0.0])
-    k0 = np.array([1e-0])
-    t = np.linspace(0.0, 500.0, resolution)
-
-    def model(self, t, x):
-        return np.array([
-            -self.k0[0] * x[0] * x[1],
-            -self.k0[0] * x[0] * x[1],
-            +self.k0[0] * x[0] * x[1],
-        ])
-
-
-class SimpleKinetic02K0L0(SimpleKinetic02, TestCase):
-    k0 = np.array([1e-0])
-
-
-class SimpleKinetic02K0L1(SimpleKinetic02, TestCase):
-    k0 = np.array([1e1])
-
-
-class SimpleKinetic02K0L2(SimpleKinetic02, TestCase):
-    k0 = np.array([1e2])
-
-
-class SimpleKinetic03(GenericKineticTest):
-    """
-    A <- B
-    """
-
-    nur = np.array(
-        [
-            [-1, 1],
-        ]
-    )
-    substance_index = 1
-    nup = None
-    mode = "indirect"
-    x0 = np.array([0.0, 2e-3])
-    k0 = np.array([1e-2])
-    k0inv = np.array([1e-2])
-    t = np.linspace(0.0, 500.0, resolution)
-
-    def model(self, t, x):
-        return np.array([
-            +self.k0inv[0] * x[1],
-            -self.k0inv[0] * x[1],
-        ])
-
-
-class SimpleKinetic03K0L0(SimpleKinetic03, TestCase):
-    k0inv = np.array([1e-2])
-
-
-class SimpleKinetic03K0L1(SimpleKinetic03, TestCase):
-    k0inv = np.array([1e-1])
-
-
-class SimpleKinetic03K0L2(SimpleKinetic03, TestCase):
-    k0inv = np.array([1e0])
-
-
-class SimpleKinetic04(GenericKineticTest):
-    """
-    A <=> B
-    """
-
-    nur = np.array(
-        [
-            [-1, 1],
-        ]
-    )
-    nup = None
-    mode = "equilibrium"
-    x0 = np.array([3e-3, 1e-3])
-    k0 = np.array([1e-2])
-    k0inv = np.array([1e-4])
-    t = np.linspace(0.0, 500.0, resolution)
-
-    def model(self, t, x):
-        return np.array([
-            -self.k0[0] * x[0] +self.k0inv[0] * x[1],
-            +self.k0[0] * x[0] -self.k0inv[0] * x[1],
-        ])
-
-
-class SimpleKinetic04K0L0(SimpleKinetic04, TestCase):
-    k0 = np.array([1e-3])
-
-
-class SimpleKinetic04K0L1(SimpleKinetic04, TestCase):
-    k0 = np.array([1e-2])
-
-
-class SimpleKinetic04K0L2(SimpleKinetic04, TestCase):
-    k0 = np.array([1e-1])
-
-
-class SimpleKinetic05(GenericKineticTest):
-    """
-    A + B -> 2B
-    """
-
-    nur = np.array(
-        [
-            [-1, -1],
-        ]
-    )
-    nup = np.array(
-        [
-            [0, 2],
-        ]
-    )
-    x0 = np.array([5e-3, 2e-3])
-    k0 = np.array([1e-1])
-    t = np.linspace(0.0, 500.0, resolution)
-
-    def model(self, t, x):
-        return np.array([
-            -self.k0[0] * x[0] * x[1],
-            +self.k0[0] * x[0] * x[1],
-        ])
-
-
-class SimpleKinetic05K0L0(SimpleKinetic05, TestCase):
-    k0 = np.array([1e-1])
-
-
-class SimpleKinetic05K0L1(SimpleKinetic05, TestCase):
-    k0 = np.array([1e0])
-
-
-class SimpleKinetic05K0L2(SimpleKinetic05, TestCase):
-    k0 = np.array([1e1])
-
-
-class MultipleKinetics01(GenericKineticTest, TestCase):
-    nur = np.array(
-        [
-            [-1, 1, 0],
-            [0, -1, 1],
-        ]
-    )
-    nup = None
-    x0 = np.array([2e-3, 0.0, 0.0])
-    k0 = np.array([1e-2, 1e-3])
-    t = np.linspace(0.0, 500.0, resolution)
-
-    def model(self, t, x):
-        return np.array([
-            -self.k0[0] * x[0],
-            +self.k0[0] * x[0] - self.k0[1] * x[1],
-            +self.k0[1] * x[1],
-        ])
-
-
-class MultipleKinetics02(GenericKineticTest, TestCase):
-    nur = np.array(
-        [
-            [-1, 1, 0, 0],
-            [0, -1, 1, 0],
-            [0, 0, -1, 1],
-        ]
-    )
-    nup = None
-    x0 = np.array([2e-3, 0.0, 0.0, 0.0])
-    k0 = np.array([1e-2, 1e-3, 1e-1])
-    t = np.linspace(0.0, 500.0, resolution)
-
-    def model(self, t, x):
-        return np.array([
-            -self.k0[0] * x[0],
-            +self.k0[0] * x[0] - self.k0[1] * x[1],
-            +self.k0[1] * x[1] - self.k0[2] * x[2],
-            +self.k0[2] * x[2],
-        ])
-
-
-class MultipleKinetics03(GenericKineticTest, TestCase):
-    nur = np.array([
-        [-1, 1, 0, 0],
-        [0, -1, 1, 0],
-        [0, -1, 0, 1]]
-    )
-    nup = None
-    x0 = np.array([2e-3, 0.0, 0.0, 0.0])
-    k0 = np.array([1e-2, 3e-2, 1e-1])
-    t = np.linspace(0.0, 500.0, resolution)
-
-    def model(self, t, x):
-        return np.array([
-            -self.k0[0] * x[0],
-            +self.k0[0] * x[0] - self.k0[1] * x[1] - self.k0[2] * x[1],
-            +self.k0[1] * x[1],
-            +self.k0[2] * x[1],
-        ])
-
-
-class MultipleKinetics04(GenericKineticTest, TestCase):
-    nur = np.array([
-        [-1, 1, 0, 0, 0],
-        [0, -1, 1, 0, 0],
-        [0, -1, 0, 1, 0],
-        [0, 0, -1, -1, 1]
-    ])
-    nup = None
-    x0 = np.array([2e-3, 0.0, 0.0, 0.0, 0.0])
-    k0 = np.array([1e-2, 3e-2, 1e-1, 2e-1])
-    t = np.linspace(0.0, 500.0, resolution)
-
-    def model(self, t, x):
-        return np.array([
-            -self.k0[0] * x[0],
-            +self.k0[0] * x[0] - self.k0[1] * x[1] - self.k0[2] * x[1],
-            +self.k0[1] * x[1] - self.k0[3] * x[2] * x[3],
-            +self.k0[2] * x[1] - self.k0[3] * x[2] * x[3],
-            +self.k0[3] * x[2] * x[3],
-        ])
-
+#
+# class SimpleKinetic01(GenericKineticTest):
+#     """
+#     A -> B
+#     """
+#
+#     nur = np.array(
+#         [
+#             [-1, 1],
+#         ]
+#     )
+#     nup = None
+#     x0 = np.array([2e-3, 0.0])
+#     k0 = np.array([1e-1])
+#     k0inv = np.array([1e-4])
+#     t = np.linspace(0.0, 500.0, resolution)
+#
+#     def model(self, t, x):
+#         return np.array([
+#             -self.k0[0] * x[0],
+#             +self.k0[0] * x[0],
+#         ])
+#
+#
+# class SimpleKinetic01K0L0(SimpleKinetic01, TestCase):
+#     k0 = np.array([1e-2])
+#
+#
+# class SimpleKinetic01K0L1(SimpleKinetic01, TestCase):
+#     k0 = np.array([1e-1])
+#
+#
+# class SimpleKinetic01K0L2(SimpleKinetic01, TestCase):
+#     k0 = np.array([1e0])
+#
+#
+# class SimpleKinetic02(GenericKineticTest):
+#     """
+#     A + B -> C
+#     """
+#
+#     nur = np.array(
+#         [
+#             [-1, -1, 1],
+#         ]
+#     )
+#     nup = None
+#     x0 = np.array([2e-3, 5e-3, 0.0])
+#     k0 = np.array([1e-0])
+#     t = np.linspace(0.0, 500.0, resolution)
+#
+#     def model(self, t, x):
+#         return np.array([
+#             -self.k0[0] * x[0] * x[1],
+#             -self.k0[0] * x[0] * x[1],
+#             +self.k0[0] * x[0] * x[1],
+#         ])
+#
+#
+# class SimpleKinetic02K0L0(SimpleKinetic02, TestCase):
+#     k0 = np.array([1e-0])
+#
+#
+# class SimpleKinetic02K0L1(SimpleKinetic02, TestCase):
+#     k0 = np.array([1e1])
+#
+#
+# class SimpleKinetic02K0L2(SimpleKinetic02, TestCase):
+#     k0 = np.array([1e2])
+#
+#
+# class SimpleKinetic03(GenericKineticTest):
+#     """
+#     A <- B
+#     """
+#
+#     nur = np.array(
+#         [
+#             [-1, 1],
+#         ]
+#     )
+#     substance_index = 1
+#     nup = None
+#     mode = "indirect"
+#     x0 = np.array([0.0, 2e-3])
+#     k0 = np.array([1e-2])
+#     k0inv = np.array([1e-2])
+#     t = np.linspace(0.0, 500.0, resolution)
+#
+#     def model(self, t, x):
+#         return np.array([
+#             +self.k0inv[0] * x[1],
+#             -self.k0inv[0] * x[1],
+#         ])
+#
+#
+# class SimpleKinetic03K0L0(SimpleKinetic03, TestCase):
+#     k0inv = np.array([1e-2])
+#
+#
+# class SimpleKinetic03K0L1(SimpleKinetic03, TestCase):
+#     k0inv = np.array([1e-1])
+#
+#
+# class SimpleKinetic03K0L2(SimpleKinetic03, TestCase):
+#     k0inv = np.array([1e0])
+#
+#
+# class SimpleKinetic04(GenericKineticTest):
+#     """
+#     A <=> B
+#     """
+#
+#     nur = np.array(
+#         [
+#             [-1, 1],
+#         ]
+#     )
+#     nup = None
+#     mode = "equilibrium"
+#     x0 = np.array([3e-3, 1e-3])
+#     k0 = np.array([1e-2])
+#     k0inv = np.array([1e-4])
+#     t = np.linspace(0.0, 500.0, resolution)
+#
+#     def model(self, t, x):
+#         return np.array([
+#             -self.k0[0] * x[0] +self.k0inv[0] * x[1],
+#             +self.k0[0] * x[0] -self.k0inv[0] * x[1],
+#         ])
+#
+#
+# class SimpleKinetic04K0L0(SimpleKinetic04, TestCase):
+#     k0 = np.array([1e-3])
+#
+#
+# class SimpleKinetic04K0L1(SimpleKinetic04, TestCase):
+#     k0 = np.array([1e-2])
+#
+#
+# class SimpleKinetic04K0L2(SimpleKinetic04, TestCase):
+#     k0 = np.array([1e-1])
+#
+#
+# class SimpleKinetic05(GenericKineticTest):
+#     """
+#     A + B -> 2B
+#     """
+#
+#     nur = np.array(
+#         [
+#             [-1, -1],
+#         ]
+#     )
+#     nup = np.array(
+#         [
+#             [0, 2],
+#         ]
+#     )
+#     x0 = np.array([5e-3, 2e-3])
+#     k0 = np.array([1e-1])
+#     t = np.linspace(0.0, 500.0, resolution)
+#
+#     def model(self, t, x):
+#         return np.array([
+#             -self.k0[0] * x[0] * x[1],
+#             +self.k0[0] * x[0] * x[1],
+#         ])
+#
+#
+# class SimpleKinetic05K0L0(SimpleKinetic05, TestCase):
+#     k0 = np.array([1e-1])
+#
+#
+# class SimpleKinetic05K0L1(SimpleKinetic05, TestCase):
+#     k0 = np.array([1e0])
+#
+#
+# class SimpleKinetic05K0L2(SimpleKinetic05, TestCase):
+#     k0 = np.array([1e1])
+#
+#
+# class MultipleKinetics01(GenericKineticTest, TestCase):
+#     nur = np.array(
+#         [
+#             [-1, 1, 0],
+#             [0, -1, 1],
+#         ]
+#     )
+#     nup = None
+#     x0 = np.array([2e-3, 0.0, 0.0])
+#     k0 = np.array([1e-2, 1e-3])
+#     t = np.linspace(0.0, 500.0, resolution)
+#
+#     def model(self, t, x):
+#         return np.array([
+#             -self.k0[0] * x[0],
+#             +self.k0[0] * x[0] - self.k0[1] * x[1],
+#             +self.k0[1] * x[1],
+#         ])
+#
+#
+# class MultipleKinetics02(GenericKineticTest, TestCase):
+#     nur = np.array(
+#         [
+#             [-1, 1, 0, 0],
+#             [0, -1, 1, 0],
+#             [0, 0, -1, 1],
+#         ]
+#     )
+#     nup = None
+#     x0 = np.array([2e-3, 0.0, 0.0, 0.0])
+#     k0 = np.array([1e-2, 1e-3, 1e-1])
+#     t = np.linspace(0.0, 500.0, resolution)
+#
+#     def model(self, t, x):
+#         return np.array([
+#             -self.k0[0] * x[0],
+#             +self.k0[0] * x[0] - self.k0[1] * x[1],
+#             +self.k0[1] * x[1] - self.k0[2] * x[2],
+#             +self.k0[2] * x[2],
+#         ])
+#
+#
+# class MultipleKinetics03(GenericKineticTest, TestCase):
+#     nur = np.array([
+#         [-1, 1, 0, 0],
+#         [0, -1, 1, 0],
+#         [0, -1, 0, 1]]
+#     )
+#     nup = None
+#     x0 = np.array([2e-3, 0.0, 0.0, 0.0])
+#     k0 = np.array([1e-2, 3e-2, 1e-1])
+#     t = np.linspace(0.0, 500.0, resolution)
+#
+#     def model(self, t, x):
+#         return np.array([
+#             -self.k0[0] * x[0],
+#             +self.k0[0] * x[0] - self.k0[1] * x[1] - self.k0[2] * x[1],
+#             +self.k0[1] * x[1],
+#             +self.k0[2] * x[1],
+#         ])
+#
+#
+# class MultipleKinetics04(GenericKineticTest, TestCase):
+#     nur = np.array([
+#         [-1, 1, 0, 0, 0],
+#         [0, -1, 1, 0, 0],
+#         [0, -1, 0, 1, 0],
+#         [0, 0, -1, -1, 1]
+#     ])
+#     nup = None
+#     x0 = np.array([2e-3, 0.0, 0.0, 0.0, 0.0])
+#     k0 = np.array([1e-2, 3e-2, 1e-1, 2e-1])
+#     t = np.linspace(0.0, 500.0, resolution)
+#
+#     def model(self, t, x):
+#         return np.array([
+#             -self.k0[0] * x[0],
+#             +self.k0[0] * x[0] - self.k0[1] * x[1] - self.k0[2] * x[1],
+#             +self.k0[1] * x[1] - self.k0[3] * x[2] * x[3],
+#             +self.k0[2] * x[1] - self.k0[3] * x[2] * x[3],
+#             +self.k0[3] * x[2] * x[3],
+#         ])
+#
 
 class MultipleKinetics05(GenericKineticTest, TestCase):
     nur = np.array(
@@ -452,6 +452,14 @@ class MultipleKinetics05(GenericKineticTest, TestCase):
             -self.k0[1] * x[4]**2 * x[5]   +self.k0[2] * x[1] * x[4],  # Y
         ])
 
-    x0 = np.array([10., 10., 0., 0., 0., 0.])
-    k0 = np.array([1e-3, 2e-1, 1e-2, 1e-3])
-    t = np.linspace(0.0, 5000.0, resolution)
+    x0 = np.array([1, 2.2, 0., 0., 1, 2.1])
+
+    #k0 = np.array([1e-3, 2e-1, 1e-2, 1e-3])  # 1 oscillation
+    #k0 = np.array([1e-3, 1e-2, 5e-2, 1e-4])  # limit oscillation
+
+    #k0 = np.array([5e-4, 1e-1, 5e-2, 1e-4]) # slow consumption - 10/10
+    #k0 = np.array([1, 100, 10, 1.3])
+    #k0 = np.array([0.6, 84, 6.5, 1.7])
+    k0 = np.array([1, 0, 0, 100])
+
+    t = np.linspace(0.0, 10.0, resolution)

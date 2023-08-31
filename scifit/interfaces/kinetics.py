@@ -478,7 +478,7 @@ class KineticSolverInterface:
         axe.set_xlabel("Time, $t$")
         axe.set_ylabel("Concentrations, $x_i$")
         axe.legend(list(self._names[: self.k]))
-        # axe.set_yscale("log")
+        #axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
 
@@ -499,7 +499,7 @@ class KineticSolverInterface:
         axe.set_xlabel(r"Conversion Ratio, $\rho$")
         axe.set_ylabel("Concentrations, $x_i$")
         axe.legend(list(self._names[: self.k]))
-        # axe.set_yscale("log")
+        #axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
 
