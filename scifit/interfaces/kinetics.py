@@ -21,7 +21,7 @@ class KineticSolverInterface:
     Class solving the Activated State Model Kinetics for several setups
     """
 
-    _names = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    _names = np.array(list("ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
     _modes = {"direct", "indirect", "equilibrium"}
 
     def __init__(
@@ -508,7 +508,7 @@ class KineticSolverInterface:
         )
         axe.set_xlabel("Time, $t$")
         axe.set_ylabel("Concentrations, $x_i$")
-        axe.legend(list(self._names[: self.k]))
+        axe.legend(list(self._names[substance_indices]))
         # axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
@@ -533,7 +533,7 @@ class KineticSolverInterface:
         )
         axe.set_xlabel(r"Conversion Ratio, $\rho$")
         axe.set_ylabel("Concentrations, $x_i$")
-        axe.legend(list(self._names[: self.k]))
+        axe.legend(list(self._names[substance_indices]))
         # axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
@@ -557,7 +557,7 @@ class KineticSolverInterface:
         )
         axe.set_xlabel("Time, $t$")
         axe.set_ylabel("Concentration Velocities, $\partial x_i / \partial t$")
-        axe.legend(list(self._names[: self.k]))
+        axe.legend(list(self._names[substance_indices]))
         # axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
@@ -581,7 +581,7 @@ class KineticSolverInterface:
         )
         axe.set_xlabel("Time, $t$")
         axe.set_ylabel("Concentration Accelerations, $\partial^2 x_i / \partial t^2$")
-        axe.legend(list(self._names[: self.k]))
+        axe.legend(list(self._names[substance_indices]))
         # axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
@@ -605,7 +605,7 @@ class KineticSolverInterface:
         )
         axe.set_xlabel("Time, $t$")
         axe.set_ylabel("Instataneous Selectivities, $S_i$")
-        axe.legend(list(self._names[: self.k]))
+        axe.legend(list(self._names[substance_indices]))
         # axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
@@ -629,7 +629,7 @@ class KineticSolverInterface:
         )
         axe.set_xlabel("Time, $t$")
         axe.set_ylabel("Levenspiel Integral, $L_i$")
-        axe.legend(list(self._names[: self.k]))
+        axe.legend(list(self._names[substance_indices]))
         # axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
