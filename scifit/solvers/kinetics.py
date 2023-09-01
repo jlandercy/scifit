@@ -4,15 +4,6 @@ from scifit.interfaces.kinetics import KineticSolverInterface
 from scifit.interfaces.solvers import FitSolver1D
 
 
-class DirectKineticSolver(FitSolver1D):
-
-    substance_index = 0
-
-    @classmethod
-    def model(cls, x, *b):
-        return cls.kinetic.solve(x[:, 0], b, None).y.T[:, cls.substance_index]
-
-
 class SimpleKineticSolver(FitSolver1D):
 
     _model_equation = r"A(t) \overset{\beta_0}{\longrightarrow} B"
@@ -30,6 +21,7 @@ class SimpleKineticSolver(FitSolver1D):
 
 
 class SequenceKineticSolver(FitSolver1D):
+
     _model_equation = r"A \overset{\beta_0}{\longrightarrow} B(t) \overset{\beta_1}{\longrightarrow} C"
 
     kinetic = KineticSolverInterface(
@@ -50,6 +42,15 @@ class SequenceKineticSolver(FitSolver1D):
 
 
 class BrusselatorKineticSolver(FitSolver1D):
+
+    _model_equation = r"""
+    \begin{eqnarray}
+    A &\overset{\beta_0}{\longrightarrow}& E(t) \\
+    2E(t) + F &\overset{\beta_0}{\longrightarrow}& 3E(t) \\
+    B + E(t) &\overset{\beta_0}{\longrightarrow}& F + C \\
+    E(t) &\overset{\beta_0}{\longrightarrow}& D
+    \end{eqnarray}
+    """
 
     kinetic = KineticSolverInterface(
         nur=np.array(
@@ -75,5 +76,22 @@ class BrusselatorKineticSolver(FitSolver1D):
 
     @classmethod
     def model(cls, x, b0, b1, b2, b3):
+        """
+        .. math::
+
+            \begin{eqnarray}
+            A &\overset{\beta_0}{\longrightarrow}& E(t) \\
+            2E(t) + F &\overset{\beta_0}{\longrightarrow}& 3E(t) \\
+            B + E(t) &\overset{\beta_0}{\longrightarrow}& F + C \\
+            E(t) &\overset{\beta_0}{\longrightarrow}& D
+            \end{eqnarray}
+
+        :param x:
+        :param b0:
+        :param b1:
+        :param b2:
+        :param b3:
+        :return:
+        """
         solution = cls.kinetic.solve(x[:, 0], [b0, b1, b2, b3], None).y.T[:, 4]
         return solution

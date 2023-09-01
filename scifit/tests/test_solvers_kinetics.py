@@ -14,7 +14,7 @@ class GenericKineticRegression(GenericSetupTestFitSolver, GenericPlotTestFitSolv
 class SimpleKineticRegression(GenericKineticRegression):
     factory = kinetics.SimpleKineticSolver
     parameters = np.array([2.1e-2])
-    configuration = {"p0": np.array([1e-3])}
+    configuration = {"p0": np.array([1e-4])}
     xmin = 0.0
     xmax = 500.0
     resolution = 50
@@ -35,10 +35,11 @@ class SimpleKineticRegressionNoiseL2(SimpleKineticRegression, TestCase):
 class SequenceKineticRegression(GenericKineticRegression):
     factory = kinetics.SequenceKineticSolver
     parameters = np.array([2.1e-2, 3.15e-3])
-    configuration = {"p0": np.array([2e-2, 2e-3])}
+    configuration = {"p0": np.array([1e-3, 1e-3])}
     xmin = 0.0
     xmax = 1000.0
     resolution = 50
+    loss_resolution = 20
 
 
 class SequenceKineticRegressionNoiseL0(SequenceKineticRegression, TestCase):
@@ -59,6 +60,7 @@ class BrusselatorKineticRegression(GenericKineticRegression):
     xmin = 0.0
     xmax = 20.0
     resolution = 75
+    loss_resolution = 10
 
 
 class BrusselatorKineticRegressionNoiseL0(BrusselatorKineticRegression, TestCase):
