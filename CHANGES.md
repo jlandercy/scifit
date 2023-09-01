@@ -20,6 +20,7 @@
  - [x] Validated ODE matrix system against manually writen ODE systems
  - [x] Added Brusselator Kinetic and Fit Solver
  - [x] Added steady state capability to Kinetic Solver
+ - [x] Added Quotient Rate figure
 
 ## v0.1.13
 
