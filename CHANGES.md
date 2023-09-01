@@ -13,6 +13,7 @@
    - [x] Write all _model_equation
  - [ ] Give a try to Kivy in another package (userflow first)
  - [ ] Apply 10^log10 to model for Kinetic in order to reduce errors
+ - [ ] Correct labeling when hiding substance (A, B instead of E, F)
  
 ## v0.1.14
 

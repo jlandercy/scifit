@@ -154,6 +154,16 @@ class GenericKineticTest:
         )
         plt.close(axe.figure)
 
+    def test_plot_quotient_rates(self):
+        name = self.__class__.__name__
+        self.solver.fit(t=self.t)
+        axe = self.solver.plot_quotient_rates()
+        axe.figure.savefig(
+            "{}/{}_quotient_rates.{}".format(self.media_path, name, self.format)
+        )
+        plt.close(axe.figure)
+
+
 
 resolution = 5000
 

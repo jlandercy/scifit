@@ -367,17 +367,22 @@ class KineticSolverInterface:
         x0 = self._x0[substance_index]
         return (x0 - x[:, substance_index]) / x0
 
-    def derivative(self, derivative_order=1, polynomial_order=3, window=21):
+    def derivative(self, data=None, derivative_order=1, polynomial_order=3, window=21):
         """
         Return the n-th derivative of a kinetic using Savitsky-Golay filter for estimation
 
+        :param data:
         :param derivative_order:
         :param polynomial_order:
         :param window:
         :return:
         """
+
+        if data is None:
+            data = self._solution.y.T
+
         dxdt = signal.savgol_filter(
-            self._solution.y.T,
+            data,
             window_length=window,
             polyorder=polynomial_order,
             deriv=derivative_order,
@@ -387,6 +392,13 @@ class KineticSolverInterface:
         )
         dxdt = np.round(dxdt, np.finfo(np.longdouble).precision)
         return dxdt
+
+    def quotient_rates(self):
+        """
+        Compute quotient rates
+        :return:
+        """
+        return self.derivative(data=self._quotients.T)
 
     def selectivities(self, substance_index=None):
         """
@@ -644,6 +656,30 @@ class KineticSolverInterface:
         axe.set_title("Activated State Model Kinetic:\nReaction Quotient Evolutions")
         axe.set_xlabel("Time, $t$")
         axe.set_ylabel("Reaction Quotients, $Q_i$")
+        axe.legend()
+        axe.set_yscale("log")
+        axe.grid()
+        fig.subplots_adjust(top=0.85, left=0.2)
+
+        return axe
+
+    def plot_quotient_rates(self):
+        """
+        Plot the reaction quotient for the solved system
+
+        :return:
+        """
+
+        fig, axe = plt.subplots()
+        dQ = self.quotient_rates().T
+        for i, dQi in enumerate(dQ):
+            axe.plot(
+                self._solution.t, dQi, label="$\partial Q_{%d}$: $%s$" % (i, self.model_formula(i))
+            )
+
+        axe.set_title("Activated State Model Kinetic:\nReaction Quotient Rates")
+        axe.set_xlabel("Time, $t$")
+        axe.set_ylabel("Quotients Rate, $\partial Q_i / \partial t$")
         axe.legend()
         axe.set_yscale("log")
         axe.grid()
