@@ -20,6 +20,7 @@ print_report = bool(int(os.getenv("TESTS_PRINT_REPORT", 0)))
 
 
 class GenericTestFitSolverInterface:
+
     dimension = None
     xdata = None
     ydata = None
@@ -125,7 +126,8 @@ class GenericTestFitSolverInterface:
         self.assertEqual(set(data.index).intersection({"min", "max"}), {"min", "max"})
 
 
-class GenericTestFitSolver:
+class GenericSetupTestFitSolver:
+
     root_path = ".cache/media/tests/"
     data_path = None
 
@@ -227,6 +229,9 @@ class GenericTestFitSolver:
         #     #self.configuration["p0"] = 0.5 * np.array(self.parameters)
         #     self.configuration["p0"] = domains.loc["min", :] + 0.25 * (domains.loc["max", :] - domains.loc["min", :])
         # print(self.configuration)
+
+
+class GenericBaseTestFitSolver:
 
     def test_signature(self):
         s = self.solver.signature
@@ -515,6 +520,9 @@ class GenericTestFitSolver:
             "{}/{}_summary.csv".format(self.media_path, name), summary=True
         )
 
+
+class GenericPlotTestFitSolver:
+
     def test_plot_fit(self):
         if print_fit:
             name = self.__class__.__name__
@@ -638,3 +646,7 @@ class GenericTestFitSolver:
             file = r"{}_report".format(name)
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
             self.solver.report(file=file, path=self.media_path, mode="pdf")
+
+
+class GenericTestFitSolver(GenericSetupTestFitSolver, GenericBaseTestFitSolver, GenericPlotTestFitSolver):
+    pass

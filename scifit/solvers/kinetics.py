@@ -4,7 +4,17 @@ from scifit.interfaces.kinetics import KineticSolverInterface
 from scifit.interfaces.solvers import FitSolver1D
 
 
+class DirectKineticSolver(FitSolver1D):
+
+    substance_index = 0
+
+    @classmethod
+    def model(cls, x, *b):
+        return cls.kinetic.solve(x[:, 0], b, None).y.T[:, cls.substance_index]
+
+
 class SimpleKineticSolver(FitSolver1D):
+
     _model_equation = r"A(t) \overset{\beta_0}{\longrightarrow} B"
 
     kinetic = KineticSolverInterface(
