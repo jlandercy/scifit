@@ -2,7 +2,7 @@
 
 ## To-do list
 
- - [ ] Implement ODE Solver (special case for Kinetics) make it FitSolvable as well
+ - [x] Implement ODE Solver (special case for Kinetics) make it FitSolvable as well
  - [ ] Implement complex models (see StackOverflow 10 years feed of fit and personal website)
    - [x] Kinetics
    - [ ] Mechanics
@@ -10,14 +10,15 @@
    - [ ] Distribution fit
  - [ ] Refactor all models to get parameters name:
    - [ ] Starting by 0 and get compliant with natural index
-   - [ ] Write all _model_equation
+   - [x] Write all _model_equation
  - [ ] Give a try to Kivy in another package (userflow first)
  - [ ] Apply 10^log10 to model for Kinetic in order to reduce errors
  
 ## v0.1.14
 
  - [x] Validated ODE matrix system against manually writen ODE systems
- - [x] Added Brusselator
+ - [x] Added Brusselator Kinetic and Fit Solver
+ - [x] Added steady state capability to Kinetic Solver
 
 ## v0.1.13
 
