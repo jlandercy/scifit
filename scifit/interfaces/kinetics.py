@@ -415,9 +415,9 @@ class KineticSolverInterface:
         :return:
         """
         substance_index = substance_index or self._substance_index or 0
-        # dxdt = self.derivative(derivative_order=1)
-        # selectivities = (dxdt.T / (dxdt[:, substance_index])).T
-        selectivities = self.derivative(data=self.integrated_selectivities(substance_index=substance_index))
+        dxdt = self.derivative(derivative_order=1)
+        selectivities = (dxdt.T / (dxdt[:, substance_index])).T
+        #selectivities = self.derivative(data=self.integrated_selectivities(substance_index=substance_index))
         return np.round(selectivities, np.finfo(np.longdouble).precision)
 
     def integrated_selectivities(self, substance_index=None):
@@ -432,10 +432,10 @@ class KineticSolverInterface:
         :return:
         """
         substance_index = substance_index or self._substance_index or 0
-        # S = self.selectivities(substance_index=substance_index)
+        S = self.selectivities(substance_index=substance_index)
         x0 = self._solution.y.T[:, substance_index]
-        # I = integrate.cumulative_trapezoid(S, x0, axis=0)
-        I = ((self._solution.y.T - self._x0).T / (x0 - self._x0[substance_index])).T
+        I = integrate.cumulative_trapezoid(S, x0, axis=0)
+        #I = ((self._solution.y.T - self._x0).T / (x0 - self._x0[substance_index])).T
         return I
 
     def yields(self, substance_index=None):
@@ -446,8 +446,8 @@ class KineticSolverInterface:
         :return:
         """
         substance_index = substance_index or self._substance_index or 0
-        S = self.integrated_selectivities(substance_index=substance_index)
-        return (S.T * self.convertion_ratio()).T
+
+        return (self._solution.y.T - self._x0) / self._x0[substance_index]
 
     def levenspiel(self):
         """
@@ -674,7 +674,7 @@ class KineticSolverInterface:
             substance_indices = np.arange(self.k)
 
         fig, axe = plt.subplots()
-        axe.plot(self._solution.t, self._integrated_selectivities[:, substance_indices])
+        axe.plot(self._solution.t[:-1], self._integrated_selectivities[:, substance_indices])
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
