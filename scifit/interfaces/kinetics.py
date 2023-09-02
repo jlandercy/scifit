@@ -418,7 +418,7 @@ class KineticSolverInterface:
         # dxdt = self.derivative(derivative_order=1)
         # selectivities = (dxdt.T / (dxdt[:, substance_index])).T
         selectivities = self.derivative(data=self.integrated_selectivities(substance_index=substance_index))
-        return selectivities
+        return np.round(selectivities, np.finfo(np.longdouble).precision)
 
     def integrated_selectivities(self, substance_index=None):
         """
@@ -435,7 +435,7 @@ class KineticSolverInterface:
         # S = self.selectivities(substance_index=substance_index)
         x0 = self._solution.y.T[:, substance_index]
         # I = integrate.cumulative_trapezoid(S, x0, axis=0)
-        I = (np.cumsum(self._solution.y.T, axis=0).T / np.cumsum(x0, axis=0)).T
+        I = ((self._solution.y.T - self._x0).T / (x0 - self._x0[substance_index])).T
         return I
 
     def yields(self, substance_index=None):
