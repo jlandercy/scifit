@@ -318,8 +318,9 @@ class KineticSolverInterface:
         self._dxdt = self.derivative(derivative_order=1)
         self._d2xdt2 = self.derivative(derivative_order=2)
         self._selectivities = self.selectivities()
-        self._levenspiel_curve = self.levenspiel_curve()
-        self._levenspiel_integral = self.levenspiel_integral()
+        self._integrated_selectivities = self.integrated_selectivities()
+        self._levenspiel = self.levenspiel()
+        self._integrated_levenspiel = self.integrated_levenspiel()
         return self._solution
 
     def quotient(self, x):
@@ -413,11 +414,30 @@ class KineticSolverInterface:
         :return:
         """
         substance_index = substance_index or self._substance_index or 0
-        dxdt = self.derivative(derivative_order=1)
-        selectivities = (dxdt.T / (dxdt[:, substance_index])).T
+        # dxdt = self.derivative(derivative_order=1)
+        # selectivities = (dxdt.T / (dxdt[:, substance_index])).T
+        selectivities = self.derivative(data=self.integrated_selectivities(substance_index=substance_index))
         return selectivities
 
-    def levenspiel_curve(self):
+    def integrated_selectivities(self, substance_index=None):
+        """
+        Return integrated selectivities using instantaneous selectivity estimates
+
+        .. math::
+
+            S_{i,j} = \\frac{\\int\\limits_{x_0}^{x} \\mathcal{S}_{i,j} \\mathrm{d}x}{\\int\\limits_{x_0}^{x} \\mathrm{d}x}
+
+        :param substance_index:
+        :return:
+        """
+        substance_index = substance_index or self._substance_index or 0
+        # S = self.selectivities(substance_index=substance_index)
+        x0 = self._solution.y.T[:, substance_index]
+        # I = integrate.cumulative_trapezoid(S, x0, axis=0)
+        I = (np.cumsum(self._solution.y.T, axis=0).T / np.cumsum(x0, axis=0)).T
+        return I
+
+    def levenspiel(self):
         """
         Return Levenspiel curve using concentration first derivative estimates
 
@@ -427,7 +447,7 @@ class KineticSolverInterface:
         L = 1.0 / (self.derivative(derivative_order=1))
         return L
 
-    def levenspiel_integral(self, substance_index=None):
+    def integrated_levenspiel(self, substance_index=None):
         """
         Return Levenspiel integration using concentration first derivative estimates
 
@@ -435,12 +455,12 @@ class KineticSolverInterface:
         :return:
         """
         substance_index = substance_index or self._substance_index or 0
-        L = self.levenspiel_curve()
+        L = self.levenspiel()
         x0 = self._solution.y.T[:, substance_index]
         I = integrate.cumulative_trapezoid(L, x0, axis=0)
         return I
 
-    def arrow(self, mode="normal"):
+    def arrow(self, mode="normal", overset=None):
         """
         Generate arrow for reactions
 
@@ -484,6 +504,16 @@ class KineticSolverInterface:
         :param mode:
         :return:
         """
+        return "; ".join([self.model_formula(j) for j in range(self.n)])
+
+    def model_equations(self, mode="normal"):
+        """
+        Generate reaction formulas
+
+        :param mode:
+        :return:
+        """
+        latex = r"\begin{eqnarray}"
         return "; ".join([self.model_formula(j) for j in range(self.n)])
 
     def dataset(self):
@@ -613,7 +643,7 @@ class KineticSolverInterface:
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
         axe.set_xlabel("Time, $t$")
-        axe.set_ylabel("Instataneous Selectivities, $S_i$")
+        axe.set_ylabel("Instataneous Selectivities, $\mathcal{S}_i$")
         axe.legend(list(self._names[substance_indices]))
         # axe.set_yscale("log")
         axe.grid()
@@ -621,7 +651,31 @@ class KineticSolverInterface:
 
         return axe
 
-    def plot_levenspiel_curve(self, substance_indices=None):
+    def plot_integrated_selectivities(self, substance_indices=None):
+        """
+        Plot ODE solution selectivities figure
+
+        :return:
+        """
+
+        if substance_indices is None:
+            substance_indices = np.arange(self.k)
+
+        fig, axe = plt.subplots()
+        axe.plot(self._solution.t, self._integrated_selectivities[:, substance_indices])
+        axe.set_title(
+            "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
+        )
+        axe.set_xlabel("Time, $t$")
+        axe.set_ylabel("Integrated Selectivities, $S_i$")
+        axe.legend(list(self._names[substance_indices]))
+        # axe.set_yscale("log")
+        axe.grid()
+        fig.subplots_adjust(top=0.85, left=0.2)
+
+        return axe
+
+    def plot_levenspiel(self, substance_indices=None):
         """
         Plot ODE solution Levenspiel curve figure
 
@@ -632,7 +686,10 @@ class KineticSolverInterface:
             substance_indices = np.arange(self.k)
 
         fig, axe = plt.subplots()
-        axe.plot(self._solution.y.T[:, self._substance_index], np.abs(self._levenspiel_curve[:, substance_indices]))
+        axe.plot(
+            self._solution.y.T[:, self._substance_index],
+            np.abs(self._levenspiel[:, substance_indices])
+        )
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
@@ -645,7 +702,7 @@ class KineticSolverInterface:
 
         return axe
 
-    def plot_levenspiel_integral(self, substance_indices=None):
+    def plot_integrated_levenspiel(self, substance_indices=None):
         """
         Plot ODE solution Levenspiel integration figure
 
@@ -656,7 +713,7 @@ class KineticSolverInterface:
             substance_indices = np.arange(self.k)
 
         fig, axe = plt.subplots()
-        axe.plot(self.convertion_ratio()[:-1], self._levenspiel_integral[:, substance_indices])
+        axe.plot(self.convertion_ratio()[:-1], self._integrated_levenspiel[:, substance_indices])
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )

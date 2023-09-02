@@ -89,7 +89,7 @@ class GenericKineticTest:
 
     def test_levenspiel(self):
         self.solver.fit(t=self.t)
-        L = self.solver.levenspiel_integral()
+        L = self.solver.integrated_levenspiel()
 
     def test_dataset(self):
         name = self.__class__.__name__
@@ -136,21 +136,30 @@ class GenericKineticTest:
         )
         plt.close(axe.figure)
 
-    def test_plot_levenspiel_curve(self):
+    def test_plot_integrated_selectivities(self):
         name = self.__class__.__name__
         self.solver.fit(t=self.t)
-        axe = self.solver.plot_levenspiel_curve(substance_indices=self.substance_indices)
+        axe = self.solver.plot_integrated_selectivities(substance_indices=self.substance_indices)
         axe.figure.savefig(
-            "{}/{}_levenspiel_curve.{}".format(self.media_path, name, self.format)
+            "{}/{}_selectivities_integrated.{}".format(self.media_path, name, self.format)
         )
         plt.close(axe.figure)
 
-    def test_plot_levenspiel_integral(self):
+    def test_plot_levenspiel(self):
         name = self.__class__.__name__
         self.solver.fit(t=self.t)
-        axe = self.solver.plot_levenspiel_integral(substance_indices=self.substance_indices)
+        axe = self.solver.plot_levenspiel(substance_indices=self.substance_indices)
         axe.figure.savefig(
-            "{}/{}_levenspiel_integral.{}".format(self.media_path, name, self.format)
+            "{}/{}_levenspiel.{}".format(self.media_path, name, self.format)
+        )
+        plt.close(axe.figure)
+
+    def test_plot_integrated_levenspiel(self):
+        name = self.__class__.__name__
+        self.solver.fit(t=self.t)
+        axe = self.solver.plot_integrated_levenspiel(substance_indices=self.substance_indices)
+        axe.figure.savefig(
+            "{}/{}_levenspiel_integrated.{}".format(self.media_path, name, self.format)
         )
         plt.close(axe.figure)
 
@@ -171,7 +180,6 @@ class GenericKineticTest:
             "{}/{}_quotient_rates.{}".format(self.media_path, name, self.format)
         )
         plt.close(axe.figure)
-
 
 
 resolution = 5000
