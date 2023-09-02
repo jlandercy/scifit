@@ -318,7 +318,7 @@ class KineticSolverInterface:
         self._dxdt = self.derivative(derivative_order=1)
         self._d2xdt2 = self.derivative(derivative_order=2)
         self._selectivities = self.selectivities()
-        self._levenspiel = self.levenspiel()
+        self._levenspiel = self.levenspiel_integral()
         return self._solution
 
     def quotient(self, x):
@@ -416,7 +416,17 @@ class KineticSolverInterface:
         selectivities = (dxdt.T / (dxdt[:, substance_index])).T
         return selectivities
 
-    def levenspiel(self, substance_index=None):
+    def levenspiel_curve(self):
+        """
+        Return Levenspiel curve using concentration first derivative estimates
+
+        :param substance_index:
+        :return:
+        """
+        L = 1.0 / (self.derivative(derivative_order=1))
+        return L
+
+    def levenspiel_integral(self, substance_index=None):
         """
         Return Levenspiel integration using concentration first derivative estimates
 
@@ -424,9 +434,7 @@ class KineticSolverInterface:
         :return:
         """
         substance_index = substance_index or self._substance_index or 0
-        L = 1.0 / (
-            np.abs(self.derivative(derivative_order=1)) + np.finfo(np.longdouble).eps
-        )
+        L = self.levenspiel_curve()
         x0 = self._solution.y.T[:, substance_index]
         I = integrate.cumulative_trapezoid(L, x0, axis=0)
         return I
@@ -612,7 +620,7 @@ class KineticSolverInterface:
 
         return axe
 
-    def plot_levenspiel(self, substance_indices=None):
+    def plot_levenspiel_integral(self, substance_indices=None):
         """
         Plot ODE solution Levenspiel integration figure
 
@@ -623,14 +631,13 @@ class KineticSolverInterface:
             substance_indices = np.arange(self.k)
 
         fig, axe = plt.subplots()
-        axe.plot(self._solution.t[:-1], self._levenspiel[:, substance_indices])
+        axe.plot(self.convertion_ratio()[:-1], self._levenspiel[:, substance_indices])
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
-        axe.set_xlabel("Time, $t$")
-        axe.set_ylabel("Levenspiel Integral, $L_i$")
+        axe.set_xlabel(r"Conversion Ratio, $\rho$")
+        axe.set_ylabel(r"Levenspiel Integral, $L_i$")
         axe.legend(list(self._names[substance_indices]))
-        # axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
 
