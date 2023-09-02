@@ -136,12 +136,21 @@ class GenericKineticTest:
         )
         plt.close(axe.figure)
 
+    def test_plot_levenspiel_curve(self):
+        name = self.__class__.__name__
+        self.solver.fit(t=self.t)
+        axe = self.solver.plot_levenspiel_curve(substance_indices=self.substance_indices)
+        axe.figure.savefig(
+            "{}/{}_levenspiel_curve.{}".format(self.media_path, name, self.format)
+        )
+        plt.close(axe.figure)
+
     def test_plot_levenspiel_integral(self):
         name = self.__class__.__name__
         self.solver.fit(t=self.t)
         axe = self.solver.plot_levenspiel_integral(substance_indices=self.substance_indices)
         axe.figure.savefig(
-            "{}/{}_levenspiel.{}".format(self.media_path, name, self.format)
+            "{}/{}_levenspiel_integral.{}".format(self.media_path, name, self.format)
         )
         plt.close(axe.figure)
 

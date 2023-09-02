@@ -318,7 +318,8 @@ class KineticSolverInterface:
         self._dxdt = self.derivative(derivative_order=1)
         self._d2xdt2 = self.derivative(derivative_order=2)
         self._selectivities = self.selectivities()
-        self._levenspiel = self.levenspiel_integral()
+        self._levenspiel_curve = self.levenspiel_curve()
+        self._levenspiel_integral = self.levenspiel_integral()
         return self._solution
 
     def quotient(self, x):
@@ -620,6 +621,30 @@ class KineticSolverInterface:
 
         return axe
 
+    def plot_levenspiel_curve(self, substance_indices=None):
+        """
+        Plot ODE solution Levenspiel curve figure
+
+        :return:
+        """
+
+        if substance_indices is None:
+            substance_indices = np.arange(self.k)
+
+        fig, axe = plt.subplots()
+        axe.plot(self._solution.y.T[:, self._substance_index], np.abs(self._levenspiel_curve[:, substance_indices]))
+        axe.set_title(
+            "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
+        )
+        axe.set_xlabel(r"Reference Concentration, $x_r$")
+        axe.set_ylabel(r"Levenspiel Curves, $|L_i|$")
+        axe.legend(list(self._names[substance_indices]))
+        axe.set_yscale("log")
+        axe.grid()
+        fig.subplots_adjust(top=0.85, left=0.2)
+
+        return axe
+
     def plot_levenspiel_integral(self, substance_indices=None):
         """
         Plot ODE solution Levenspiel integration figure
@@ -631,12 +656,12 @@ class KineticSolverInterface:
             substance_indices = np.arange(self.k)
 
         fig, axe = plt.subplots()
-        axe.plot(self.convertion_ratio()[:-1], self._levenspiel[:, substance_indices])
+        axe.plot(self.convertion_ratio()[:-1], self._levenspiel_integral[:, substance_indices])
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
         axe.set_xlabel(r"Conversion Ratio, $\rho$")
-        axe.set_ylabel(r"Levenspiel Integral, $L_i$")
+        axe.set_ylabel(r"Levenspiel Integral, $\int_0^\rho L_i \mathrm{d}\rho$")
         axe.legend(list(self._names[substance_indices]))
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
