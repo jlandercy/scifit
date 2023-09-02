@@ -319,6 +319,7 @@ class KineticSolverInterface:
         self._d2xdt2 = self.derivative(derivative_order=2)
         self._selectivities = self.selectivities()
         self._integrated_selectivities = self.integrated_selectivities()
+        self._yields = self.yields()
         self._levenspiel = self.levenspiel()
         self._integrated_levenspiel = self.integrated_levenspiel()
         return self._solution
@@ -436,6 +437,17 @@ class KineticSolverInterface:
         # I = integrate.cumulative_trapezoid(S, x0, axis=0)
         I = (np.cumsum(self._solution.y.T, axis=0).T / np.cumsum(x0, axis=0)).T
         return I
+
+    def yields(self, substance_index=None):
+        """
+        Return yields using integrated selectivities
+
+        :param substance_index:
+        :return:
+        """
+        substance_index = substance_index or self._substance_index or 0
+        S = self.integrated_selectivities(substance_index=substance_index)
+        return (S.T * self.convertion_ratio()).T
 
     def levenspiel(self):
         """
@@ -674,6 +686,31 @@ class KineticSolverInterface:
         fig.subplots_adjust(top=0.85, left=0.2)
 
         return axe
+
+    def plot_yields(self, substance_indices=None):
+        """
+        Plot ODE solution yields figure
+
+        :return:
+        """
+
+        if substance_indices is None:
+            substance_indices = np.arange(self.k)
+
+        fig, axe = plt.subplots()
+        axe.plot(self.convertion_ratio(), self._yields[:, substance_indices])
+        axe.set_title(
+            "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
+        )
+        axe.set_xlabel(r"Conversion Ratio, $\rho$")
+        axe.set_ylabel(r"Yields, $y_i$")
+        axe.legend(list(self._names[substance_indices]))
+        # axe.set_yscale("log")
+        axe.grid()
+        fig.subplots_adjust(top=0.85, left=0.2)
+
+        return axe
+
 
     def plot_levenspiel(self, substance_indices=None):
         """

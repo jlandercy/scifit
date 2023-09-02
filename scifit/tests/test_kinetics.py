@@ -145,6 +145,15 @@ class GenericKineticTest:
         )
         plt.close(axe.figure)
 
+    def test_yields(self):
+        name = self.__class__.__name__
+        self.solver.fit(t=self.t)
+        axe = self.solver.plot_yields(substance_indices=self.substance_indices)
+        axe.figure.savefig(
+            "{}/{}_yields.{}".format(self.media_path, name, self.format)
+        )
+        plt.close(axe.figure)
+
     def test_plot_levenspiel(self):
         name = self.__class__.__name__
         self.solver.fit(t=self.t)
