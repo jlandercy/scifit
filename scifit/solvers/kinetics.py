@@ -5,7 +5,6 @@ from scifit.interfaces.solvers import FitSolver1D
 
 
 class SimpleKineticSolver(FitSolver1D):
-
     _model_equation = r"A(t) \overset{\beta_0}{\longrightarrow} B"
 
     kinetic = KineticSolverInterface(
@@ -21,7 +20,6 @@ class SimpleKineticSolver(FitSolver1D):
 
 
 class SequenceKineticSolver(FitSolver1D):
-
     _model_equation = r"A \overset{\beta_0}{\longrightarrow} B(t) \overset{\beta_1}{\longrightarrow} C"
 
     kinetic = KineticSolverInterface(
@@ -51,17 +49,16 @@ class SequenceKineticSolver(FitSolver1D):
             :width: 560
             :alt: Sequence Kinetic Adjustment
 
-        :param x: 
-        :param b0: 
-        :param b1: 
-        :return: 
+        :param x:
+        :param b0:
+        :param b1:
+        :return:
         """
         solution = cls.kinetic.solve(x[:, 0], [b0, b1], None).y.T[:, 1]
         return solution
 
 
 class BrusselatorKineticSolver(FitSolver1D):
-
     _model_equation = r"""
     \begin{eqnarray}
     A &\overset{\beta_0}{\longrightarrow}& E(t) \\
@@ -90,7 +87,7 @@ class BrusselatorKineticSolver(FitSolver1D):
         ),
         k0=np.array([1.0, 1.0, 1.0, 1.0]),
         x0=np.array([1.0, 3.0, 0.0, 0.0, 1.0, 1.0]),
-        unsteady=np.array([0.0, 0.0, 1.0, 1.0, 1.0, 1.0])
+        unsteady=np.array([0.0, 0.0, 1.0, 1.0, 1.0, 1.0]),
     )
 
     @classmethod

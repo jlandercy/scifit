@@ -20,7 +20,6 @@ print_report = bool(int(os.getenv("TESTS_PRINT_REPORT", 0)))
 
 
 class GenericTestFitSolverInterface:
-
     dimension = None
     xdata = None
     ydata = None
@@ -127,7 +126,6 @@ class GenericTestFitSolverInterface:
 
 
 class GenericSetupTestFitSolver:
-
     root_path = ".cache/media/tests/"
     data_path = None
 
@@ -232,7 +230,6 @@ class GenericSetupTestFitSolver:
 
 
 class GenericBaseTestFitSolver:
-
     def test_signature(self):
         s = self.solver.signature
         n = self.solver.parameter_space_size
@@ -522,7 +519,6 @@ class GenericBaseTestFitSolver:
 
 
 class GenericPlotTestFitSolver:
-
     def test_plot_fit(self):
         if print_fit:
             name = self.__class__.__name__
@@ -648,5 +644,7 @@ class GenericPlotTestFitSolver:
             self.solver.report(file=file, path=self.media_path, mode="pdf")
 
 
-class GenericTestFitSolver(GenericSetupTestFitSolver, GenericBaseTestFitSolver, GenericPlotTestFitSolver):
+class GenericTestFitSolver(
+    GenericSetupTestFitSolver, GenericBaseTestFitSolver, GenericPlotTestFitSolver
+):
     pass

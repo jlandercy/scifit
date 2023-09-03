@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from scifit.solvers import kinetics
-from scifit.tests.helpers import GenericSetupTestFitSolver, GenericPlotTestFitSolver
+from scifit.tests.helpers import GenericPlotTestFitSolver, GenericSetupTestFitSolver
 
 
 class GenericKineticRegression(GenericSetupTestFitSolver, GenericPlotTestFitSolver):

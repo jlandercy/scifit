@@ -337,7 +337,9 @@ class KineticSolverInterface:
         self._dxdt = self.derivative(derivative_order=1)
         self._d2xdt2 = self.derivative(derivative_order=2)
         self._selectivities = self.selectivities(substance_index=substance_index)
-        self._integrated_selectivities = self.global_selectivities(substance_index=substance_index)
+        self._integrated_selectivities = self.global_selectivities(
+            substance_index=substance_index
+        )
         self._yields = self.yields(substance_index=substance_index)
         self._levenspiel = self.levenspiel()
         self._integrated_levenspiel = self.integrated_levenspiel()
@@ -390,7 +392,9 @@ class KineticSolverInterface:
         x0 = self._x0[substance_index]
         return (x0 - x[:, substance_index]) / x0
 
-    def derivative(self, data=None, derivative_order=1, polynomial_order=3, window=21, rounded=True):
+    def derivative(
+        self, data=None, derivative_order=1, polynomial_order=3, window=21, rounded=True
+    ):
         """
         Return the n-th derivative of a kinetic using Savitsky-Golay filter for estimation
 
@@ -417,7 +421,7 @@ class KineticSolverInterface:
         # Drastically reduce noise on selectivity:
         if rounded:
             dxdt = np.round(dxdt, self._precision)
-            #dxdt = self.threshold(dxdt)
+            # dxdt = self.threshold(dxdt)
 
         return dxdt
 
@@ -442,7 +446,7 @@ class KineticSolverInterface:
         substance_index = substance_index or self._substance_index or 0
         dxdt = self.derivative(derivative_order=1)
         selectivities = (dxdt.T / (dxdt[:, substance_index])).T
-        #selectivities = self.derivative(data=self.integrated_selectivities(substance_index=substance_index))
+        # selectivities = self.derivative(data=self.integrated_selectivities(substance_index=substance_index))
         return np.round(selectivities, np.finfo(np.longdouble).precision)
 
     def global_selectivities(self, substance_index=None):
@@ -460,7 +464,7 @@ class KineticSolverInterface:
         S = self.selectivities(substance_index=substance_index)
         x0 = self._solution.y.T[:, substance_index]
         I = integrate.cumulative_trapezoid(S, x0, axis=0)
-        #I = ((self._solution.y.T - self._x0).T / (x0 - self._x0[substance_index])).T
+        # I = ((self._solution.y.T - self._x0).T / (x0 - self._x0[substance_index])).T
         return I
 
     def yields(self, substance_index=None):
@@ -565,9 +569,9 @@ class KineticSolverInterface:
         :param mode:
         :return:
         """
-        return "; ".join([self.model_formula(j) for j in range(self.n)])
+        return "; ".join([self.model_formula(j, mode=mode) for j in range(self.n)])
 
-    def model_equations(self, mode="normal"):
+    def model_equations(self):
         """
         Generate reaction formulas
 
@@ -575,7 +579,14 @@ class KineticSolverInterface:
         :return:
         """
         latex = r"\begin{eqnarray}" + "\n"
-        latex += (r" \\" + "\n").join([self.model_formula(j, mode="latex", overset=r"\beta_{%d}" % j, array=True) for j in range(self.n)])
+        latex += (r" \\" + "\n").join(
+            [
+                self.model_formula(
+                    j, mode="latex", overset=r"\beta_{%d}" % j, array=True
+                )
+                for j in range(self.n)
+            ]
+        )
         latex += "\n" + r"\end{eqnarray}" + "\n"
         return latex
 
@@ -724,7 +735,10 @@ class KineticSolverInterface:
             substance_indices = np.arange(self.k)
 
         fig, axe = plt.subplots()
-        axe.plot(self.convertion_ratio()[:-1], self._integrated_selectivities[:, substance_indices])
+        axe.plot(
+            self.convertion_ratio()[:-1],
+            self._integrated_selectivities[:, substance_indices],
+        )
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
@@ -774,7 +788,7 @@ class KineticSolverInterface:
         fig, axe = plt.subplots()
         axe.plot(
             self._solution.y.T[:, self._substance_index],
-            np.abs(self._levenspiel[:, substance_indices])
+            np.abs(self._levenspiel[:, substance_indices]),
         )
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
@@ -799,7 +813,10 @@ class KineticSolverInterface:
             substance_indices = np.arange(self.k)
 
         fig, axe = plt.subplots()
-        axe.plot(self.convertion_ratio()[:-1], self._integrated_levenspiel[:, substance_indices])
+        axe.plot(
+            self.convertion_ratio()[:-1],
+            self._integrated_levenspiel[:, substance_indices],
+        )
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
@@ -849,7 +866,10 @@ class KineticSolverInterface:
         dQ = self.quotient_rates().T
         for i, dQi in enumerate(dQ):
             axe.plot(
-                self._solution.t, dQi, label="$\partial Q_{%d}$: $%s$" % (i, self.model_formula(i))
+                self._solution.t,
+                dQi,
+                label="$\partial Q_{%d}$: $%s$"
+                % (i, self.model_formula(i, mode="latex")),
             )
 
         axe.set_title("Activated State Model Kinetic:\nReaction Quotient Rates")
