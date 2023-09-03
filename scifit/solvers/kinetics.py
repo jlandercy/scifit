@@ -58,6 +58,33 @@ class SequenceKineticSolver(FitSolver1D):
         return solution
 
 
+class SequenceOfThreeKineticSolver(FitSolver1D):
+
+    kinetic = KineticSolverInterface(
+        nur=np.array(
+            [
+                [-1, -1, 0, 0],
+                [-1, 0, -1, 0],
+                [-1, 0, 0, -1],
+            ]
+        ),
+        nup=np.array(
+            [
+                [2, 0, 0, 0],
+                [0, 0, 0, 1],
+                [0, 1, 0, 0],
+            ]
+        ),
+        x0=np.array([3e-3, 2e-3, 1e-3, 0.0]),
+        k0=np.array([2.1, 1, 9e-1]),
+    )
+
+    @classmethod
+    def model(cls, x, b0, b1, b2):
+        solution = cls.kinetic.solve(x[:, 0], [b0, b1, b2], None).y.T[:, 0]
+        return solution
+
+
 class BrusselatorKineticSolver(FitSolver1D):
     _model_equation = r"""
     \begin{eqnarray}

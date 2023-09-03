@@ -601,3 +601,32 @@ class MultipleKinetics07(MultipleKinetics06, TestCase):
     k0 = np.array([1, 1, 1, 1])
 
     t = np.linspace(0.0, 50.0, resolution)
+
+
+class MultipleKinetics08(GenericKineticTest, TestCase):
+    nur = np.array(
+        [
+            [-1, -1, 0, 0],
+            [-1, 0, -1, 0],
+            [-1, 0, 0, -1],
+        ]
+    )
+    nup = np.array(
+        [
+            [2, 0, 0, 0],
+            [0, 0, 0, 1],
+            [0, 1, 0, 0],
+        ]
+    )
+    x0 = np.array([3e-3, 2e-3, 1e-3, 0.0])
+    k0 = np.array([2.1, 1, 9e-1])
+    t = np.linspace(0.0, 5000.0, resolution)
+
+    def model(self, t, x):
+        return np.array(
+            [
+                -self.k0[0] * x[0],
+                +self.k0[0] * x[0] - self.k0[1] * x[1],
+                +self.k0[1] * x[1],
+            ]
+        )

@@ -54,13 +54,36 @@ class SequenceKineticRegressionNoiseL2(SequenceKineticRegression, TestCase):
     sigma = 1e-1
 
 
+class SequenceOfThreeKineticRegression(GenericKineticRegression):
+    factory = kinetics.SequenceOfThreeKineticSolver
+    parameters = np.array([2, 1, 1])
+    configuration = {"p0": np.array([2, 1, 1])}
+    xmin = 0.0
+    xmax = 1000.0
+    resolution = 75
+    loss_resolution = 20
+
+
+class SequenceOfThreeKineticRegressionNoiseL0(SequenceOfThreeKineticRegression, TestCase):
+    sigma = 1e-6
+
+
+class SequenceOfThreeKineticRegressionNoiseL1(SequenceOfThreeKineticRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class SequenceOfThreeKineticRegressionNoiseL2(SequenceOfThreeKineticRegression, TestCase):
+    sigma = 1e-1
+
+
+
 class BrusselatorKineticRegression(GenericKineticRegression):
     factory = kinetics.BrusselatorKineticSolver
     parameters = np.array([1.1, 0.9, 1.1, 0.9])
     xmin = 0.0
     xmax = 20.0
     resolution = 75
-    loss_resolution = 10
+    loss_resolution = 20
 
     # def test_plot_loss_automatic(self):
     #     """Too heavy"""
