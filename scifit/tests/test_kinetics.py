@@ -212,10 +212,10 @@ class GenericKineticTest:
         name = self.__class__.__name__
         file = r"{}_report".format(name)
         self.solver.fit(self.t)
-        self.solver.report(file=file, path=self.media_path, mode="pdf")
+        self.solver.report(file=file, path=self.media_path, mode="pdf", substance_indices=self.substance_indices)
 
 
-resolution = 5000
+resolution = 201
 
 
 class SimpleKinetic01(GenericKineticTest):

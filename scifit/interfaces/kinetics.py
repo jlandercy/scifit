@@ -910,6 +910,6 @@ class KineticSolverInterface:
             data.pop("k0")
         return data
 
-    def report(self, file, path=".", mode="pdf"):
+    def report(self, file, path=".", mode="pdf", **kwargs):
         processor = KineticSolverReportProcessor()
-        processor.report(self, file=file, path=path, mode=mode)
+        processor.report(self, file=file, path=path, mode=mode, **kwargs)

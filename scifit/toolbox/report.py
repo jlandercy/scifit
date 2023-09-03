@@ -80,7 +80,7 @@ class ReportProcessor:
             return cls.serialize_table(item, mode=table_mode)
 
     @classmethod
-    def report(cls, solver, context=None, path=".", file="report", mode="pdf"):
+    def report(cls, solver, context=None, path=".", file="report", mode="pdf", **kwargs):
         modes = {"pdf", "html", "docx"}
         if mode not in modes:
             raise ConfigurationError(
@@ -92,7 +92,7 @@ class ReportProcessor:
             table_mode = "html"
         else:
             table_mode = "md"
-        context = cls.context(solver, context=context, table_mode=table_mode)
+        context = cls.context(solver, context=context, table_mode=table_mode, **kwargs)
         payload = cls.render(context)
         cls.convert(payload, path=path, file=file, mode=mode)
 
@@ -229,7 +229,7 @@ class KineticSolverReportProcessor(ReportProcessor):
     template = "kinetic.md"
 
     @classmethod
-    def context(cls, solver, context=None, table_mode="latex", figure_mode="svg"):
+    def context(cls, solver, context=None, table_mode="latex", figure_mode="svg", substance_indices=None):
         if context is None:
             context = {
                 "title": "Kinetic Report",
@@ -237,14 +237,20 @@ class KineticSolverReportProcessor(ReportProcessor):
                 "supervisor": "Jean Landercy",
             }
 
+        if substance_indices is None:
+            substance_indices = list(range(solver.k))
+
         context["equations"] = solver.model_equations()
 
-        table = cls.serialize(solver.coefficients(), table_mode=table_mode)
+        data = solver.coefficients()
+        data.columns = data.columns.map(lambda x: "$%s$" % x)
+        table = cls.serialize(data, table_mode=table_mode)
         context["coefficients"] = table
 
-        data = solver.concentrations()
-        data[""] = data[""].replace({"x0": "{$x_0$}"})
-        data.iloc[-1, :] = data.iloc[-1, :].apply(lambda x: "{%s}" % x)
+        data = solver.concentrations().set_index("").T
+        data.index = data.index.map(lambda x: "${%s}$" % x)
+        data["steady"] = data["steady"].apply(lambda x: "{%s}" % x)
+        data = data.rename(columns={"x0": "$x_0$", "steady": "{Steady}"}).reset_index()
         table = cls.serialize(data, table_mode=table_mode)
         context["concentrations"] = table
 
@@ -256,9 +262,23 @@ class KineticSolverReportProcessor(ReportProcessor):
         table = cls.serialize(data, table_mode=table_mode)
         context["constants"] = table
 
-        axe = solver.plot_solve()
-        solution = cls.serialize(axe)
+        axe = solver.plot_solve(substance_indices=substance_indices)
+        figure = cls.serialize(axe)
         plt.close(axe.figure)
-        context["solution"] = solution
+        context["solution"] = figure
+
+        axe = solver.plot_quotients()
+        figure = cls.serialize(axe)
+        plt.close(axe.figure)
+        context["quotients"] = figure
+
+        axe = solver.plot_selectivities(substance_indices=substance_indices)
+        figure = cls.serialize(axe)
+        plt.close(axe.figure)
+        context["selectivities"] = figure
+
+        data = solver.dataset()
+        table = cls.serialize(data, table_mode=table_mode)
+        context["dataset"] = table
 
         return context
