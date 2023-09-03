@@ -63,6 +63,23 @@ class KineticSolverInterface:
         self._steady = steady
 
     @staticmethod
+    def threshold(x, eps=None):
+        """
+        Apply threshold (default is machine precsion)
+
+        :param x:
+        :param eps:
+        :return:
+        """
+
+        if eps is None:
+            eps = np.finfo(np.longdouble).eps
+
+        x[np.abs(x) <= eps] = eps
+
+        return x
+
+    @staticmethod
     def split_nus(nus):
         """
         Split stoechiometric coefficients matrix into reactants and products
@@ -272,9 +289,10 @@ class KineticSolverInterface:
                 (-self.nus) * np.column_stack([reaction_rates] * self.k), axis=0
             )
 
-        return (
-            np.round(substance_rates, np.finfo(np.longdouble).precision) * self._steady
-        )
+        # return (
+        #     np.round(substance_rates, np.finfo(np.longdouble).precision) * self._steady
+        # )
+        return substance_rates * self._steady
 
     def parametered_model(self, k0, k0inv):
         def wrapped(t, x):
@@ -282,7 +300,7 @@ class KineticSolverInterface:
 
         return wrapped
 
-    def solve(self, t, k0, k0inv):
+    def solve(self, t, k0, k0inv, eps=None):
         t = np.array(t)
         tspan = np.array([t.min(), t.max()])
         model = self.parametered_model(k0, k0inv)
@@ -342,6 +360,7 @@ class KineticSolverInterface:
         :return:
         """
         # return np.prod(np.power(np.row_stack([x] * self.n), self.nus), axis=1)
+
         return np.power(
             10, np.sum(np.log10(np.row_stack([x] * self.n)) * self.nus, axis=1)
         )
