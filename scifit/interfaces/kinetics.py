@@ -299,7 +299,7 @@ class KineticSolverInterface:
 
         return wrapped
 
-    def solve(self, t, k0, k0inv, eps=None):
+    def solve(self, t, k0, k0inv):
         t = np.array(t)
         tspan = np.array([t.min(), t.max()])
         model = self.parametered_model(k0, k0inv)
@@ -315,6 +315,22 @@ class KineticSolverInterface:
             rtol=1e-10,
         )
         return solution
+
+    def evaluate(self, t, k0, k0inv, mode="linear", resolution=5001):
+        """
+        Solve the kinetic with high resolution regular grid and then interpolate on data domain
+        :param t:
+        :param k0:
+        :param k0inv:
+        :param mode:
+        :param resolution:
+        :return:
+        """
+        t = np.array(t)
+        tlin = np.linspace(t.min(), t.max(), resolution)
+        solution = self.solve(tlin, k0, k0inv)
+        interpolator = interpolate.interp1d(tlin, solution.y.T, axis=0, kind=mode)
+        return interpolator(t)
 
     def fit(self, t, k0=None, k0inv=None, substance_index=None):
         """
