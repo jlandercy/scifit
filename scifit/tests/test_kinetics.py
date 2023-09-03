@@ -17,7 +17,7 @@ class GenericKineticTest:
 
     substance_index = 0
     substance_indices = None
-    steady = None
+    unsteady = None
     nur = None
     nup = None
     x0 = None
@@ -43,7 +43,7 @@ class GenericKineticTest:
             k0inv=self.k0inv,
             mode=self.mode,
             substance_index=self.substance_index,
-            steady=self.steady,
+            unsteady=self.unsteady,
         )
 
     def test_solve(self):
@@ -136,12 +136,12 @@ class GenericKineticTest:
         )
         plt.close(axe.figure)
 
-    def test_plot_integrated_selectivities(self):
+    def test_plot_global_selectivities(self):
         name = self.__class__.__name__
         self.solver.fit(t=self.t)
-        axe = self.solver.plot_integrated_selectivities(substance_indices=self.substance_indices)
+        axe = self.solver.plot_global_selectivities(substance_indices=self.substance_indices)
         axe.figure.savefig(
-            "{}/{}_selectivities_integrated.{}".format(self.media_path, name, self.format)
+            "{}/{}_selectivities_global.{}".format(self.media_path, name, self.format)
         )
         plt.close(axe.figure)
 
@@ -495,7 +495,7 @@ class MultipleKinetics05(GenericKineticTest, TestCase):
             ]
         )
 
-    steady = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+    unsteady = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
     substance_indices = None
     x0 = np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0.0])
 
@@ -528,7 +528,8 @@ class MultipleKinetics06(MultipleKinetics05, TestCase):
             ]
         )
 
-    steady = np.array([0.0, 0.0, 1.0, 1.0, 1.0, 1.0])
+    unsteady = np.array([0.0, 0.0, 1.0, 1.0, 1.0, 1.0])
+    substance_index = 2
     substance_indices = [4, 5]
     x0 = np.array([1, 3, 0.0, 0.0, 1, 1])
     k0 = np.array([1, 1, 1, 1])
@@ -555,7 +556,8 @@ class MultipleKinetics07(MultipleKinetics06, TestCase):
             ]
         )
 
-    steady = np.array([0.0, 0.0, 1.0, 1.0, 1.0, 1.0])
+    unsteady = np.array([0.0, 0.0, 1.0, 1.0, 1.0, 1.0])
+    substance_index = 2
     substance_indices = [4, 5]
     x0 = np.array([1, 1.7, 0.0, 0.0, 1, 1])
     k0 = np.array([1, 1, 1, 1])

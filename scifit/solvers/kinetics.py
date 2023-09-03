@@ -90,7 +90,7 @@ class BrusselatorKineticSolver(FitSolver1D):
         ),
         k0=np.array([1.0, 1.0, 1.0, 1.0]),
         x0=np.array([1.0, 3.0, 0.0, 0.0, 1.0, 1.0]),
-        steady=np.array([0.0, 0.0, 1.0, 1.0, 1.0, 1.0])
+        unsteady=np.array([0.0, 0.0, 1.0, 1.0, 1.0, 1.0])
     )
 
     @classmethod
