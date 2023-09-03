@@ -62,9 +62,9 @@ class BrusselatorKineticRegression(GenericKineticRegression):
     resolution = 75
     loss_resolution = 10
 
-    def test_plot_loss_automatic(self):
-        """Too heavy"""
-        pass
+    # def test_plot_loss_automatic(self):
+    #     """Too heavy"""
+    #     pass
 
     def test_process_report(self):
         """Too heavy"""
