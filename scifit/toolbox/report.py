@@ -23,10 +23,10 @@ class ReportProcessor:
     def context(cls, solver, *args, **kwargs):
         return {}
 
-    @staticmethod
-    def render(context=None, template=template, directory=None):
-        if directory is None:
-            directory = pathlib.Path(__file__).parent / "resources/reports/"
+    @classmethod
+    def render(cls, context=None, template=None, directory=None):
+        template = template or cls.template
+        directory = directory or pathlib.Path(__file__).parent / "resources/reports/"
         loader = jinja2.FileSystemLoader(searchpath=str(directory))
         environment = jinja2.Environment(loader=loader)
         template = environment.get_template(template)
@@ -92,15 +92,12 @@ class ReportProcessor:
             table_mode = "html"
         else:
             table_mode = "md"
-        context = cls.context(
-            solver, context=context, table_mode=table_mode
-        )
+        context = cls.context(solver, context=context, table_mode=table_mode)
         payload = cls.render(context)
         cls.convert(payload, path=path, file=file, mode=mode)
 
 
 class FitSolverReportProcessor(ReportProcessor):
-
     template = "fit.md"
 
     @classmethod
@@ -229,15 +226,39 @@ class FitSolverReportProcessor(ReportProcessor):
 
 
 class KineticSolverReportProcessor(ReportProcessor):
-
     template = "kinetic.md"
 
     @classmethod
     def context(cls, solver, context=None, table_mode="latex", figure_mode="svg"):
         if context is None:
             context = {
-                "title": "Fit Report",
+                "title": "Kinetic Report",
                 "author": "SciFit automatic report",
                 "supervisor": "Jean Landercy",
             }
+
+        context["equations"] = solver.model_equations()
+
+        table = cls.serialize(solver.coefficients(), table_mode=table_mode)
+        context["coefficients"] = table
+
+        data = solver.concentrations()
+        data[""] = data[""].replace({"x0": "{$x_0$}"})
+        data.iloc[-1, :] = data.iloc[-1, :].apply(lambda x: "{%s}" % x)
+        table = cls.serialize(data, table_mode=table_mode)
+        context["concentrations"] = table
+
+        data = solver.constants()
+        data = data.rename(columns={
+            "k0": r"$k_{0}^{\rightarrow}$",
+            "k0inv": r"$k_{0}^{\leftarrow}$",
+        })
+        table = cls.serialize(data, table_mode=table_mode)
+        context["constants"] = table
+
+        axe = solver.plot_solve()
+        solution = cls.serialize(axe)
+        plt.close(axe.figure)
+        context["solution"] = solution
+
         return context

@@ -13,7 +13,7 @@ from scipy import integrate, interpolate, signal
 from scifit import logger
 from scifit.errors.base import *
 from scifit.interfaces.mixins import *
-from scifit.toolbox.report import FitSolverReportProcessor
+from scifit.toolbox.report import KineticSolverReportProcessor
 
 
 class KineticSolverInterface:
@@ -881,3 +881,35 @@ class KineticSolverInterface:
         fig.subplots_adjust(top=0.85, left=0.2)
 
         return axe
+
+    def coefficients(self):
+        data = pd.DataFrame(self.nus, columns=self._names[:self.k]).reset_index()
+        data["index"] = data["index"].apply(lambda x: "$R_{%d}$" % x)
+        data = data.rename(columns={"index": ""})
+        return data
+
+    def concentrations(self):
+        data = pd.DataFrame({
+            "x0": self._x0,
+            "steady": (1. - self._unsteady) == 1
+        }).T
+        data.columns = list(self._names[:self.k])
+        data = data.reset_index().rename(columns={"index": ""})
+        return data
+
+    def constants(self):
+        data = pd.DataFrame({
+            "k0": self._k0,
+            "k0inv": self._k0inv
+        })
+        data.index = data.index.map(lambda x: "$R_{%d}$" % x)
+        data = data.reset_index().rename(columns={"index": ""})
+        if self._mode == "direct":
+            data.pop("k0inv")
+        if self._mode == "indirect":
+            data.pop("k0")
+        return data
+
+    def report(self, file, path=".", mode="pdf"):
+        processor = KineticSolverReportProcessor()
+        processor.report(self, file=file, path=path, mode=mode)

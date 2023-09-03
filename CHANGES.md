@@ -24,6 +24,7 @@
  - [x] Corrected mislabeling when selecting substances (eg.: A, B instead of E, F)
  - [x] Refactoring of solver namespace
  - [x] Stabilized precision for derivatives
+ - [x] Creating report for Kinetic Solver
  
 ## v0.1.13
 
