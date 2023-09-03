@@ -20,7 +20,7 @@ class TestBasicReportProcessor(TestCase):
     }
 
     def setUp(self):
-        self.processor = report.ReportProcessor()
+        self.processor = report.FitSolverReportProcessor()
         self.solver = linear.LinearFitSolver()
         self.data = self.solver.synthetic_dataset(sigma=0.15)
         self.solver.fit(self.data)

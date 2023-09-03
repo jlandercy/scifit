@@ -7,7 +7,7 @@ from scipy import optimize, stats
 from scifit import logger
 from scifit.errors.base import *
 from scifit.interfaces.mixins import *
-from scifit.toolbox.report import ReportProcessor
+from scifit.toolbox.report import FitSolverReportProcessor
 
 
 class FitSolverInterface(FitSolverMixin):
@@ -1200,7 +1200,7 @@ class FitSolverInterface(FitSolverMixin):
             return frame
 
     def report(self, file, path=".", mode="pdf"):
-        processor = ReportProcessor()
+        processor = FitSolverReportProcessor()
         processor.report(self, file=file, path=path, mode=mode)
 
 

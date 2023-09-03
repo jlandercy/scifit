@@ -13,7 +13,7 @@ from scipy import integrate, interpolate, signal
 from scifit import logger
 from scifit.errors.base import *
 from scifit.interfaces.mixins import *
-from scifit.toolbox.report import ReportProcessor
+from scifit.toolbox.report import FitSolverReportProcessor
 
 
 class KineticSolverInterface:

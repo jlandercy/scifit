@@ -12,6 +12,14 @@ from scifit.errors.base import *
 
 
 class ReportProcessor:
+    """
+    Render report using pandoc
+    """
+
+    @classmethod
+    def context(cls, solver, *args, **kwargs):
+        raise NotImplemented("Context method must be implemented before generating reports")
+
     @staticmethod
     def render(context=None, template="base.md", directory=None):
         if directory is None:
@@ -60,16 +68,38 @@ class ReportProcessor:
             frame.to_html(stream, index=index)
         return stream.getvalue()
 
-    @staticmethod
-    def serialize(item, table_mode="latex"):
+    @classmethod
+    def serialize(cls, item, table_mode="latex"):
         if isinstance(item, plt.Axes):
-            return ReportProcessor.serialize_figure(item)
+            return cls.serialize_figure(item)
 
         elif isinstance(item, pd.DataFrame):
-            return ReportProcessor.serialize_table(item, mode=table_mode)
+            return cls.serialize_table(item, mode=table_mode)
 
-    @staticmethod
-    def context(solver, context=None, table_mode="latex", figure_mode="svg"):
+    @classmethod
+    def report(cls, solver, context=None, path=".", file="report", mode="pdf"):
+        modes = {"pdf", "html", "docx"}
+        if mode not in modes:
+            raise ConfigurationError(
+                "Mode must be in %s, got '%s' instead" % (modes, mode)
+            )
+        if mode == "pdf":
+            table_mode = "latex"
+        elif mode == "html":
+            table_mode = "html"
+        else:
+            table_mode = "md"
+        context = cls.context(
+            solver, context=context, table_mode=table_mode
+        )
+        payload = cls.render(context)
+        cls.convert(payload, path=path, file=file, mode=mode)
+
+
+class FitSolverReportProcessor(ReportProcessor):
+
+    @classmethod
+    def context(cls, solver, context=None, table_mode="latex", figure_mode="svg"):
         if context is None:
             context = {
                 "title": "Fit Report",
@@ -78,21 +108,21 @@ class ReportProcessor:
             }
 
         axe = solver.plot_fit(errors=True)
-        fit = ReportProcessor.serialize(axe)
+        fit = cls.serialize(axe)
         plt.close(axe.figure)
 
         axe = solver.plot_loss()
         if isinstance(axe, Iterable):
             axe = axe[0][0]
-        loss = ReportProcessor.serialize(axe)
+        loss = cls.serialize(axe)
         plt.close(axe.figure)
 
         axe = solver.plot_chi_square()
-        chi2 = ReportProcessor.serialize(axe)
+        chi2 = cls.serialize(axe)
         plt.close(axe.figure)
 
         axe = solver.plot_kolmogorov()
-        k2s = ReportProcessor.serialize(axe)
+        k2s = cls.serialize(axe)
         plt.close(axe.figure)
 
         # Dataset
@@ -120,7 +150,7 @@ class ReportProcessor:
                 "chi2": r"$\chi^2$",
             }
         )
-        table = ReportProcessor.serialize(data, table_mode=table_mode)
+        table = cls.serialize(data, table_mode=table_mode)
 
         # Fit parameters:
         parameters = solver.parameters()
@@ -140,7 +170,7 @@ class ReportProcessor:
                 "sb": r"$\sigma_{\beta_i}$",
             }
         )
-        parameters = ReportProcessor.serialize(parameters, table_mode=table_mode)
+        parameters = cls.serialize(parameters, table_mode=table_mode)
 
         # Chi 2 Abacus
         chi2_abacus = solver.chi_square_table()
@@ -164,7 +194,7 @@ class ReportProcessor:
         for key in chi2_abacus:
             chi2_abacus[key] = chi2_abacus[key].apply("{:.4g}".format)
         chi2_abacus = chi2_abacus.rename(columns={"alpha": r"$\alpha$"})
-        chi2_abacus = ReportProcessor.serialize(chi2_abacus, table_mode=table_mode)
+        chi2_abacus = cls.serialize(chi2_abacus, table_mode=table_mode)
 
         context = context | {
             "figure_mode": figure_mode,
@@ -192,21 +222,3 @@ class ReportProcessor:
         }
         return context
 
-    @staticmethod
-    def report(solver, context=None, path=".", file="report", mode="pdf"):
-        modes = {"pdf", "html", "docx"}
-        if mode not in modes:
-            raise ConfigurationError(
-                "Mode must be in %s, got '%s' instead" % (modes, mode)
-            )
-        if mode == "pdf":
-            table_mode = "latex"
-        elif mode == "html":
-            table_mode = "html"
-        else:
-            table_mode = "md"
-        context = ReportProcessor.context(
-            solver, context=context, table_mode=table_mode
-        )
-        payload = ReportProcessor.render(context)
-        ReportProcessor.convert(payload, path=path, file=file, mode=mode)
