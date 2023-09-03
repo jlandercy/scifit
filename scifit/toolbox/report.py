@@ -277,8 +277,8 @@ class KineticSolverReportProcessor(ReportProcessor):
         plt.close(axe.figure)
         context["selectivities"] = figure
 
-        data = solver.dataset()
-        table = cls.serialize(data, table_mode=table_mode)
-        context["dataset"] = table
+        # data = solver.dataset().iloc[:100:, :]
+        # table = cls.serialize(data, table_mode=table_mode)
+        # context["dataset"] = table
 
         return context
