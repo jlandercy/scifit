@@ -16,12 +16,15 @@ class ReportProcessor:
     Render report using pandoc
     """
 
+    template = None
+    directory = None
+
     @classmethod
     def context(cls, solver, *args, **kwargs):
-        raise NotImplemented("Context method must be implemented before generating reports")
+        return {}
 
     @staticmethod
-    def render(context=None, template="base.md", directory=None):
+    def render(context=None, template=template, directory=None):
         if directory is None:
             directory = pathlib.Path(__file__).parent / "resources/reports/"
         loader = jinja2.FileSystemLoader(searchpath=str(directory))
@@ -97,6 +100,8 @@ class ReportProcessor:
 
 
 class FitSolverReportProcessor(ReportProcessor):
+
+    template = "fit.md"
 
     @classmethod
     def context(cls, solver, context=None, table_mode="latex", figure_mode="svg"):
@@ -222,3 +227,17 @@ class FitSolverReportProcessor(ReportProcessor):
         }
         return context
 
+
+class KineticSolverReportProcessor(ReportProcessor):
+
+    template = "kinetic.md"
+
+    @classmethod
+    def context(cls, solver, context=None, table_mode="latex", figure_mode="svg"):
+        if context is None:
+            context = {
+                "title": "Fit Report",
+                "author": "SciFit automatic report",
+                "supervisor": "Jean Landercy",
+            }
+        return context
