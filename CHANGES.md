@@ -13,7 +13,8 @@
    - [x] Write all _model_equation
  - [ ] Give a try to Kivy in another package (userflow first)
  - [ ] Apply 10^log10 to model for Kinetic in order to reduce errors
- 
+ - [ ] Find out why some conversion ratio are not shown in steady mode
+
 ## v0.1.14
 
  - [x] Validated ODE matrix system against manually writen ODE systems
@@ -21,6 +22,8 @@
  - [x] Added steady state capability to Kinetic Solver
  - [x] Added Quotient Rate figure
  - [x] Corrected mislabeling when selecting substances (eg.: A, B instead of E, F)
+ - [x] Refactoring of solver namespace
+ - [x] Stabilized precision for derivatives
  
 ## v0.1.13
 

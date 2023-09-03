@@ -505,13 +505,33 @@ class KineticSolverInterface:
         :return:
         """
         if self._mode == "direct":
-            return r" \rightarrow " if mode == "latex" else " -> "
+            if mode == "normal":
+                return " -> "
+            elif mode == "latex":
+                if overset:
+                    return r" \overset{%s}{\rightarrow} " % str(overset)
+                else:
+                    return r" \rightarrow "
         elif self._mode == "indirect":
-            return r" \leftarrow " if mode == "latex" else " <- "
+            if mode == "normal":
+                return " <- "
+            elif mode == "latex":
+                if overset:
+                    return r" \overset{%s}{\leftarrow} " % str(overset)
+                else:
+                    return r" \leftarrow "
+        elif self._mode == "equilibrium":
+            if mode == "normal":
+                return " <=> "
+            elif mode == "latex":
+                if overset:
+                    return r" \overset{%s}{\leftrightharpoons} " % str(overset)
+                else:
+                    return r" \leftrightharpoons "
         else:
-            return r" \leftrightharpoons " if mode == "latex" else " <=> "
+            raise ConfigurationError("Bad arrow configuration")
 
-    def model_formula(self, index, mode="normal"):
+    def model_formula(self, index, mode="normal", overset=None, array=False):
         """
         Generate reaction formula
 
@@ -525,7 +545,11 @@ class KineticSolverInterface:
                 for k in self.reactant_indices(index)
             ]
         )
-        formula += self.arrow(mode="latex")
+        if array:
+            formula += " & "
+        formula += self.arrow(mode=mode, overset=overset)
+        if array:
+            formula += " & "
         formula += " + ".join(
             [
                 "{:.2g}{:s}".format(self._nup[index, k], self._names[k])
@@ -550,8 +574,10 @@ class KineticSolverInterface:
         :param mode:
         :return:
         """
-        latex = r"\begin{eqnarray}"
-        return "; ".join([self.model_formula(j) for j in range(self.n)])
+        latex = r"\begin{eqnarray}" + "\n"
+        latex += (r" \\" + "\n").join([self.model_formula(j, mode="latex", overset=r"\beta_{%d}" % j, array=True) for j in range(self.n)])
+        latex += "\n" + r"\end{eqnarray}" + "\n"
+        return latex
 
     def dataset(self):
         data = pd.DataFrame({"t": self._solution.t})

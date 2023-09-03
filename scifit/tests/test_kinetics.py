@@ -68,8 +68,13 @@ class GenericKineticTest:
     def test_reactant_references(self):
         references = self.solver.references
 
-    def test_model_formula(self):
-        formula = self.solver.model_formulas()
+    def test_model_formulas(self):
+        formulas = self.solver.model_formulas()
+
+    def test_model_formulas(self):
+        equations = self.solver.model_equations()
+        print()
+        print(equations)
 
     def test_conversion_ratio(self):
         self.solver.fit(t=self.t)
