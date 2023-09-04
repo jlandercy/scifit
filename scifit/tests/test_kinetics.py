@@ -215,7 +215,7 @@ class GenericKineticTest:
         self.solver.report(file=file, path=self.media_path, mode="pdf", substance_indices=self.substance_indices)
 
 
-resolution = 50001
+resolution = 5001
 
 
 class SimpleKinetic01(GenericKineticTest):
@@ -618,15 +618,17 @@ class MultipleKinetics08(GenericKineticTest, TestCase):
             [0, 1, 0, 0],
         ]
     )
-    x0 = np.array([3e-3, 2e-3, 1e-3, 0.0])
+    x0 = np.array([3e-3, 2e-3, 1e-3, 1e-9])
     k0 = np.array([2.1, 1, 9e-1])
-    t = np.linspace(0.0, 5000.0, resolution)
+    t = np.linspace(0.0, 2000.0, resolution)
+    unsteady = np.array([1, 1, 1, 1])
 
     def model(self, t, x):
         return np.array(
             [
-                -self.k0[0] * x[0],
-                +self.k0[0] * x[0] - self.k0[1] * x[1],
-                +self.k0[1] * x[1],
+                +self.k0[0] * x[0] * x[1] -self.k0[0] * x[0] * x[2] +self.k0[0] * x[0] * x[3],
+                -self.k0[0] * x[0] * x[1],
+                -self.k0[0] * x[0] * x[2],
+                +self.k0[0] * x[0] * x[2] -self.k0[0] * x[0] * x[3],
             ]
         )

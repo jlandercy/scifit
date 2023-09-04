@@ -3,6 +3,8 @@ import io
 import pathlib
 from collections.abc import Iterable
 
+import numpy as np
+
 import jinja2
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -277,8 +279,17 @@ class KineticSolverReportProcessor(ReportProcessor):
         plt.close(axe.figure)
         context["selectivities"] = figure
 
-        # data = solver.dataset().iloc[:100:, :]
-        # table = cls.serialize(data, table_mode=table_mode)
-        # context["dataset"] = table
+        context["tmin"] = solver._solution.t.min()
+        context["tmax"] = solver._solution.t.max()
+        context["dt"] = np.diff(solver._solution.t)[0]
+        context["n"] = solver._solution.t.size
+
+        data = solver.dataset().fillna("")
+        columns = data.filter(regex="d.+/d.")
+        data = data.drop(columns, axis=1)
+        n = data.shape[0] // 50
+        data = data.iloc[::n, :]
+        table = cls.serialize(data, table_mode=table_mode)
+        context["dataset"] = table
 
         return context

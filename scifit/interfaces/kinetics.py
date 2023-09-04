@@ -854,7 +854,7 @@ class KineticSolverInterface:
         fig, axe = plt.subplots()
         for i, Q in enumerate(self._quotients):
             axe.plot(
-                self._solution.t, Q, label="$Q_{%d}$: $%s$" % (i, self.model_formula(i))
+                self._solution.t, Q, label="$Q_{%d}$: $%s$" % (i, self.model_formula(i, mode="latex"))
             )
 
         if self._mode == "equilibrium":

@@ -25,25 +25,44 @@ See our [repository](https://github.com/jlandercy/scifit) for methodology detail
 
 # Report
 
+The solver uses the Activated State Model theory to represent kinetic reactions
+with input data formatted in a matrix fashion: rate monoms, reaction rate polynoms and
+reaction polynoms quotients. Kinetics ODE system are notably stiff, albeit conditionning
+and numerical stability are taken into account, jitter may happen  for some specific
+set of parameters or at large time scale. Always keep your critical sense when inspecting
+figures and tables.
+
 ## Model
 
 The model is based on the following kinetics:
 
 {{equations}}
 
-Which are described by the following stoechiometric coefficients:
+Which are described by the following stoechiometric coefficients matrix:
 
 {{coefficients}}
 
-With initial concentrations:
+With initial concentrations vector:
 
 {{concentrations}}
 
-And kinetic constants:
+And kinetic constants vector:
 
 {{constants}}
 
-The solver uses the Activated State theory to model kinetic reactions with those data.
+Time domain for solver is defined as:
+
+\begin{center}
+\begin{tabular}{rS}
+$t_{\min}$ & {{tmin}} \\
+$t_{\max}$ & {{tmax}} \\
+$\mathrm{d}t$ & {{dt}} \\
+$n$ & {{n}}
+\end{tabular}
+\end{center}
+
+
+\clearpage
 
 ## Solution
 
@@ -65,7 +84,7 @@ Figure \ref{fig:selectivities} shows reaction selectivities during the scenario.
 # Annexe
 
 ## Data
-Table \ref{tab:data} presents raw data and aggregates.
+Table \ref{tab:data} presents a subset of solution and quotients.
 
 \tiny
 {{dataset}}\label{tab:data}
