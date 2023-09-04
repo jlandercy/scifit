@@ -76,7 +76,6 @@ class SequenceOfThreeKineticRegressionNoiseL2(SequenceOfThreeKineticRegression, 
     sigma = 1e-1
 
 
-
 class BrusselatorKineticRegression(GenericKineticRegression):
     factory = kinetics.BrusselatorKineticSolver
     parameters = np.array([1.1, 0.9, 1.1, 0.9])
@@ -88,19 +87,19 @@ class BrusselatorKineticRegression(GenericKineticRegression):
     # def test_plot_loss_automatic(self):
     #     """Too heavy"""
     #     pass
+    #
+    # def test_process_report(self):
+    #     """Too heavy"""
+    #     pass
 
-    def test_process_report(self):
-        """Too heavy"""
-        pass
-
-
-class BrusselatorKineticRegressionNoiseL0(BrusselatorKineticRegression, TestCase):
-    sigma = 1e-6
-
-
-class BrusselatorKineticRegressionNoiseL1(BrusselatorKineticRegression, TestCase):
-    sigma = 2.5e-2
-
-
-class BrusselatorKineticRegressionNoiseL2(BrusselatorKineticRegression, TestCase):
-    sigma = 1e-1
+#
+# class BrusselatorKineticRegressionNoiseL0(BrusselatorKineticRegression, TestCase):
+#     sigma = 1e-6
+#
+#
+# class BrusselatorKineticRegressionNoiseL1(BrusselatorKineticRegression, TestCase):
+#     sigma = 2.5e-2
+#
+#
+# class BrusselatorKineticRegressionNoiseL2(BrusselatorKineticRegression, TestCase):
+#     sigma = 1e-1

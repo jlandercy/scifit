@@ -791,7 +791,7 @@ class KineticSolverInterface:
 
         return axe
 
-    def plot_levenspiel(self, substance_indices=None):
+    def plot_levenspiel(self, substance_index=None, substance_indices=None):
         """
         Plot ODE solution Levenspiel curve figure
 
@@ -803,14 +803,16 @@ class KineticSolverInterface:
 
         fig, axe = plt.subplots()
         axe.plot(
-            self._solution.y.T[:, self._substance_index],
+            #self._solution.y.T[:, substance_index],
+            self.convertion_ratio(substance_index=substance_index),
             np.abs(self._levenspiel[:, substance_indices]),
         )
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
-        axe.set_xlabel(r"Reference Concentration, $x_r$")
-        axe.set_ylabel(r"Levenspiel Curves, $|L_i|$")
+        #axe.set_xlabel(r"Reference Concentration, $x_r$")
+        axe.set_xlabel(r"Conversion Ratio, $\rho$")
+        axe.set_ylabel(r"Levenspiel Curves, $|L_i| = |\frac{1}{r_i}|$")
         axe.legend(list(self._names[substance_indices]))
         axe.set_yscale("log")
         axe.grid()
@@ -831,14 +833,15 @@ class KineticSolverInterface:
         fig, axe = plt.subplots()
         axe.plot(
             self.convertion_ratio()[:-1],
-            self._integrated_levenspiel[:, substance_indices],
+            np.abs(self._integrated_levenspiel[:, substance_indices]),
         )
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
         axe.set_xlabel(r"Conversion Ratio, $\rho$")
-        axe.set_ylabel(r"Levenspiel Integral, $\int_0^\rho L_i \mathrm{d}\rho$")
+        axe.set_ylabel(r"Levenspiel Integral, $|\int_0^\rho L_i \mathrm{d}\rho|$")
         axe.legend(list(self._names[substance_indices]))
+        axe.set_yscale("log")
         axe.grid()
         fig.subplots_adjust(top=0.85, left=0.2)
 

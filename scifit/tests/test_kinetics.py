@@ -566,7 +566,7 @@ class MultipleKinetics06(MultipleKinetics05, TestCase):
         )
 
     unsteady = np.array([0.0, 0.0, 1.0, 1.0, 1.0, 1.0])
-    substance_index = 2
+    substance_index = 3
     substance_indices = [4, 5]
     x0 = np.array([1, 3, 0.0, 0.0, 1, 1])
     k0 = np.array([1, 1, 1, 1])
@@ -595,7 +595,7 @@ class MultipleKinetics07(MultipleKinetics06, TestCase):
         )
 
     unsteady = np.array([0.0, 0.0, 1.0, 1.0, 1.0, 1.0])
-    substance_index = 2
+    substance_index = 3
     substance_indices = [4, 5]
     x0 = np.array([1, 1.7, 0.0, 0.0, 1, 1])
     k0 = np.array([1, 1, 1, 1])
@@ -621,7 +621,7 @@ class MultipleKinetics08(GenericKineticTest, TestCase):
     x0 = np.array([3e-3, 2e-3, 1e-3, 1e-9])
     k0 = np.array([2.1, 1, 9e-1])
     t = np.linspace(0.0, 2000.0, resolution)
-    unsteady = np.array([1, 1, 1, 1])
+    substance_index = 1
 
     def model(self, t, x):
         return np.array(

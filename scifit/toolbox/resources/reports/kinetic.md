@@ -62,8 +62,6 @@ $n$ & {{n}}
 \end{center}
 
 
-\clearpage
-
 ## Solution
 
 Figure \ref{fig:solution} shows the time dependant solution to the dynamic system.
