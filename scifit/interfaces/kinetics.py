@@ -245,7 +245,7 @@ class KineticSolverInterface:
 
         .. math::
 
-            -r_i^{\\leftarrow} = \\frac{1}{V}\\frac{\\partial \\xi}{\\partial t} = k_i^{\\leftarrow} \\cdot \\prod\\limits_{j=1}^{j=k} x_j^{|\\nu_{i,j}^P|} \\, , \\quad \\forall i \\in \\{1,\\dots, n\\}
+            r_i^{\\leftarrow} = \\frac{1}{V}\\frac{\\partial \\xi}{\\partial t} = k_i^{\\leftarrow} \\cdot \\prod\\limits_{j=1}^{j=k} x_j^{|\\nu_{i,j}^P|} \\, , \\quad \\forall i \\in \\{1,\\dots, n\\}
 
 
         And each substance reaction rate is defined as:
@@ -256,11 +256,11 @@ class KineticSolverInterface:
 
         .. math::
 
-            r_j^{\\leftarrow} = \\sum\\limits_{i=1}^{i=n} -\\nu_{i,j} \\cdot r_i \\, , \\quad \\forall j \\in \\{1,\\dots, k\\}
+            r_j^{\\leftarrow} = \\sum\\limits_{i=1}^{i=n} \\nu_{i,j} \\cdot r_i \\, , \\quad \\forall j \\in \\{1,\\dots, k\\}
 
         .. math::
 
-            r_j^{\\leftrightharpoons} = r_j^{\\leftarrow} + r_j^{\\rightarrow} \\, , \\quad \\forall j \\in \\{1,\\dots, k\\}
+            r_j^{\\leftrightharpoons} = r_j^{\\rightarrow} - r_j^{\\leftarrow} \\, , \\quad \\forall j \\in \\{1,\\dots, k\\}
 
         :param t:
         :param x:

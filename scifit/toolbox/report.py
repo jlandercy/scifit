@@ -279,6 +279,7 @@ class KineticSolverReportProcessor(ReportProcessor):
         plt.close(axe.figure)
         context["selectivities"] = figure
 
+        context["mode"] = solver._mode
         context["tmin"] = solver._solution.t.min()
         context["tmax"] = solver._solution.t.max()
         context["dt"] = np.diff(solver._solution.t)[0]
