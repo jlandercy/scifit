@@ -1,3 +1,4 @@
+import functools
 import pathlib
 from unittest import TestCase
 
@@ -78,6 +79,18 @@ class GenericKineticTest:
         self.solver.fit(t=self.t)
         ratio = self.solver.convertion_ratio()
 
+    def test_kinetic_rates(self):
+        self.solver.fit(t=self.t)
+        ref = self.solver.rates()
+        exp = self.solver.derivative()
+        self.assertTrue(np.allclose(ref, exp, 1e-5))
+
+    def test_kinetic_accelerations(self):
+        self.solver.fit(t=self.t)
+        ref = self.solver.accelerations()
+        exp = self.solver.derivative(derivative_order=2)
+        self.assertTrue(np.allclose(ref, exp, 1e-5))
+
     def test_first_derivative(self):
         self.solver.fit(t=self.t)
         dxdt = self.solver.derivative(derivative_order=1)
@@ -116,22 +129,22 @@ class GenericKineticTest:
         )
         plt.close(axe.figure)
 
-    def test_plot_first_derivative(self):
+    def test_plot_rates(self):
         name = self.__class__.__name__
         self.solver.fit(t=self.t)
-        axe = self.solver.plot_first_derivative(
+        axe = self.solver.plot_rates(
             substance_indices=self.substance_indices
         )
-        axe.figure.savefig("{}/{}_dxdt.{}".format(self.media_path, name, self.format))
+        axe.figure.savefig("{}/{}_rates.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
-    def test_plot_second_derivative(self):
+    def test_plot_accelerations(self):
         name = self.__class__.__name__
         self.solver.fit(t=self.t)
-        axe = self.solver.plot_second_derivative(
+        axe = self.solver.plot_accelerations(
             substance_indices=self.substance_indices
         )
-        axe.figure.savefig("{}/{}_d2xdt2.{}".format(self.media_path, name, self.format))
+        axe.figure.savefig("{}/{}_accelerations.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
     def test_plot_selectivities(self):
@@ -566,7 +579,7 @@ class MultipleKinetics06(MultipleKinetics05, TestCase):
         )
 
     unsteady = np.array([0.0, 0.0, 1.0, 1.0, 1.0, 1.0])
-    substance_index = 3
+    substance_index = 2
     substance_indices = [4, 5]
     x0 = np.array([1, 3, 0.0, 0.0, 1, 1])
     k0 = np.array([1, 1, 1, 1])
@@ -595,7 +608,7 @@ class MultipleKinetics07(MultipleKinetics06, TestCase):
         )
 
     unsteady = np.array([0.0, 0.0, 1.0, 1.0, 1.0, 1.0])
-    substance_index = 3
+    substance_index = 2
     substance_indices = [4, 5]
     x0 = np.array([1, 1.7, 0.0, 0.0, 1, 1])
     k0 = np.array([1, 1, 1, 1])

@@ -296,8 +296,20 @@ class KineticSolverInterface:
     def parametered_model(self, k0, k0inv):
         def wrapped(t, x):
             return self.model(t, x, k0=k0, k0inv=k0inv)
-
         return wrapped
+
+    def time_parametered_model(self, t, k0, k0inv):
+        def wrapped(x):
+            return self.model(t, x, k0=k0, k0inv=k0inv)
+        return wrapped
+
+    def rates(self):
+        model = self.time_parametered_model(self._solution.t, self._k0, self._k0inv)
+        dxdt = np.apply_along_axis(model, 1, self._solution.y.T)
+        return dxdt
+
+    def accelerations(self):
+        return self.derivative(data=self.rates())
 
     def solve(self, t, k0, k0inv):
         t = np.array(t)
@@ -350,10 +362,10 @@ class KineticSolverInterface:
 
         self._solution = self.solve(t, k0, k0inv)
         self._quotients = np.apply_along_axis(self.quotient, 0, self._solution.y)
-        self._dxdt = self.derivative(derivative_order=1)
-        self._d2xdt2 = self.derivative(derivative_order=2)
+        self._rates = self.rates()
+        self._accelerations = self.accelerations()
         self._selectivities = self.selectivities(substance_index=substance_index)
-        self._integrated_selectivities = self.global_selectivities(
+        self._global_selectivities = self.global_selectivities(
             substance_index=substance_index
         )
         self._yields = self.yields(substance_index=substance_index)
@@ -438,6 +450,13 @@ class KineticSolverInterface:
         if rounded:
             dxdt = np.round(dxdt, self._precision)
             # dxdt = self.threshold(dxdt)
+
+        # def factory(t, n=derivative_order):
+        #     def wrapped(x):
+        #         return interpolate.UnivariateSpline(t, x, k=5, s=6).derivative(n=n)(t)
+        #     return wrapped
+        #
+        # dxdt = np.apply_along_axis(factory(self._solution.t), 0, data)
 
         return dxdt
 
@@ -612,7 +631,7 @@ class KineticSolverInterface:
             self._solution.y.T, columns=[self._names[i] for i in range(self.k)]
         )
         derivatives = pd.DataFrame(
-            self._dxdt, columns=["d%s/dt" % self._names[i] for i in range(self.k)]
+            self._rates, columns=["d%s/dt" % self._names[i] for i in range(self.k)]
         )
         quotients = pd.DataFrame(
             self._quotients.T, columns=["Q%d" % i for i in range(self.n)]
@@ -669,7 +688,7 @@ class KineticSolverInterface:
 
         return axe
 
-    def plot_first_derivative(self, substance_indices=None):
+    def plot_rates(self, substance_indices=None):
         """
         Plot ODE solution first derivative figure
 
@@ -680,12 +699,12 @@ class KineticSolverInterface:
             substance_indices = np.arange(self.k)
 
         fig, axe = plt.subplots()
-        axe.plot(self._solution.t, self._dxdt[:, substance_indices])
+        axe.plot(self._solution.t, self._rates[:, substance_indices])
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
         axe.set_xlabel("Time, $t$")
-        axe.set_ylabel("Concentration Velocities, $\partial x_i / \partial t$")
+        axe.set_ylabel("Concentration Rates, $\partial x_i / \partial t$")
         axe.legend(list(self._names[substance_indices]))
         # axe.set_yscale("log")
         axe.grid()
@@ -693,7 +712,7 @@ class KineticSolverInterface:
 
         return axe
 
-    def plot_second_derivative(self, substance_indices=None):
+    def plot_accelerations(self, substance_indices=None):
         """
         Plot ODE solution first derivative figure
 
@@ -704,7 +723,7 @@ class KineticSolverInterface:
             substance_indices = np.arange(self.k)
 
         fig, axe = plt.subplots()
-        axe.plot(self._solution.t, self._d2xdt2[:, substance_indices])
+        axe.plot(self._solution.t, self._accelerations[:, substance_indices])
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
@@ -753,7 +772,7 @@ class KineticSolverInterface:
         fig, axe = plt.subplots()
         axe.plot(
             self.convertion_ratio()[:-1],
-            self._integrated_selectivities[:, substance_indices],
+            self._global_selectivities[:, substance_indices],
         )
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
