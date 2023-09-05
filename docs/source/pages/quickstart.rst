@@ -13,3 +13,7 @@ Read following notebooks to get acquainted with the interface.
     Fit a real kinetic <../notebooks/docs/QuickStartGuide04.ipynb>
     Stability & serialization <../notebooks/docs/QuickStartGuide05.ipynb>
     Fit a Michaëlis-Menten kinetic <../notebooks/docs/QuickStartGuide06.ipynb>
+    Solve a simple kinetic <../notebooks/docs/QuickStartGuide07.ipynb>
+    Solve a coupled kinetic <../notebooks/docs/QuickStartGuide08.ipynb>
+    Solve Brusselator kinetic <../notebooks/docs/QuickStartGuide09.ipynb>
+    Fit a kinetic model to data <../notebooks/docs/QuickStartGuide10.ipynb>
