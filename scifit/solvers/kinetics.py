@@ -86,14 +86,14 @@ class SequenceOfThreeKineticSolver(FitSolver1D):
 
 
 class BrusselatorKineticSolver(FitSolver1D):
-    _model_equation = r"""
-    \begin{eqnarray}
-    A &\overset{\beta_0}{\longrightarrow}& E(t) \\
-    2E(t) + F &\overset{\beta_1}{\longrightarrow}& 3E(t) \\
-    B + E(t) &\overset{\beta_2}{\longrightarrow}& F + C \\
-    E(t) &\overset{\beta_3}{\longrightarrow}& D
-    \end{eqnarray}
-    """
+    # _model_equation = r"""
+    # \begin{eqnarray}
+    # A &\overset{\beta_0}{\longrightarrow}& E(t) \\
+    # 2E(t) + F &\overset{\beta_1}{\longrightarrow}& 3E(t) \\
+    # B + E(t) &\overset{\beta_2}{\longrightarrow}& F + C \\
+    # E(t) &\overset{\beta_3}{\longrightarrow}& D
+    # \end{eqnarray}
+    # """
 
     kinetic = KineticSolverInterface(
         nur=np.array(

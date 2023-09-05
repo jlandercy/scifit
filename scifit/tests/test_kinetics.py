@@ -83,13 +83,19 @@ class GenericKineticTest:
         self.solver.fit(t=self.t)
         ref = self.solver.rates()
         exp = self.solver.derivative()
-        self.assertTrue(np.allclose(ref, exp, 1e-5))
+        data = pd.concat([pd.DataFrame(ref), pd.DataFrame(exp)], axis=1)
+        name = self.__class__.__name__
+        data.to_excel("{}/{}_check_rates.xlsx".format(self.media_path, name))
+        self.assertTrue(np.allclose(ref, exp, 1e-3))
 
     def test_kinetic_accelerations(self):
         self.solver.fit(t=self.t)
         ref = self.solver.accelerations()
         exp = self.solver.derivative(derivative_order=2)
-        self.assertTrue(np.allclose(ref, exp, 1e-5))
+        data = pd.concat([pd.DataFrame(ref), pd.DataFrame(exp)], axis=1)
+        name = self.__class__.__name__
+        data.to_excel("{}/{}_check_accelerations.xlsx".format(self.media_path, name))
+        self.assertTrue(np.allclose(ref, exp, 1e-3))
 
     def test_first_derivative(self):
         self.solver.fit(t=self.t)

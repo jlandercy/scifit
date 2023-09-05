@@ -92,14 +92,14 @@ class BrusselatorKineticRegression(GenericKineticRegression):
     #     """Too heavy"""
     #     pass
 
-#
-# class BrusselatorKineticRegressionNoiseL0(BrusselatorKineticRegression, TestCase):
-#     sigma = 1e-6
-#
-#
-# class BrusselatorKineticRegressionNoiseL1(BrusselatorKineticRegression, TestCase):
-#     sigma = 2.5e-2
-#
-#
-# class BrusselatorKineticRegressionNoiseL2(BrusselatorKineticRegression, TestCase):
-#     sigma = 1e-1
+
+class BrusselatorKineticRegressionNoiseL0(BrusselatorKineticRegression, TestCase):
+    sigma = 1e-6
+
+
+class BrusselatorKineticRegressionNoiseL1(BrusselatorKineticRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class BrusselatorKineticRegressionNoiseL2(BrusselatorKineticRegression, TestCase):
+    sigma = 1e-1

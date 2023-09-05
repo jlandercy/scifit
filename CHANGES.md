@@ -18,6 +18,8 @@
 
 ## v0.1.15
 
+ - [x] Kinetic rates are now computed from model instead of deriving solutions 
+ - [x] Refactored namespace to be more sensical 
 
 ## v0.1.14
 

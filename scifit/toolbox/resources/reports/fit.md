@@ -1,17 +1,22 @@
 ---
+documentclass: article
+geometry: margin=3cm
+toc: true
+numbersections: true
+
 title: {{title}}
 author: {{author}}
-numbersections: true
-toc: true
+
 urlcolor: blue
 linkcolor: red
+
 header-includes:
   - \usepackage{amsmath}
   - \usepackage{mathtools}
   - \usepackage{longtable}
   - \usepackage{booktabs}
   - \usepackage{siunitx}
-  - \sisetup{tight-spacing=true,round-precision=4}
+  #- \sisetup{tight-spacing=true,round-precision=4}
 ---
 # Summary
 
