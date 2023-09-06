@@ -956,14 +956,14 @@ class KineticSolverInterface:
         for i, dQi in enumerate(dQ):
             axe.plot(
                 self._solution.t,
-                dQi,
+                np.abs(dQi),
                 label="$\partial Q_{%d}$: $%s$"
                 % (i, self.model_formula(i, mode="latex")),
             )
 
         axe.set_title("Activated State Model Kinetic:\nReaction Quotient Rates")
         axe.set_xlabel("Time, $t$")
-        axe.set_ylabel("Quotients Rate, $\partial Q_i / \partial t$")
+        axe.set_ylabel("Quotients Rate, $|\partial Q_i / \partial t|$")
         axe.legend()
         axe.set_yscale("log")
         axe.grid()
