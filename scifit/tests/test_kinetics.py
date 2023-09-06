@@ -48,10 +48,10 @@ class GenericKineticTest:
         )
 
     def test_solve(self):
-        solution = self.solver.fit(t=self.t)
+        solution = self.solver.integrate(t=self.t)
 
     def test_solve_against_model(self):
-        solution = self.solver.fit(self.t)
+        solution = self.solver.integrate(self.t)
         check = integrate.solve_ivp(
             self.model,
             [self.t.min(), self.t.max()],
@@ -76,11 +76,11 @@ class GenericKineticTest:
         equations = self.solver.model_equations()
 
     def test_conversion_ratio(self):
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         ratio = self.solver.convertion_ratio()
 
     def test_kinetic_rates(self):
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         ref = self.solver.rates()
         exp = self.solver.derivative()
         data = pd.concat([pd.DataFrame(ref), pd.DataFrame(exp)], axis=1)
@@ -89,7 +89,7 @@ class GenericKineticTest:
         self.assertTrue(np.allclose(ref, exp, 1e-3))
 
     def test_kinetic_accelerations(self):
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         ref = self.solver.accelerations()
         exp = self.solver.derivative(derivative_order=2)
         data = pd.concat([pd.DataFrame(ref), pd.DataFrame(exp)], axis=1)
@@ -98,37 +98,37 @@ class GenericKineticTest:
         self.assertTrue(np.allclose(ref, exp, 1e-3))
 
     def test_first_derivative(self):
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         dxdt = self.solver.derivative(derivative_order=1)
 
     def test_second_derivative(self):
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         d2xdt2 = self.solver.derivative(derivative_order=2)
 
     def test_selectivities(self):
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         selectivities = self.solver.selectivities()
 
     def test_levenspiel(self):
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         L = self.solver.integrated_levenspiel()
 
     def test_dataset(self):
         name = self.__class__.__name__
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         data = self.solver.dataset()
         data.to_csv("{}/{}_data.csv".format(self.media_path, name), sep=";")
 
     def test_plot_solve(self):
         name = self.__class__.__name__
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         axe = self.solver.plot_solve(substance_indices=self.substance_indices)
         axe.figure.savefig("{}/{}_solve.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
     def test_plot_solve_ratio(self):
         name = self.__class__.__name__
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         axe = self.solver.plot_solve_ratio(substance_indices=self.substance_indices)
         axe.figure.savefig(
             "{}/{}_solve_ratio.{}".format(self.media_path, name, self.format)
@@ -137,7 +137,7 @@ class GenericKineticTest:
 
     def test_plot_rates(self):
         name = self.__class__.__name__
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         axe = self.solver.plot_rates(
             substance_indices=self.substance_indices
         )
@@ -146,7 +146,7 @@ class GenericKineticTest:
 
     def test_plot_accelerations(self):
         name = self.__class__.__name__
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         axe = self.solver.plot_accelerations(
             substance_indices=self.substance_indices
         )
@@ -155,7 +155,7 @@ class GenericKineticTest:
 
     def test_plot_selectivities(self):
         name = self.__class__.__name__
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         axe = self.solver.plot_selectivities(substance_indices=self.substance_indices)
         axe.figure.savefig(
             "{}/{}_selectivities.{}".format(self.media_path, name, self.format)
@@ -164,7 +164,7 @@ class GenericKineticTest:
 
     def test_plot_global_selectivities(self):
         name = self.__class__.__name__
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         axe = self.solver.plot_global_selectivities(
             substance_indices=self.substance_indices
         )
@@ -175,14 +175,14 @@ class GenericKineticTest:
 
     def test_yields(self):
         name = self.__class__.__name__
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         axe = self.solver.plot_yields(substance_indices=self.substance_indices)
         axe.figure.savefig("{}/{}_yields.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
     def test_plot_levenspiel(self):
         name = self.__class__.__name__
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         axe = self.solver.plot_levenspiel(substance_indices=self.substance_indices)
         axe.figure.savefig(
             "{}/{}_levenspiel.{}".format(self.media_path, name, self.format)
@@ -191,7 +191,7 @@ class GenericKineticTest:
 
     def test_plot_integrated_levenspiel(self):
         name = self.__class__.__name__
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         axe = self.solver.plot_integrated_levenspiel(
             substance_indices=self.substance_indices
         )
@@ -202,7 +202,7 @@ class GenericKineticTest:
 
     def test_plot_quotients(self):
         name = self.__class__.__name__
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         axe = self.solver.plot_quotients()
         axe.figure.savefig(
             "{}/{}_quotients.{}".format(self.media_path, name, self.format)
@@ -211,7 +211,7 @@ class GenericKineticTest:
 
     def test_plot_quotient_rates(self):
         name = self.__class__.__name__
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         axe = self.solver.plot_quotient_rates()
         axe.figure.savefig(
             "{}/{}_quotient_rates.{}".format(self.media_path, name, self.format)
@@ -220,7 +220,7 @@ class GenericKineticTest:
 
     def test_plot_quotient_rates(self):
         name = self.__class__.__name__
-        self.solver.fit(t=self.t)
+        self.solver.integrate(t=self.t)
         axe = self.solver.plot_quotient_rates()
         axe.figure.savefig(
             "{}/{}_quotient_rates.{}".format(self.media_path, name, self.format)
@@ -230,7 +230,7 @@ class GenericKineticTest:
     def test_process_report(self):
         name = self.__class__.__name__
         file = r"{}_report".format(name)
-        self.solver.fit(self.t)
+        self.solver.integrate(self.t)
         self.solver.report(file=file, path=self.media_path, mode="pdf", substance_indices=self.substance_indices)
 
 

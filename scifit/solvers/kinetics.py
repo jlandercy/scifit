@@ -15,7 +15,7 @@ class SimpleKineticSolver(FitSolver1D):
 
     @classmethod
     def model(cls, x, b0):
-        solution = cls.kinetic.evaluate(x[:, 0], [b0], None)[:, 0]
+        solution = cls.kinetic.integrate(x[:, 0], [b0], None).y.T[:, 0]
         return solution
 
 
@@ -54,7 +54,7 @@ class SequenceKineticSolver(FitSolver1D):
         :param b1:
         :return:
         """
-        solution = cls.kinetic.evaluate(x[:, 0], [b0, b1], None)[:, 1]
+        solution = cls.kinetic.integrate_system(x[:, 0], [b0, b1], None).y.T[:, 1]
         return solution
 
 
@@ -81,7 +81,7 @@ class SequenceOfThreeKineticSolver(FitSolver1D):
 
     @classmethod
     def model(cls, x, b0, b1, b2):
-        solution = cls.kinetic.integrate(x[:, 0], [b0, b1, b2], None).y.T[:, 0]
+        solution = cls.kinetic.integrate_system(x[:, 0], [b0, b1, b2], None).y.T[:, 0]
         return solution
 
 
@@ -144,5 +144,5 @@ class BrusselatorKineticSolver(FitSolver1D):
         :param b3:
         :return:
         """
-        solution = cls.kinetic.evaluate(x[:, 0], [b0, b1, b2, b3], None)[:, 4]
+        solution = cls.kinetic.integrate_system(x[:, 0], [b0, b1, b2, b3], None).y.T[:, 4]
         return solution

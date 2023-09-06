@@ -129,18 +129,18 @@ class KineticSolverInterface:
         self._mode = mode
         self._unsteady = unsteady
 
-    @classmethod
-    def threshold(cls, x, eps=None):
-        """
-        Apply threshold (default is machine precsion)
-
-        :param x:
-        :param eps:
-        :return:
-        """
-        eps = eps or cls._eps
-        x[np.abs(x) <= eps] = eps
-        return x
+    # @classmethod
+    # def threshold(cls, x, eps=None):
+    #     """
+    #     Apply threshold (default is machine precsion)
+    #
+    #     :param x:
+    #     :param eps:
+    #     :return:
+    #     """
+    #     eps = eps or cls._eps
+    #     x[np.abs(x) <= eps] = eps
+    #     return x
 
     @staticmethod
     def split_nus(nus):
@@ -234,7 +234,7 @@ class KineticSolverInterface:
         """
         return np.sum(self._nup, axis=1)
 
-    def system(self, t, x, k0, k0inv):
+    def system(self, t, x, k0=None, k0inv=None, x0=None):
         """
         Compute reaction rate for each reaction, then compute substance rates
         in order to solve the ODE system of the kinetic.
@@ -269,7 +269,16 @@ class KineticSolverInterface:
         :return:
         """
 
-        substance_rates = np.full(self._x0.shape, 0.0)
+        if x0 is None:
+            x0 = self._x0
+
+        if k0 is None:
+            k0 = self._k0
+
+        if k0inv is None:
+            k0inv = self._k0inv
+
+        substance_rates = np.full(x0.shape, 0.0)
 
         if self._mode == "direct" or self._mode == "equilibrium":
             reaction_rates = k0 * np.prod(
@@ -296,13 +305,13 @@ class KineticSolverInterface:
         return substance_rates * self._unsteady
 
     def parametered_system(self, k0, k0inv):
-        def wrapped(t, x):
-            return self.system(t, x, k0=k0, k0inv=k0inv)
+        def wrapped(t, x, x0=None):
+            return self.system(t, x, k0=k0, k0inv=k0inv, x0=x0)
         return wrapped
 
     def time_parametered_system(self, t, k0, k0inv):
-        def wrapped(x):
-            return self.system(t, x, k0=k0, k0inv=k0inv)
+        def wrapped(x, x0=None):
+            return self.system(t, x, k0=k0, k0inv=k0inv, x0=x0)
         return wrapped
 
     def rates(self):
@@ -313,14 +322,16 @@ class KineticSolverInterface:
     def accelerations(self):
         return self.derivative(data=self.rates())
 
-    def integrate(self, t, k0, k0inv):
+    def integrate_system(self, t, k0, k0inv, x0=None):
         t = np.array(t)
         tspan = np.array([t.min(), t.max()])
-        system = self.parametered_system(k0, k0inv)
+        if x0 is None:
+            x0 = self._x0
+        system = self.parametered_system(k0=k0, k0inv=k0inv)
         solution = integrate.solve_ivp(
             system,
             tspan,
-            self._x0,
+            x0,
             t_eval=t,
             dense_output=True,
             method="LSODA",
@@ -330,23 +341,23 @@ class KineticSolverInterface:
         )
         return solution
 
-    def evaluate(self, t, k0, k0inv, mode="linear", resolution=5001):
-        """
-        Solve the kinetic with high resolution regular grid and then interpolate on data domain
-        :param t:
-        :param k0:
-        :param k0inv:
-        :param mode:
-        :param resolution:
-        :return:
-        """
-        t = np.array(t)
-        tlin = np.linspace(t.min(), t.max(), resolution)
-        solution = self.integrate(tlin, k0, k0inv)
-        interpolator = interpolate.interp1d(tlin, solution.y.T, axis=0, kind=mode)
-        return interpolator(t)
+    # def evaluate(self, t, k0, k0inv, mode="linear", resolution=5001):
+    #     """
+    #     Solve the kinetic with high resolution regular grid and then interpolate on data domain
+    #     :param t:
+    #     :param k0:
+    #     :param k0inv:
+    #     :param mode:
+    #     :param resolution:
+    #     :return:
+    #     """
+    #     t = np.array(t)
+    #     tlin = np.linspace(t.min(), t.max(), resolution)
+    #     solution = self.integrate(tlin, k0, k0inv)
+    #     interpolator = interpolate.interp1d(tlin, solution.y.T, axis=0, kind=mode)
+    #     return interpolator(t)
 
-    def fit(self, t, k0=None, k0inv=None, substance_index=None):
+    def integrate(self, t, k0=None, k0inv=None, x0=None, substance_index=None):
         """
         Solve the ODE system defined as follows:
 
@@ -356,13 +367,7 @@ class KineticSolverInterface:
 
         substance_index = substance_index or self._substance_index or 0
 
-        if k0 is None:
-            k0 = self._k0
-
-        if k0inv is None:
-            k0inv = self._k0inv
-
-        self._solution = self.integrate(t, k0, k0inv)
+        self._solution = self.integrate_system(t, k0=k0, k0inv=k0inv, x0=x0)
         self._quotients = np.apply_along_axis(self.quotient, 0, self._solution.y)
         self._rates = self.rates()
         self._accelerations = self.accelerations()

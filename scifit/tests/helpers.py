@@ -237,7 +237,7 @@ class GenericBaseTestFitSolver:
 
     def test_model_implementation(self):
         if self.parameters is not None:
-            yhat = self.solver.system(self.xdata, *self.parameters)
+            yhat = self.solver.model(self.xdata, *self.parameters)
             self.assertTrue(np.allclose(yhat, self.yref))
             self.assertTrue(np.allclose(yhat + self.ynoise, self.ydata))
 
@@ -559,7 +559,7 @@ class GenericPlotTestFitSolver:
             )
             plt.close(axe.figure)
 
-    def test_plot_loss_automatic(self):
+    def test_plot_loss(self):
         if print_loss_contour:
             name = self.__class__.__name__
             title = r"{} (seed={:d})".format(name, self.seed)
@@ -588,7 +588,7 @@ class GenericPlotTestFitSolver:
             )
             plt.close(axe.figure)
 
-    def test_plot_loss_surface_automatic(self):
+    def test_plot_loss_surface(self):
         if print_loss_surface:
             name = self.__class__.__name__
             title = r"{} (seed={:d})".format(name, self.seed)
