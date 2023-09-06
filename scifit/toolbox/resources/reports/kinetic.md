@@ -127,9 +127,23 @@ S_{r,j} = \frac{\int\limits_{x_0}^{x} \mathcal{S}_{r,j} \cdot \mathrm{d}x}{\int\
 
 # Annexe
 
-## Data
-Table \ref{tab:data} presents a subset of solution and quotients.
+## Concentrations
+Table \ref{tab:data_concentrations} presents a subset of concentrations.
 
 \tiny
-{{dataset}}\label{tab:data}
+{{data_concentrations}}\label{tab:data_concentrations}
+\normalsize
+
+## Kinetic Rates
+Table \ref{tab:data_rates} presents a subset of kinetic rates.
+
+\tiny
+{{data_rates}}\label{tab:data_rates}
+\normalsize
+
+## Reaction Quotients
+Table \ref{tab:data_quotients} presents a subset of reaction quotients.
+
+\tiny
+{{data_quotients}}\label{tab:data_quotients}
 \normalsize

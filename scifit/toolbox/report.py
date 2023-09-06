@@ -293,12 +293,19 @@ class KineticSolverReportProcessor(ReportProcessor):
         context["n"] = solver.n
         context["k"] = solver.k
 
-        data = solver.dataset().fillna("")
-        columns = data.filter(regex="d.+/d.")
-        data = data.drop(columns, axis=1)
+        data = solver.dataset().fillna("").set_index("t")
         n = data.shape[0] // 50
         data = data.iloc[::n, :]
-        table = cls.serialize(data, table_mode=table_mode)
-        context["dataset"] = table
+        # columns = data.filter(regex="d.+/d.")
+        # data = data.drop(columns, axis=1)
+
+        table = cls.serialize(data.filter(regex="^[A-Z]{1}$").reset_index(), table_mode=table_mode)
+        context["data_concentrations"] = table
+
+        table = cls.serialize(data.filter(regex="^d[A-Z]{1}/dt$").reset_index(), table_mode=table_mode)
+        context["data_rates"] = table
+
+        table = cls.serialize(data.filter(regex="^Q[0-9]+$").reset_index(), table_mode=table_mode)
+        context["data_quotients"] = table
 
         return context
