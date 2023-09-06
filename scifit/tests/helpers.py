@@ -237,7 +237,7 @@ class GenericBaseTestFitSolver:
 
     def test_model_implementation(self):
         if self.parameters is not None:
-            yhat = self.solver.model(self.xdata, *self.parameters)
+            yhat = self.solver.system(self.xdata, *self.parameters)
             self.assertTrue(np.allclose(yhat, self.yref))
             self.assertTrue(np.allclose(yhat + self.ynoise, self.ydata))
 

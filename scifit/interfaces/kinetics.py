@@ -48,69 +48,14 @@ class KineticSolverInterface:
         :param k0inv:
         :param mode:
         """
-        nur, x0, k0, nup, k0inv, mode = self.validate(
-            nur, x0, k0, nup=nup, k0inv=k0inv, mode=mode
-        )
-
-        self._substance_index = substance_index
-
-        self._nur = nur
-        self._nup = nup
-        self._x0 = x0
-        self._k0 = k0
-        self._k0inv = k0inv
-        self._mode = mode
-
-        if unsteady is None:
-            unsteady = np.array([1.0] * self.k)
-        self._unsteady = unsteady
-
-    @classmethod
-    def threshold(cls, x, eps=None):
-        """
-        Apply threshold (default is machine precsion)
-
-        :param x:
-        :param eps:
-        :return:
-        """
-        eps = eps or cls._eps
-        x[np.abs(x) <= eps] = eps
-        return x
-
-    @staticmethod
-    def split_nus(nus):
-        """
-        Split stoechiometric coefficients matrix into reactants and products
-
-        :param nus:
-        :return:
-        """
-
-        nur = np.copy(nus)
-        nur[nur > 0.0] = 0.0
-
-        nup = np.copy(nus)
-        nup[nup < 0.0] = 0.0
-
-        return nur, nup
-
-    def validate(self, nur, x0, k0, nup=None, k0inv=None, mode=None):
-        """
-        Validate and sanitize user input
-
-        :param nur:
-        :param x0:
-        :param k0:
-        :param nup:
-        :param k0inv:
-        :param mode:
-        :return:
-        """
 
         # Split nu to make it easier to encode:
         if nup is None and np.any(nur < 0.0):
             nur, nup = self.split_nus(nur)
+
+        if unsteady is None:
+            unsteady = np.full((nur.shape[1],), True)
+        unsteady = unsteady.astype(bool).astype(float)
 
         nur = np.array(nur)
         nup = np.array(nup)
@@ -163,7 +108,64 @@ class KineticSolverInterface:
         if np.all(k0inv <= 0.0):
             raise ConfigurationError("Vector k0inv must be strictly positive")
 
-        return nur, x0, k0, nup, k0inv, mode
+        if not np.issubdtype(unsteady.dtype, np.number):
+            raise ConfigurationError("Vector unsteady must be numerical")
+
+        if unsteady.shape != x0.shape:
+            raise ConfigurationError("Vector unsteady must have the same shape than x0")
+
+        if not isinstance(substance_index, numbers.Integral):
+            raise ConfigurationError("Substance index must be an integer")
+
+        if not(0 <= substance_index < nur.shape[1]):
+            raise ConfigurationError("Substance index must be in {0, ..., %d}" % nur.shape[1])
+
+        self._substance_index = substance_index
+        self._nur = nur
+        self._nup = nup
+        self._x0 = x0
+        self._k0 = k0
+        self._k0inv = k0inv
+        self._mode = mode
+        self._unsteady = unsteady
+
+    @classmethod
+    def threshold(cls, x, eps=None):
+        """
+        Apply threshold (default is machine precsion)
+
+        :param x:
+        :param eps:
+        :return:
+        """
+        eps = eps or cls._eps
+        x[np.abs(x) <= eps] = eps
+        return x
+
+    @staticmethod
+    def split_nus(nus):
+        """
+        Split stoechiometric coefficients matrix into reactants and products
+
+        :param nus:
+        :return:
+        """
+
+        nur = np.copy(nus)
+        nur[nur > 0.0] = 0.0
+
+        nup = np.copy(nus)
+        nup[nup < 0.0] = 0.0
+
+        return nur, nup
+
+    @property
+    def reaction_space_size(self):
+        return self._nur.shape[0]
+
+    @property
+    def substance_space_size(self):
+        return self._nur.shape[1]
 
     @property
     def n(self):
@@ -172,7 +174,7 @@ class KineticSolverInterface:
 
         :return:
         """
-        return self._nur.shape[0]
+        return self.reaction_space_size
 
     @property
     def k(self):
@@ -181,7 +183,7 @@ class KineticSolverInterface:
 
         :return:
         """
-        return self._nur.shape[1]
+        return self.substance_space_size
 
     def reactant_indices(self, reaction_index):
         """
@@ -232,7 +234,7 @@ class KineticSolverInterface:
         """
         return np.sum(self._nup, axis=1)
 
-    def model(self, t, x, k0, k0inv):
+    def system(self, t, x, k0, k0inv):
         """
         Compute reaction rate for each reaction, then compute substance rates
         in order to solve the ODE system of the kinetic.
@@ -293,30 +295,30 @@ class KineticSolverInterface:
         # )
         return substance_rates * self._unsteady
 
-    def parametered_model(self, k0, k0inv):
+    def parametered_system(self, k0, k0inv):
         def wrapped(t, x):
-            return self.model(t, x, k0=k0, k0inv=k0inv)
+            return self.system(t, x, k0=k0, k0inv=k0inv)
         return wrapped
 
-    def time_parametered_model(self, t, k0, k0inv):
+    def time_parametered_system(self, t, k0, k0inv):
         def wrapped(x):
-            return self.model(t, x, k0=k0, k0inv=k0inv)
+            return self.system(t, x, k0=k0, k0inv=k0inv)
         return wrapped
 
     def rates(self):
-        model = self.time_parametered_model(self._solution.t, self._k0, self._k0inv)
+        model = self.time_parametered_system(self._solution.t, self._k0, self._k0inv)
         dxdt = np.apply_along_axis(model, 1, self._solution.y.T)
         return dxdt
 
     def accelerations(self):
         return self.derivative(data=self.rates())
 
-    def solve(self, t, k0, k0inv):
+    def integrate(self, t, k0, k0inv):
         t = np.array(t)
         tspan = np.array([t.min(), t.max()])
-        model = self.parametered_model(k0, k0inv)
+        system = self.parametered_system(k0, k0inv)
         solution = integrate.solve_ivp(
-            model,
+            system,
             tspan,
             self._x0,
             t_eval=t,
@@ -340,7 +342,7 @@ class KineticSolverInterface:
         """
         t = np.array(t)
         tlin = np.linspace(t.min(), t.max(), resolution)
-        solution = self.solve(tlin, k0, k0inv)
+        solution = self.integrate(tlin, k0, k0inv)
         interpolator = interpolate.interp1d(tlin, solution.y.T, axis=0, kind=mode)
         return interpolator(t)
 
@@ -360,7 +362,7 @@ class KineticSolverInterface:
         if k0inv is None:
             k0inv = self._k0inv
 
-        self._solution = self.solve(t, k0, k0inv)
+        self._solution = self.integrate(t, k0, k0inv)
         self._quotients = np.apply_along_axis(self.quotient, 0, self._solution.y)
         self._rates = self.rates()
         self._accelerations = self.accelerations()

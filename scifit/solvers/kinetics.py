@@ -81,7 +81,7 @@ class SequenceOfThreeKineticSolver(FitSolver1D):
 
     @classmethod
     def model(cls, x, b0, b1, b2):
-        solution = cls.kinetic.solve(x[:, 0], [b0, b1, b2], None).y.T[:, 0]
+        solution = cls.kinetic.integrate(x[:, 0], [b0, b1, b2], None).y.T[:, 0]
         return solution
 
 
