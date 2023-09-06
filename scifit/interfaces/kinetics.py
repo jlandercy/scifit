@@ -3,6 +3,7 @@ import inspect
 import itertools
 import numbers
 from collections.abc import Iterable
+import warnings
 
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
@@ -280,24 +281,27 @@ class KineticSolverInterface:
 
         substance_rates = np.full(x0.shape, 0.0)
 
-        if self._mode == "direct" or self._mode == "equilibrium":
-            reaction_rates = k0 * np.prod(
-                np.power(np.row_stack([x] * self.n), np.abs(self._nur)), axis=1
-            )
-            # reaction_rates = k0 * np.power(10., np.sum(
-            #     np.log10(np.row_stack([x] * self.n) * np.abs(self._nur)), axis=1
-            # ))
-            substance_rates += np.sum(
-                (+self.nus) * np.column_stack([reaction_rates] * self.k), axis=0
-            )
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
 
-        if self._mode == "indirect" or self._mode == "equilibrium":
-            reaction_rates = k0inv * np.prod(
-                np.power(np.row_stack([x] * self.n), np.abs(self._nup)), axis=1
-            )
-            substance_rates += np.sum(
-                (-self.nus) * np.column_stack([reaction_rates] * self.k), axis=0
-            )
+            if self._mode == "direct" or self._mode == "equilibrium":
+                reaction_rates = k0 * np.prod(
+                    np.power(np.row_stack([x] * self.n), np.abs(self._nur)), axis=1
+                )
+                # reaction_rates = k0 * np.power(10., np.sum(
+                #     np.log10(np.row_stack([x] * self.n) * np.abs(self._nur)), axis=1
+                # ))
+                substance_rates += np.sum(
+                    (+self.nus) * np.column_stack([reaction_rates] * self.k), axis=0
+                )
+
+            if self._mode == "indirect" or self._mode == "equilibrium":
+                reaction_rates = k0inv * np.prod(
+                    np.power(np.row_stack([x] * self.n), np.abs(self._nup)), axis=1
+                )
+                substance_rates += np.sum(
+                    (-self.nus) * np.column_stack([reaction_rates] * self.k), axis=0
+                )
 
         # return (
         #     np.round(substance_rates, np.finfo(np.longdouble).precision) * self._steady
@@ -322,12 +326,16 @@ class KineticSolverInterface:
     def accelerations(self):
         return self.derivative(data=self.rates())
 
-    def integrate_system(self, t, k0, k0inv, x0=None):
+    def integrate_system(self, t, k0=None, k0inv=None, x0=None):
+
         t = np.array(t)
         tspan = np.array([t.min(), t.max()])
+
         if x0 is None:
             x0 = self._x0
+
         system = self.parametered_system(k0=k0, k0inv=k0inv)
+
         solution = integrate.solve_ivp(
             system,
             tspan,
@@ -339,6 +347,7 @@ class KineticSolverInterface:
             atol=1e-12,
             rtol=1e-10,
         )
+
         return solution
 
     # def evaluate(self, t, k0, k0inv, mode="linear", resolution=5001):
@@ -398,10 +407,11 @@ class KineticSolverInterface:
         :return:
         """
         # return np.prod(np.power(np.row_stack([x] * self.n), self.nus), axis=1)
-
-        return np.power(
-            10, np.sum(np.log10(np.row_stack([x] * self.n)) * self.nus, axis=1)
-        )
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            return np.power(
+                10, np.sum(np.log10(np.row_stack([x] * self.n)) * self.nus, axis=1)
+            )
 
     def equilibrium_constants(self):
         """
@@ -485,10 +495,12 @@ class KineticSolverInterface:
         :param substance_index:
         :return:
         """
-        substance_index = substance_index or self._substance_index or 0
-        dxdt = self.derivative(derivative_order=1)
-        selectivities = (dxdt.T / (dxdt[:, substance_index])).T
-        # selectivities = self.derivative(data=self.integrated_selectivities(substance_index=substance_index))
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            substance_index = substance_index or self._substance_index or 0
+            dxdt = self.derivative(derivative_order=1)
+            selectivities = (dxdt.T / (dxdt[:, substance_index])).T
+            # selectivities = self.derivative(data=self.integrated_selectivities(substance_index=substance_index))
         return np.round(selectivities, np.finfo(np.longdouble).precision)
 
     def global_selectivities(self, substance_index=None):
@@ -527,7 +539,9 @@ class KineticSolverInterface:
         :param substance_index:
         :return:
         """
-        L = 1.0 / (self.derivative(derivative_order=1))
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            L = 1.0 / (self.derivative(derivative_order=1))
         return L
 
     def integrated_levenspiel(self, substance_index=None):

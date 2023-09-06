@@ -1,4 +1,5 @@
 import itertools
+import warnings
 
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
@@ -250,9 +251,11 @@ class FitSolverInterface(FitSolverMixin):
         if wdata is None:
             wdata = 1.0
 
-        return np.sum(
-            wdata * np.power((ydata - self.predict(xdata, parameters=parameters)), 2)
-        )
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            return np.sum(
+                wdata * np.power((ydata - self.predict(xdata, parameters=parameters)), 2)
+            )
 
     def RSS(self, xdata, ydata, parameters=None):
         """
