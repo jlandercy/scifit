@@ -283,7 +283,10 @@ class KineticSolverReportProcessor(ReportProcessor):
         context["tmin"] = solver._solution.t.min()
         context["tmax"] = solver._solution.t.max()
         context["dt"] = np.diff(solver._solution.t)[0]
-        context["n"] = solver._solution.t.size
+        context["nt"] = solver._solution.t.size
+
+        context["n"] = solver.n
+        context["k"] = solver.k
 
         data = solver.dataset().fillna("")
         columns = data.filter(regex="d.+/d.")

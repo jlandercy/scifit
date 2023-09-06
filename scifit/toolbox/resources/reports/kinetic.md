@@ -43,11 +43,12 @@ The model is based on the following kinetics:
 
 {{equations}}
 
-Which are described by the following stoechiometric coefficients matrix:
+Which implies {{n}} reaction(s) and {{k}} substance(s) described
+by the following stoechiometric coefficients matrix:
 
 {{coefficients}}
 
-With initial concentrations vector and steadiness conditions:
+With following initial concentrations vector and steadiness conditions:
 
 {{concentrations}}
 
@@ -62,7 +63,7 @@ Time domain for solver is defined as:
 $t_{\min}$ & {{tmin}} \\
 $t_{\max}$ & {{tmax}} \\
 $\mathrm{d}t$ & {{dt}} \\
-$n$ & {{n}}
+$n$ & {{nt}}
 \end{tabular}
 \end{center}
 
