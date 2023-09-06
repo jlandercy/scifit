@@ -1,10 +1,15 @@
 ---
+documentclass: article
+geometry: margin=3cm
+toc: true
+numbersections: true
+
 title: {{title}}
 author: {{author}}
-numbersections: true
-toc: true
+
 urlcolor: blue
 linkcolor: red
+
 header-includes:
   - \usepackage{amsmath}
   - \usepackage{mathtools}

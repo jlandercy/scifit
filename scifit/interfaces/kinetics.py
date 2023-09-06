@@ -162,16 +162,18 @@ class KineticSolverInterface:
 
     @property
     def reaction_space_size(self):
+        """Number of reactions in the system"""
         return self._nur.shape[0]
 
     @property
     def substance_space_size(self):
+        """Number of substances envolved into the system"""
         return self._nur.shape[1]
 
     @property
     def n(self):
         """
-        Return the number of reactions
+        Number of reactions in the system
 
         :return:
         """
@@ -180,7 +182,7 @@ class KineticSolverInterface:
     @property
     def k(self):
         """
-        Return the number of substances envolved into reactions
+        Number of substances envolved into the system
 
         :return:
         """
@@ -206,6 +208,10 @@ class KineticSolverInterface:
 
     @property
     def references(self):
+        """
+        Reaction reference for each substance, find the first reaction involving the substance
+        :return:
+        """
         return np.array([self.reactant_indices(i)[0] for i in range(self.n)])
 
     @property
@@ -309,25 +315,62 @@ class KineticSolverInterface:
         return substance_rates * self._unsteady
 
     def parametered_system(self, k0, k0inv):
+        """
+        Wrapper: System parametered exposing only time and concentrations
+        :param k0:
+        :param k0inv:
+        :return:
+        """
         def wrapped(t, x, x0=None):
             return self.system(t, x, k0=k0, k0inv=k0inv, x0=x0)
         return wrapped
 
     def time_parametered_system(self, t, k0, k0inv):
+        """
+        Wrapper: System parametered exposing only time
+
+        :param t:
+        :param k0:
+        :param k0inv:
+        :return:
+        """
         def wrapped(x, x0=None):
             return self.system(t, x, k0=k0, k0inv=k0inv, x0=x0)
         return wrapped
 
     def rates(self):
+        """
+        Evaluate system to get accurate rates
+        :return:
+        """
         model = self.time_parametered_system(self._solution.t, self._k0, self._k0inv)
         dxdt = np.apply_along_axis(model, 1, self._solution.y.T)
         return dxdt
 
     def accelerations(self):
+        """
+        Differentiate rates to get accelerations
+
+        :return:
+        """
         return self.derivative(data=self.rates())
 
     def integrate_system(self, t, k0=None, k0inv=None, x0=None):
+        """
+        Integrate system with specific conditioning to cope with stiffness.
 
+        System is defined as follow:
+
+        .. math::
+
+            \\frac{\\partial x_j}{\\partial t} = \\sum\\limits_{i=0}^{i=n} \\nu_{i,j} \\cdot r_i \\, , \\quad \\forall j \\in \\{1, \\dots, k \\}
+
+        :param t:
+        :param k0:
+        :param k0inv:
+        :param x0:
+        :return:
+        """
         t = np.array(t)
         tspan = np.array([t.min(), t.max()])
 
@@ -350,25 +393,9 @@ class KineticSolverInterface:
 
         return solution
 
-    # def evaluate(self, t, k0, k0inv, mode="linear", resolution=5001):
-    #     """
-    #     Solve the kinetic with high resolution regular grid and then interpolate on data domain
-    #     :param t:
-    #     :param k0:
-    #     :param k0inv:
-    #     :param mode:
-    #     :param resolution:
-    #     :return:
-    #     """
-    #     t = np.array(t)
-    #     tlin = np.linspace(t.min(), t.max(), resolution)
-    #     solution = self.integrate(tlin, k0, k0inv)
-    #     interpolator = interpolate.interp1d(tlin, solution.y.T, axis=0, kind=mode)
-    #     return interpolator(t)
-
     def integrate(self, t, k0=None, k0inv=None, x0=None, substance_index=None):
         """
-        Solve the ODE system defined as follows:
+        Solve the ODE system and compute extra aggregates
 
         :param t:
         :return:
@@ -393,7 +420,7 @@ class KineticSolverInterface:
         """
         Return Reaction quotient for each reaction at the given concentration
 
-          .. math::
+        .. math::
 
             Q_i = \\prod\\limits_{j=1}^{j=k} x_j^{\\nu_{i,j}} \\, , \\quad \\forall i \\in \\{1,\\dots, n\\}
 
@@ -401,7 +428,7 @@ class KineticSolverInterface:
 
         .. math::
 
-            Q_i = 10^{\\sum\\limits_{j=1}^{j=k} \\log_{10}(x_j) \\cdot \\nu_{i,j}} \\, , \\quad \\forall i \\in \\{1,\\dots, n\\}
+            Q_i = 10^{\\sum\\limits_{j=1}^{j=k} \\nu_{i,j} \\cdot \\log_{10}(x_j)} \\, , \\quad \\forall i \\in \\{1,\\dots, n\\}
 
         :param x:
         :return:
@@ -490,7 +517,7 @@ class KineticSolverInterface:
 
         .. math::
 
-            \\mathcal{S}_{i,j} = \\frac{\\frac{\\partial x_j}{\\partial t}}{\\frac{\\partial x_i}{\\partial t}}
+            \\mathcal{S}_{r,j} = \\frac{\\frac{\\partial x_j}{\\partial t}}{\\frac{\\partial x_r}{\\partial t}}  \\, , \\quad \\forall r, j \\in \\{1,\\dots, k\\}
 
         :param substance_index:
         :return:
@@ -509,16 +536,19 @@ class KineticSolverInterface:
 
         .. math::
 
-            S_{i,j} = \\frac{\\int\\limits_{x_0}^{x} \\mathcal{S}_{i,j} \\mathrm{d}x}{\\int\\limits_{x_0}^{x} \\mathrm{d}x}
+            S_{r,j} = \\frac{\\int\\limits_{x_0}^{x} \\mathcal{S}_{r,j} \\cdot \\mathrm{d}x}{\\int\\limits_{x_0}^{x} \\mathrm{d}x} \\, , \\quad \\forall r, j \\in \\{1,\\dots, k\\}
 
         :param substance_index:
         :return:
         """
         substance_index = substance_index or self._substance_index or 0
-        S = self.selectivities(substance_index=substance_index)
-        x0 = self._solution.y.T[:, substance_index]
-        I = integrate.cumulative_trapezoid(S, x0, axis=0)
-        # I = ((self._solution.y.T - self._x0).T / (x0 - self._x0[substance_index])).T
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            S = self.selectivities(substance_index=substance_index)
+            x0 = self._solution.y.T[:, substance_index]
+            I = integrate.cumulative_trapezoid(S, x0, axis=0, initial=0.)
+            scaler = integrate.cumulative_trapezoid(x0, x0, axis=0, initial=0.)
+            I = (I.T / scaler).T
         return I
 
     def yields(self, substance_index=None):
@@ -792,14 +822,14 @@ class KineticSolverInterface:
 
         fig, axe = plt.subplots()
         axe.plot(
-            self.convertion_ratio()[:-1],
+            self.convertion_ratio(),
             self._global_selectivities[:, substance_indices],
         )
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
         axe.set_xlabel(r"Conversion Ratio, $\rho$")
-        axe.set_ylabel("Integrated Selectivities, $S_i$")
+        axe.set_ylabel("Global Selectivities, $S_i$")
         axe.legend(list(self._names[substance_indices]))
         axe.grid()
 
