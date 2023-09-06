@@ -16,7 +16,7 @@ header-includes:
   - \usepackage{longtable}
   - \usepackage{booktabs}
   - \usepackage{siunitx}
-  - \sisetup{tight-spacing=true,round-precision=4}
+  #- \sisetup{tight-spacing=true,round-precision=4}
 ---
 # Summary
 
@@ -77,15 +77,15 @@ Where each substance rate is defined as follows:
 
 {% if mode == "direct" %}
 \begin{equation}
-r_l^{\rightarrow} = \sum\limits_{i=1}^{i=n} \nu_{i,j} \cdot k_l^{\rightarrow} \cdot \prod\limits_{j=1}^{j=k} x_j^{|\nu_{l,j}^R|} \, , \quad \forall l \in \{1,\dots, n\}
+r_l^{\rightarrow} = \frac{\partial x_l}{\partial t} = \sum\limits_{i=1}^{i=n} \nu_{i,j} \cdot k_l^{\rightarrow} \cdot \prod\limits_{j=1}^{j=k} x_j^{|\nu_{l,j}^R|} \, , \quad \forall l \in \{1,\dots, n\}
 \end{equation}
 {% elif mode == "indirect" %}
 \begin{equation}
-r_l^{\leftarrow} = \sum\limits_{i=1}^{i=n} \nu_{i,j} \cdot k_l^{\leftarrow} \cdot \prod\limits_{j=1}^{j=k} x_j^{|\nu_{l,j}^P|} \, , \quad \forall l \in \{1,\dots, n\}
+r_l^{\leftarrow} = \frac{\partial x_l}{\partial t} = \sum\limits_{i=1}^{i=n} \nu_{i,j} \cdot k_l^{\leftarrow} \cdot \prod\limits_{j=1}^{j=k} x_j^{|\nu_{l,j}^P|} \, , \quad \forall l \in \{1,\dots, n\}
 \end{equation}
 {% elif mode == "equilibrium" %}
 \begin{equation}
-r_l^{\leftrightharpoons} = \sum\limits_{i=1}^{i=n} \nu_{i,j} \left( \cdot k_l^{\rightarrow} \cdot \prod\limits_{j=1}^{j=k} x_j^{|\nu_{l,j}^R|} - k_l^{\leftarrow} \cdot \prod\limits_{j=1}^{j=k} x_j^{|\nu_{l,j}^P|} \right) \, , \quad \forall l \in \{1,\dots, n\}
+r_l^{\leftrightharpoons} = \frac{\partial x_l}{\partial t} = \sum\limits_{i=1}^{i=n} \nu_{i,j} \left( \cdot k_l^{\rightarrow} \cdot \prod\limits_{j=1}^{j=k} x_j^{|\nu_{l,j}^R|} - k_l^{\leftarrow} \cdot \prod\limits_{j=1}^{j=k} x_j^{|\nu_{l,j}^P|} \right) \, , \quad \forall l \in \{1,\dots, n\}
 \end{equation}
 {% endif %}
 
