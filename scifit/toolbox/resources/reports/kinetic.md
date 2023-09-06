@@ -101,10 +101,27 @@ Q_i = \prod\limits_{j=1}^{j=k} x_j^{\nu_{i,j}} \, , \quad \forall i \in \{1,\dot
 \end{equation}
 
 
-Figure \ref{fig:selectivities} shows reaction selectivities during the scenario.
+Figure \ref{fig:selectivities} shows reaction 
+instantaneous selectivities $\mathcal{S}_{r,j}$ during the scenario.
 
-![Reaction Selectivities\label{fig:selectivities}]({{selectivities}}){width=250px}
+![Reaction instantaneous selectivities\label{fig:selectivities}]({{selectivities}}){width=250px}
 
+Where instantenous selectivities are defined as follows:
+
+\begin{eqnarray}
+\mathcal{S}_{r,j} = \frac{\frac{\partial x_j}{\partial t}}{\frac{\partial x_r}{\partial t}}  \, , \quad \forall r, j \in \{1,\dots, k\}
+\end{eqnarray}
+
+Figure \ref{fig:global_selectivities} shows reaction 
+global selectivities $S_{r,j}$ during the scenario.
+
+![Reaction global selectivities\label{fig:global_selectivities}]({{global_selectivities}}){width=250px}
+
+Where global selectivities are defined as follows:
+
+\begin{eqnarray}
+S_{r,j} = \frac{\int\limits_{x_0}^{x} \mathcal{S}_{r,j} \cdot \mathrm{d}x}{\int\limits_{x_0}^{x} \mathrm{d}x} \, , \quad \forall r, j \in \{1,\dots, k\}
+\end{eqnarray}
 
 \clearpage
 

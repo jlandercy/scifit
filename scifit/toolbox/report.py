@@ -279,6 +279,11 @@ class KineticSolverReportProcessor(ReportProcessor):
         plt.close(axe.figure)
         context["selectivities"] = figure
 
+        axe = solver.plot_global_selectivities(substance_indices=substance_indices)
+        figure = cls.serialize(axe)
+        plt.close(axe.figure)
+        context["global_selectivities"] = figure
+
         context["mode"] = solver._mode
         context["tmin"] = solver._solution.t.min()
         context["tmax"] = solver._solution.t.max()
