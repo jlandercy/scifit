@@ -547,7 +547,7 @@ class KineticSolverInterface:
             S = self.selectivities(substance_index=substance_index)
             x0 = self._solution.y.T[:, substance_index]
             I = integrate.cumulative_trapezoid(S, x0, axis=0, initial=0.)
-            scaler = integrate.cumulative_trapezoid(x0, x0, axis=0, initial=0.)
+            scaler = integrate.cumulative_trapezoid(np.full(x0.shape, 1.0), x0, axis=0, initial=0.)
             I = (I.T / scaler).T
         return I
 
