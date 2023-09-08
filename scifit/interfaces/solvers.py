@@ -580,7 +580,7 @@ class FitSolverInterface(FitSolverMixin):
             :alt: Fit Plot
         """
 
-        if not title and self._model_equation:
+        if not title and self._model_equation and not self._equation_array:
             title = "$%s$" % self._model_equation
 
         if log_x:
@@ -707,7 +707,7 @@ class FitSolverInterface(FitSolverMixin):
         :return:
         """
 
-        if not title and self._model_equation:
+        if not title and self._model_equation and not self._equation_array:
             title = "$%s$" % self._model_equation
 
         if self.fitted(error=True):
@@ -786,7 +786,7 @@ class FitSolverInterface(FitSolverMixin):
         :return:
         """
 
-        if not title and self._model_equation:
+        if not title and self._model_equation and not self._equation_array:
             title = "$%s$" % self._model_equation
 
         if self.fitted(error=True):
@@ -865,7 +865,7 @@ class FitSolverInterface(FitSolverMixin):
         See :meth:`FitSolverInterface.plot_loss` for full loss landscape.
         """
 
-        if not title and self._model_equation:
+        if not title and self._model_equation and not self._equation_array:
             title = "$%s$" % self._model_equation
 
         if self.fitted(error=True):
@@ -1091,7 +1091,7 @@ class FitSolverInterface(FitSolverMixin):
         :return:
         """
 
-        if not title and self._model_equation:
+        if not title and self._model_equation and not self._equation_array:
             title = "$%s$" % self._model_equation
 
         if self.k <= 2:
