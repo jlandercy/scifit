@@ -59,7 +59,6 @@ class SequenceKineticSolver(FitSolver1D):
 
 
 class SequenceOfThreeKineticSolver(FitSolver1D):
-
     kinetic = KineticSolverInterface(
         nur=np.array(
             [
@@ -144,5 +143,7 @@ class BrusselatorKineticSolver(FitSolver1D):
         :param b3:
         :return:
         """
-        solution = cls.kinetic.integrate_system(x[:, 0], [b0, b1, b2, b3], None).y.T[:, 4]
+        solution = cls.kinetic.integrate_system(x[:, 0], [b0, b1, b2, b3], None).y.T[
+            :, 4
+        ]
         return solution

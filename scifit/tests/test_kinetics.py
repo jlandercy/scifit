@@ -64,7 +64,11 @@ class GenericKineticTest:
             rtol=1e-10,
         )
         self.assertTrue(np.all(np.isclose(solution.t, check.t)))
-        self.assertTrue(np.all(np.isclose(solution.y, check.y, rtol=1e-4, atol=1e-6, equal_nan=True)))
+        self.assertTrue(
+            np.all(
+                np.isclose(solution.y, check.y, rtol=1e-4, atol=1e-6, equal_nan=True)
+            )
+        )
 
     def test_reactant_references(self):
         references = self.solver.references
@@ -85,8 +89,8 @@ class GenericKineticTest:
         exp = self.solver.derivative()
         data = pd.concat([pd.DataFrame(ref), pd.DataFrame(exp)], axis=1)
         name = self.__class__.__name__
-        #data.to_excel("{}/{}_check_rates.xlsx".format(self.media_path, name))
-        #print(np.max(np.abs(ref -exp)))
+        # data.to_excel("{}/{}_check_rates.xlsx".format(self.media_path, name))
+        # print(np.max(np.abs(ref -exp)))
         self.assertTrue(np.allclose(ref, exp, rtol=1e-2, atol=1e-3, equal_nan=True))
 
     # def test_kinetic_accelerations(self):
@@ -139,19 +143,17 @@ class GenericKineticTest:
     def test_plot_rates(self):
         name = self.__class__.__name__
         self.solver.integrate(t=self.t)
-        axe = self.solver.plot_rates(
-            substance_indices=self.substance_indices
-        )
+        axe = self.solver.plot_rates(substance_indices=self.substance_indices)
         axe.figure.savefig("{}/{}_rates.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
     def test_plot_accelerations(self):
         name = self.__class__.__name__
         self.solver.integrate(t=self.t)
-        axe = self.solver.plot_accelerations(
-            substance_indices=self.substance_indices
+        axe = self.solver.plot_accelerations(substance_indices=self.substance_indices)
+        axe.figure.savefig(
+            "{}/{}_accelerations.{}".format(self.media_path, name, self.format)
         )
-        axe.figure.savefig("{}/{}_accelerations.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
     def test_plot_selectivities(self):
@@ -232,7 +234,12 @@ class GenericKineticTest:
         name = self.__class__.__name__
         file = r"{}_report".format(name)
         self.solver.integrate(self.t)
-        self.solver.report(file=file, path=self.media_path, mode="pdf", substance_indices=self.substance_indices)
+        self.solver.report(
+            file=file,
+            path=self.media_path,
+            mode="pdf",
+            substance_indices=self.substance_indices,
+        )
 
 
 resolution = 5001
@@ -649,9 +656,11 @@ class MultipleKinetics08(GenericKineticTest, TestCase):
     def model(self, t, x):
         return np.array(
             [
-                +self.k0[0] * x[0] * x[1] -self.k0[0] * x[0] * x[2] +self.k0[0] * x[0] * x[3],
+                +self.k0[0] * x[0] * x[1]
+                - self.k0[0] * x[0] * x[2]
+                + self.k0[0] * x[0] * x[3],
                 -self.k0[0] * x[0] * x[1],
                 -self.k0[0] * x[0] * x[2],
-                +self.k0[0] * x[0] * x[2] -self.k0[0] * x[0] * x[3],
+                +self.k0[0] * x[0] * x[2] - self.k0[0] * x[0] * x[3],
             ]
         )

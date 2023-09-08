@@ -3,10 +3,9 @@ import io
 import pathlib
 from collections.abc import Iterable
 
-import numpy as np
-
 import jinja2
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import pypandoc
 
@@ -82,7 +81,9 @@ class ReportProcessor:
             return cls.serialize_table(item, mode=table_mode)
 
     @classmethod
-    def report(cls, solver, context=None, path=".", file="report", mode="pdf", **kwargs):
+    def report(
+        cls, solver, context=None, path=".", file="report", mode="pdf", **kwargs
+    ):
         modes = {"pdf", "html", "docx"}
         if mode not in modes:
             raise ConfigurationError(
@@ -231,7 +232,14 @@ class KineticSolverReportProcessor(ReportProcessor):
     template = "kinetic.md"
 
     @classmethod
-    def context(cls, solver, context=None, table_mode="latex", figure_mode="svg", substance_indices=None):
+    def context(
+        cls,
+        solver,
+        context=None,
+        table_mode="latex",
+        figure_mode="svg",
+        substance_indices=None,
+    ):
         if context is None:
             context = {
                 "title": "Kinetic Report",
@@ -257,10 +265,12 @@ class KineticSolverReportProcessor(ReportProcessor):
         context["concentrations"] = table
 
         data = solver.constants()
-        data = data.rename(columns={
-            "k0": r"$k_{0}^{\rightarrow}$",
-            "k0inv": r"$k_{0}^{\leftarrow}$",
-        })
+        data = data.rename(
+            columns={
+                "k0": r"$k_{0}^{\rightarrow}$",
+                "k0inv": r"$k_{0}^{\leftarrow}$",
+            }
+        )
         table = cls.serialize(data, table_mode=table_mode)
         context["constants"] = table
 
@@ -299,13 +309,19 @@ class KineticSolverReportProcessor(ReportProcessor):
         # columns = data.filter(regex="d.+/d.")
         # data = data.drop(columns, axis=1)
 
-        table = cls.serialize(data.filter(regex="^[A-Z]{1}$").reset_index(), table_mode=table_mode)
+        table = cls.serialize(
+            data.filter(regex="^[A-Z]{1}$").reset_index(), table_mode=table_mode
+        )
         context["data_concentrations"] = table
 
-        table = cls.serialize(data.filter(regex="^d[A-Z]{1}/dt$").reset_index(), table_mode=table_mode)
+        table = cls.serialize(
+            data.filter(regex="^d[A-Z]{1}/dt$").reset_index(), table_mode=table_mode
+        )
         context["data_rates"] = table
 
-        table = cls.serialize(data.filter(regex="^Q[0-9]+$").reset_index(), table_mode=table_mode)
+        table = cls.serialize(
+            data.filter(regex="^Q[0-9]+$").reset_index(), table_mode=table_mode
+        )
         context["data_quotients"] = table
 
         return context

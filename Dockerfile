@@ -56,9 +56,9 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-#USER 1000:1000
-
 COPY ./requirements_ci.txt ./requirements_ci.txt
 RUN python3 -m pip install -r ./requirements_ci.txt
+
+USER 1000:1000
 
 CMD python3

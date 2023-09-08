@@ -252,9 +252,10 @@ class FitSolverInterface(FitSolverMixin):
             wdata = 1.0
 
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             return np.sum(
-                wdata * np.power((ydata - self.predict(xdata, parameters=parameters)), 2)
+                wdata
+                * np.power((ydata - self.predict(xdata, parameters=parameters)), 2)
             )
 
     def RSS(self, xdata, ydata, parameters=None):
@@ -566,7 +567,7 @@ class FitSolverInterface(FitSolverMixin):
         errors=False,
         squared_errors=False,
         aspect="auto",
-        resolution=100,
+        resolution=250,
         mode="lin",
         log_x=False,
         log_y=False,
@@ -693,7 +694,7 @@ class FitSolverInterface(FitSolverMixin):
             else:
                 pass
 
-    def plot_chi_square(self, title="", resolution=120):
+    def plot_chi_square(self, title="", resolution=250):
         """
         Plot Chi Square Goodness of Fit figure, summarizes all critical thresholds and p-value
 
@@ -839,7 +840,7 @@ class FitSolverInterface(FitSolverMixin):
         xmax=None,
         title="",
         levels=None,
-        resolution=75,
+        resolution=100,
         surface=False,
         iterations=False,
         include_origin=False,
@@ -1063,7 +1064,7 @@ class FitSolverInterface(FitSolverMixin):
         xmax=None,
         title="",
         levels=None,
-        resolution=75,
+        resolution=100,
         iterations=False,
         include_origin=False,
         include_unit=False,

@@ -2,8 +2,8 @@ import functools
 import inspect
 import itertools
 import numbers
-from collections.abc import Iterable
 import warnings
+from collections.abc import Iterable
 
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
@@ -118,8 +118,10 @@ class KineticSolverInterface:
         if not isinstance(substance_index, numbers.Integral):
             raise ConfigurationError("Substance index must be an integer")
 
-        if not(0 <= substance_index < nur.shape[1]):
-            raise ConfigurationError("Substance index must be in {0, ..., %d}" % nur.shape[1])
+        if not (0 <= substance_index < nur.shape[1]):
+            raise ConfigurationError(
+                "Substance index must be in {0, ..., %d}" % nur.shape[1]
+            )
 
         self._substance_index = substance_index
         self._nur = nur
@@ -288,7 +290,7 @@ class KineticSolverInterface:
         substance_rates = np.full(x0.shape, 0.0)
 
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
 
             if self._mode == "direct" or self._mode == "equilibrium":
                 reaction_rates = k0 * np.prod(
@@ -321,8 +323,10 @@ class KineticSolverInterface:
         :param k0inv:
         :return:
         """
+
         def wrapped(t, x, x0=None):
             return self.system(t, x, k0=k0, k0inv=k0inv, x0=x0)
+
         return wrapped
 
     def time_parametered_system(self, t, k0, k0inv):
@@ -334,8 +338,10 @@ class KineticSolverInterface:
         :param k0inv:
         :return:
         """
+
         def wrapped(x, x0=None):
             return self.system(t, x, k0=k0, k0inv=k0inv, x0=x0)
+
         return wrapped
 
     def rates(self):
@@ -435,7 +441,7 @@ class KineticSolverInterface:
         """
         # return np.prod(np.power(np.row_stack([x] * self.n), self.nus), axis=1)
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             return np.power(
                 10, np.sum(np.log10(np.row_stack([x] * self.n)) * self.nus, axis=1)
             )
@@ -523,7 +529,7 @@ class KineticSolverInterface:
         :return:
         """
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             substance_index = substance_index or self._substance_index or 0
             dxdt = self.derivative(derivative_order=1)
             selectivities = (dxdt.T / (dxdt[:, substance_index])).T
@@ -536,18 +542,21 @@ class KineticSolverInterface:
 
         .. math::
 
-            S_{r,j} = \\frac{\\int\\limits_{x_0}^{x} \\mathcal{S}_{r,j} \\cdot \\mathrm{d}x}{\\int\\limits_{x_0}^{x} \\mathrm{d}x} \\, , \\quad \\forall r, j \\in \\{1,\\dots, k\\}
+            S_{r,j} = \frac{\int\limits_{x_{r,0}}^{x_r} \mathcal{S}_{r,j} \cdot \mathrm{d}x_r}{\int\limits_{x_{r,0}}^{x_r} \mathrm{d}x_r} \, , \quad \forall r, j \in \{1,\dots, k\}
+
 
         :param substance_index:
         :return:
         """
         substance_index = substance_index or self._substance_index or 0
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             S = self.selectivities(substance_index=substance_index)
             x0 = self._solution.y.T[:, substance_index]
-            I = integrate.cumulative_trapezoid(S, x0, axis=0, initial=0.)
-            scaler = integrate.cumulative_trapezoid(np.full(x0.shape, 1.0), x0, axis=0, initial=0.)
+            I = integrate.cumulative_trapezoid(S, x0, axis=0, initial=0.0)
+            scaler = integrate.cumulative_trapezoid(
+                np.full(x0.shape, 1.0), x0, axis=0, initial=0.0
+            )
             I = (I.T / scaler).T
         return I
 
@@ -570,7 +579,7 @@ class KineticSolverInterface:
         :return:
         """
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             L = 1.0 / (self.derivative(derivative_order=1))
         return L
 
@@ -873,14 +882,14 @@ class KineticSolverInterface:
 
         fig, axe = plt.subplots()
         axe.plot(
-            #self._solution.y.T[:, substance_index],
+            # self._solution.y.T[:, substance_index],
             self.convertion_ratio(substance_index=substance_index),
             np.abs(self._levenspiel[:, substance_indices]),
         )
         axe.set_title(
             "Activated State Model Kinetic:\n$%s$" % self.model_formulas(mode="latex")
         )
-        #axe.set_xlabel(r"Reference Concentration, $x_r$")
+        # axe.set_xlabel(r"Reference Concentration, $x_r$")
         axe.set_xlabel(r"Conversion Ratio, $\rho$")
         axe.set_ylabel(r"Levenspiel Curves, $|L_i| = |\frac{1}{r_i}|$")
         axe.legend(list(self._names[substance_indices]))
@@ -927,7 +936,9 @@ class KineticSolverInterface:
         fig, axe = plt.subplots()
         for i, Q in enumerate(self._quotients):
             axe.plot(
-                self._solution.t, Q, label="$Q_{%d}$: $%s$" % (i, self.model_formula(i, mode="latex"))
+                self._solution.t,
+                Q,
+                label="$Q_{%d}$: $%s$" % (i, self.model_formula(i, mode="latex")),
             )
 
         if self._mode == "equilibrium":
@@ -972,25 +983,19 @@ class KineticSolverInterface:
         return axe
 
     def coefficients(self):
-        data = pd.DataFrame(self.nus, columns=self._names[:self.k]).reset_index()
+        data = pd.DataFrame(self.nus, columns=self._names[: self.k]).reset_index()
         data["index"] = data["index"].apply(lambda x: "$R_{%d}$" % x)
         data = data.rename(columns={"index": ""})
         return data
 
     def concentrations(self):
-        data = pd.DataFrame({
-            "x0": self._x0,
-            "steady": (1. - self._unsteady) == 1
-        }).T
-        data.columns = list(self._names[:self.k])
+        data = pd.DataFrame({"x0": self._x0, "steady": (1.0 - self._unsteady) == 1}).T
+        data.columns = list(self._names[: self.k])
         data = data.reset_index().rename(columns={"index": ""})
         return data
 
     def constants(self):
-        data = pd.DataFrame({
-            "k0": self._k0,
-            "k0inv": self._k0inv
-        })
+        data = pd.DataFrame({"k0": self._k0, "k0inv": self._k0inv})
         data.index = data.index.map(lambda x: "$R_{%d}$" % x)
         data = data.reset_index().rename(columns={"index": ""})
         if self._mode == "direct":

@@ -64,15 +64,21 @@ class SequenceOfThreeKineticRegression(GenericKineticRegression):
     loss_resolution = 20
 
 
-class SequenceOfThreeKineticRegressionNoiseL0(SequenceOfThreeKineticRegression, TestCase):
+class SequenceOfThreeKineticRegressionNoiseL0(
+    SequenceOfThreeKineticRegression, TestCase
+):
     sigma = 1e-6
 
 
-class SequenceOfThreeKineticRegressionNoiseL1(SequenceOfThreeKineticRegression, TestCase):
+class SequenceOfThreeKineticRegressionNoiseL1(
+    SequenceOfThreeKineticRegression, TestCase
+):
     sigma = 2.5e-2
 
 
-class SequenceOfThreeKineticRegressionNoiseL2(SequenceOfThreeKineticRegression, TestCase):
+class SequenceOfThreeKineticRegressionNoiseL2(
+    SequenceOfThreeKineticRegression, TestCase
+):
     sigma = 1e-1
 
 

@@ -77,15 +77,15 @@ Where each substance rate is defined as follows:
 
 {% if mode == "direct" %}
 \begin{equation}
-r_l^{\rightarrow} = \frac{\partial x_l}{\partial t} = \sum\limits_{i=1}^{i=n} \nu_{i,j} \cdot k_l^{\rightarrow} \cdot \prod\limits_{j=1}^{j=k} x_j^{|\nu_{l,j}^R|} \, , \quad \forall l \in \{1,\dots, n\}
+r_l^{\rightarrow} = \frac{\partial x_l}{\partial t} = \sum\limits_{i=1}^{i=n} \nu_{i,l} \cdot k_i^{\rightarrow} \cdot \prod\limits_{j=1}^{j=k} x_j^{|\nu_{i,j}^R|} \, , \quad \forall l \in \{1,\dots, n\}
 \end{equation}
 {% elif mode == "indirect" %}
 \begin{equation}
-r_l^{\leftarrow} = \frac{\partial x_l}{\partial t} = \sum\limits_{i=1}^{i=n} \nu_{i,j} \cdot k_l^{\leftarrow} \cdot \prod\limits_{j=1}^{j=k} x_j^{|\nu_{l,j}^P|} \, , \quad \forall l \in \{1,\dots, n\}
+r_l^{\leftarrow} = \frac{\partial x_l}{\partial t} = \sum\limits_{i=1}^{i=n} \nu_{i,l} \cdot k_i^{\leftarrow} \cdot \prod\limits_{j=1}^{j=k} x_j^{|\nu_{i,j}^P|} \, , \quad \forall l \in \{1,\dots, n\}
 \end{equation}
 {% elif mode == "equilibrium" %}
 \begin{equation}
-r_l^{\leftrightharpoons} = \frac{\partial x_l}{\partial t} = \sum\limits_{i=1}^{i=n} \nu_{i,j} \left( \cdot k_l^{\rightarrow} \cdot \prod\limits_{j=1}^{j=k} x_j^{|\nu_{l,j}^R|} - k_l^{\leftarrow} \cdot \prod\limits_{j=1}^{j=k} x_j^{|\nu_{l,j}^P|} \right) \, , \quad \forall l \in \{1,\dots, n\}
+r_l^{\leftrightharpoons} = \frac{\partial x_l}{\partial t} = \sum\limits_{i=1}^{i=n} \nu_{i,l} \left( \cdot k_i^{\rightarrow} \cdot \prod\limits_{j=1}^{j=k} x_j^{|\nu_{i,j}^R|} - k_i^{\leftarrow} \cdot \prod\limits_{j=1}^{j=k} x_j^{|\nu_{i,j}^P|} \right) \, , \quad \forall l \in \{1,\dots, n\}
 \end{equation}
 {% endif %}
 
@@ -120,7 +120,7 @@ global selectivities $S_{r,j}$ during the scenario.
 Where global selectivities are defined as follows:
 
 \begin{eqnarray}
-S_{r,j} = \frac{\int\limits_{x_0}^{x} \mathcal{S}_{r,j} \cdot \mathrm{d}x}{\int\limits_{x_0}^{x} \mathrm{d}x} \, , \quad \forall r, j \in \{1,\dots, k\}
+S_{r,j} = \frac{\int\limits_{x_{r,0}}^{x_r} \mathcal{S}_{r,j} \cdot \mathrm{d}x_r}{\int\limits_{x_{r,0}}^{x_r} \mathrm{d}x_r} \, , \quad \forall r, j \in \{1,\dots, k\}
 \end{eqnarray}
 
 \clearpage
