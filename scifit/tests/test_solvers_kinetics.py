@@ -83,6 +83,7 @@ class SequenceOfThreeKineticRegressionNoiseL2(
 
 
 class BrusselatorKineticRegression(GenericKineticRegression):
+
     factory = kinetics.BrusselatorKineticSolver
     parameters = np.array([1.1, 0.9, 1.1, 0.9])
     xmin = 0.0
@@ -94,9 +95,9 @@ class BrusselatorKineticRegression(GenericKineticRegression):
         """Too heavy"""
         pass
 
-    def test_process_report(self):
-        """Too heavy"""
-        pass
+    # def test_process_report(self):
+    #     """Too heavy"""
+    #     pass
 
 
 class BrusselatorKineticRegressionNoiseL0(BrusselatorKineticRegression, TestCase):

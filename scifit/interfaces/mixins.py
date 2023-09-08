@@ -11,6 +11,7 @@ from scifit.errors.base import *
 
 
 class ConfigurationMixin:
+
     def __init__(self, **kwargs):
         """
         Create a new instance of :class:`FitSolverInterface` and store parameters to pass them to :py:mod:`scipy`
@@ -31,10 +32,12 @@ class ConfigurationMixin:
 
 
 class FitSolverMixin(ConfigurationMixin, abc.ABC):
+
     _dimension = None
     _data_keys = ("_xdata", "_ydata", "_sigma")
     _result_keys = tuple()
     _model_equation = None
+    _equation_array = False
 
     def __init__(self, dimension=None, *args, **kwargs):
         self._dimension = dimension or self._dimension

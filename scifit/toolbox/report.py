@@ -112,7 +112,7 @@ class FitSolverReportProcessor(ReportProcessor):
                 "supervisor": "Jean Landercy",
             }
 
-        axe = solver.plot_fit(errors=True)
+        axe = solver.plot_fit(errors=True, resolution=solver.n * 10)
         fit = cls.serialize(axe)
         plt.close(axe.figure)
 
@@ -214,6 +214,7 @@ class FitSolverReportProcessor(ReportProcessor):
             "m": solver.m,
             "nu": solver.dof,
             "equation": solver._model_equation,
+            "equation_array": solver._equation_array,
             "parameters": parameters,
             "solved": solver.solved(),
             "message": solver._solution["message"],

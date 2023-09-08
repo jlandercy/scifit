@@ -544,7 +544,6 @@ class KineticSolverInterface:
 
             S_{r,j} = \frac{\int\limits_{x_{r,0}}^{x_r} \mathcal{S}_{r,j} \cdot \mathrm{d}x_r}{\int\limits_{x_{r,0}}^{x_r} \mathrm{d}x_r} \, , \quad \forall r, j \in \{1,\dots, k\}
 
-
         :param substance_index:
         :return:
         """

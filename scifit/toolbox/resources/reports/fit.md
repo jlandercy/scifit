@@ -38,11 +38,23 @@ with a dataset of {{n}} observation(s).
 {% if equation %}
 Model has the following formulation:
 {% if table_mode == "latex" %}
+{% if equation_array %}
+\begin{eqnarray}
+{{equation}}
+\end{eqnarray}
+{% else %}
 \begin{equation}
 {{equation}}
 \end{equation}
+{% endif %}
+{% else %}
+{% if equation_array %}
+$$\begin{eqnarray}
+{{equation}}
+\end{eqnarray}$$
 {% else %}
 $${{equation}}$$
+{% endif %}
 {% endif %}
 {% endif %}
 
