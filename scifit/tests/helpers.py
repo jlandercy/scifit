@@ -531,7 +531,7 @@ class GenericPlotTestFitSolver:
                 mode=self.mode,
                 log_x=self.log_x,
                 log_y=self.log_y,
-                resolution=self.resolution * 10
+                resolution=self.resolution * 10,
             )
             axe.figure.savefig(
                 "{}/{}_fit.{}".format(self.media_path, name, self.format)

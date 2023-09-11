@@ -83,7 +83,6 @@ class SequenceOfThreeKineticRegressionNoiseL2(
 
 
 class BrusselatorKineticRegression(GenericKineticRegression):
-
     factory = kinetics.BrusselatorKineticSolver
     parameters = np.array([1.1, 0.9, 1.1, 0.9])
     xmin = 0.0
