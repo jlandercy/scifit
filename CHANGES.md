@@ -11,11 +11,13 @@
  - [ ] Refactor all models to get parameters name:
    - [ ] Starting by 0 and get compliant with natural index
    - [x] Write all _model_equation
- - [ ] Give a try to Kivy in another package (userflow first)
  - [ ] Apply 10^log10 to model for Kinetic in order to reduce errors
  - [ ] Find out why some conversion ratio are not shown in steady mode
  - [ ] Solve issue when KineticFit Solver p0 is too far away from real give shape error
+   - Due to ODE Solver interruption (not converging stop before reaching full t_eval)
  - [ ] Implement SIR model and fit epidemic data (introduce bootstrap)
+ - [ ] Add transformers (Log-Log, Lineweaver-Burk, Standardizer)
+ - [ ] Add Pipeline object
 
 ## v0.1.15
 
