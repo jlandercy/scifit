@@ -252,26 +252,26 @@ class KineticSolverInterface:
 
         .. math::
 
-            r_i^{\\rightarrow} = \\frac{1}{V}\\frac{\\partial \\xi}{\\partial t} = k_i^{\\rightarrow} \\cdot \\prod\\limits_{j=1}^{j=k} x_j^{|\\nu_{i,j}^R|} \\, , \\quad \\forall i \\in \\{1,\\dots, n\\}
+            r_i^{\\rightarrow} = \\frac{1}{V}\\frac{\\partial \\xi_i^{\\rightarrow}}{\\partial t} = k_i^{\\rightarrow} \\cdot \\prod\\limits_{j=1}^{j=k} x_j^{|\\nu_{i,j}^R|} \\, , \\quad \\forall i \\in \\{1,\\dots, n\\}
 
         .. math::
 
-            r_i^{\\leftarrow} = \\frac{1}{V}\\frac{\\partial \\xi}{\\partial t} = k_i^{\\leftarrow} \\cdot \\prod\\limits_{j=1}^{j=k} x_j^{|\\nu_{i,j}^P|} \\, , \\quad \\forall i \\in \\{1,\\dots, n\\}
+            r_i^{\\leftarrow} = \\frac{1}{V}\\frac{\\partial \\xi_i^{\\leftarrow}}{\\partial t} = k_i^{\\leftarrow} \\cdot \\prod\\limits_{j=1}^{j=k} x_j^{|\\nu_{i,j}^P|} \\, , \\quad \\forall i \\in \\{1,\\dots, n\\}
 
 
         And each substance reaction rate is defined as:
 
         .. math::
 
-            r_j^{\\rightarrow} = \\sum\\limits_{i=1}^{i=n} \\nu_{i,j} \\cdot r_i \\, , \\quad \\forall j \\in \\{1,\\dots, k\\}
+            R_j^{\\rightarrow} = \\frac{\\partial x_j^{\\rightarrow}}{\\partial t} = \\sum\\limits_{i=1}^{i=n} \\nu_{i,j} \\cdot r_i^{\\rightarrow} \\, , \\quad \\forall j \\in \\{1,\\dots, k\\}
 
         .. math::
 
-            r_j^{\\leftarrow} = \\sum\\limits_{i=1}^{i=n} \\nu_{i,j} \\cdot r_i \\, , \\quad \\forall j \\in \\{1,\\dots, k\\}
+            R_j^{\\leftarrow} = \\frac{\\partial x_j^{\\leftarrow}}{\\partial t} = - \\sum\\limits_{i=1}^{i=n} \\nu_{i,j} \\cdot r_i^{\\leftarrow} \\, , \\quad \\forall j \\in \\{1,\\dots, k\\}
 
         .. math::
 
-            r_j^{\\leftrightharpoons} = r_j^{\\rightarrow} - r_j^{\\leftarrow} \\, , \\quad \\forall j \\in \\{1,\\dots, k\\}
+            R_j^{\\leftrightharpoons} = \\frac{\\partial x_j^{\\leftrightharpoons}}{\\partial t} = R_j^{\\rightarrow} - R_j^{\\leftarrow} \\, , \\quad \\forall j \\in \\{1,\\dots, k\\}
 
         :param t:
         :param x:
@@ -542,7 +542,7 @@ class KineticSolverInterface:
 
         .. math::
 
-            S_{r,j} = \frac{\int\limits_{x_{r,0}}^{x_r} \mathcal{S}_{r,j} \cdot \mathrm{d}x_r}{\int\limits_{x_{r,0}}^{x_r} \mathrm{d}x_r} \, , \quad \forall r, j \in \{1,\dots, k\}
+            S_{r,j} = \\frac{\\int\\limits_{x_{r,0}}^{x_r} \\mathcal{S}_{r,j} \\cdot \\mathrm{d}x_r}{\\int\\limits_{x_{r,0}}^{x_r} \\mathrm{d}x_r} \\, , \\quad \\forall r, j \\in \\{1,\\dots, k\\}
 
         :param substance_index:
         :return:

@@ -14,7 +14,8 @@
  - [ ] Give a try to Kivy in another package (userflow first)
  - [ ] Apply 10^log10 to model for Kinetic in order to reduce errors
  - [ ] Find out why some conversion ratio are not shown in steady mode
- - [ ] Solve issue when KineticFit Solver p0 is too far away from real give shape error 
+ - [ ] Solve issue when KineticFit Solver p0 is too far away from real give shape error
+ - [ ] Implement SIR model and fit epidemic data (introduce bootstrap)
 
 ## v0.1.15
 

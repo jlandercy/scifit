@@ -95,9 +95,9 @@ class BrusselatorKineticRegression(GenericKineticRegression):
         """Too heavy"""
         pass
 
-    # def test_process_report(self):
-    #     """Too heavy"""
-    #     pass
+    def test_process_report(self):
+        """Too heavy"""
+        pass
 
 
 class BrusselatorKineticRegressionNoiseL0(BrusselatorKineticRegression, TestCase):
