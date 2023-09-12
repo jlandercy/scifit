@@ -6,7 +6,8 @@ from scipy import signal
 
 
 class ChromatogramSolver:
-    def __init__(self, poly_order=3, prominence=1.0, width=1, distance=2.):
+
+    def __init__(self, poly_order=3, prominence=1.0, width=1.0, distance=1.0):
         self._poly_order = poly_order
         self._prominence = prominence
         self._width = width
