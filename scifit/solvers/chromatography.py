@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from pybaselines import Baseline, utils
-from scipy import signal
+from scipy import signal, integrate
 
 
 class ChromatogramSolver:
@@ -151,6 +151,15 @@ class ChromatogramSolver:
                 rights[i] = lefts[i+1]
         return lefts, rights
 
+    def integrate_peaks(self):
+        integrals = []
+        for left, right in zip(self._peaks["lefts"], self._peaks["rights"]):
+            x = self._xdata[left:right]
+            y = self._ydata[left:right]
+            integral = integrate.trapezoid(y, x)
+            integrals.append(integral)
+        return np.array(integrals)
+
     def fit(self, xdata, ydata=None):
         if isinstance(xdata, pd.DataFrame):
             ydata = xdata["y"].values
@@ -168,6 +177,7 @@ class ChromatogramSolver:
         )
         meta = peaks[1]
         meta["indices"] = peaks[0]
+        meta["times"] = xdata[peaks[0]]
         meta["lefts"], meta["rights"] = self.clean_base_indices(meta["left_bases"], meta["right_bases"])
 
         self._xdata = xdata
@@ -175,6 +185,8 @@ class ChromatogramSolver:
         self._baseline = baseline
         self._filtered = filtered
         self._peaks = meta
+
+        self._peaks["surfaces"] = self.integrate_peaks()
 
         return {"x0": xdata, "y": ydata, "b": baseline, "yb": filtered, "peaks": meta}
 
