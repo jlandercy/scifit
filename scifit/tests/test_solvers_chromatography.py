@@ -8,6 +8,7 @@ from scifit.solvers.chromatography import ChromatogramSolver
 
 
 class TestChromatogramSolver:
+
     root_path = ".cache/media/tests/"
     format = "png"
 
@@ -24,15 +25,16 @@ class TestChromatogramSolver:
     b0 = 5.0
     b1 = 15.0
 
-    filter_mode = "modpoly"
-    poly_order = 3
-    prominence = 1.0
+    filter_mode = "imodpoly"
+    configuration = {}
+    prominence = 2.5
     width = 10.0
     height = None
     rel_height = 0.5
     distance = None
 
     def setUp(self):
+
         self.media_path = pathlib.Path(self.root_path) / format(
             self.factory.__module__.split(".")[-1]
         )
@@ -40,12 +42,12 @@ class TestChromatogramSolver:
 
         self.solver = self.factory(
             mode=self.filter_mode,
-            poly_order=self.poly_order,
             prominence=self.prominence,
             width=self.width,
             height=self.height,
             rel_height=self.rel_height,
             distance=self.distance,
+            **self.configuration
         )
         self.data = self.solver.synthetic_dataset(
             peaks=self.peaks,
@@ -70,7 +72,7 @@ class TestChromatogramSolver:
 
     def test_dump_data(self):
         name = self.__class__.__name__
-        self.data.to_csv("scifit/tests/features/peaks/{}.csv".format(name), sep=";")
+        self.data.to_csv("{}/{}.csv".format(self.media_path, name), sep=";")
 
     def test_fit_data(self):
         solution = self.solver.fit(self.data)
@@ -80,31 +82,152 @@ class TestChromatogramSolver:
     def test_plot_fit(self):
         name = self.__class__.__name__
         solution = self.solver.fit(self.data)
-        axe = self.solver.plot_fit()
+        axe = self.solver.plot_fit(title=name)
         axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format))
 
 
-class TestChromatogramSolverSample00(TestChromatogramSolver, TestCase):
+class TestChromatogramSolverSample00Default(TestChromatogramSolver, TestCase):
     peaks = [100, 180, 350, 420, 550, 700, 800, 880]
     heights = [9, 6, 8, 15, 6, 13, 9, 9]
     widths = [12, 5, 11, 18, 6, 8, 9, 7]
     n_peaks = len(peaks)
 
 
-class TestChromatogramSolverSample01(TestChromatogramSolver, TestCase):
-    pass
+class TestChromatogramSolverSample01Default(TestChromatogramSolver, TestCase):
+    configuration = {"poly_order": 3}
 
 
-class TestChromatogramSolverSample02(TestChromatogramSolver, TestCase):
+class TestChromatogramSolverSample02Default(TestChromatogramSolver, TestCase):
     baseline_mode = "lin"
+    configuration = {"poly_order": 3}
 
 
-class TestChromatogramSolverSample03(TestChromatogramSolver, TestCase):
+class TestChromatogramSolverSample03Default(TestChromatogramSolver, TestCase):
     baseline_mode = "lin"
-    poly_order = 1
+    configuration = {"poly_order": 1}
     b0 = 0.0
     b1 = 0.0
 
 
-class TestChromatogramSolverSample01(TestChromatogramSolver, TestCase):
-    pass
+class TestChromatogramSolverSample01Loess2(TestChromatogramSolver, TestCase):
+    filter_mode = "loess"
+    configuration = {"poly_order": 2}
+
+
+class TestChromatogramSolverSample01ModPoly3(TestChromatogramSolver, TestCase):
+    filter_mode = "modpoly"
+    configuration = {"poly_order": 3}
+
+
+class TestChromatogramSolverSample01GoldIndec3(TestChromatogramSolver, TestCase):
+    filter_mode = "goldindec"
+    configuration = {"poly_order": 3}
+
+
+class TestChromatogramSolverSample01PenalizedPoly1(TestChromatogramSolver, TestCase):
+    filter_mode = "penalized_poly"
+    configuration = {"poly_order": 1}
+
+
+class TestChromatogramSolverSample01PenalizedPoly2(TestChromatogramSolver, TestCase):
+    filter_mode = "penalized_poly"
+    configuration = {"poly_order": 2}
+
+
+class TestChromatogramSolverSample01PenalizedPoly3(TestChromatogramSolver, TestCase):
+    filter_mode = "penalized_poly"
+    configuration = {"poly_order": 3}
+
+
+class TestChromatogramSolverSample01QuantReg3(TestChromatogramSolver, TestCase):
+    filter_mode = "quant_reg"
+    configuration = {"poly_order": 3}
+
+
+class TestChromatogramSolverSample01BEADS(TestChromatogramSolver, TestCase):
+    filter_mode = "beads"
+    configuration = {}
+
+
+class TestChromatogramSolverSample01CWTBR(TestChromatogramSolver, TestCase):
+    filter_mode = "cwt_br"
+
+
+class TestChromatogramSolverSample01Dietrich(TestChromatogramSolver, TestCase):
+    filter_mode = "dietrich"
+
+
+class TestChromatogramSolverSample01FABC(TestChromatogramSolver, TestCase):
+    filter_mode = "fabc"
+
+
+class TestChromatogramSolverSample01FastChrom(TestChromatogramSolver, TestCase):
+    filter_mode = "fastchrom"
+
+
+class TestChromatogramSolverSample01Golotvin(TestChromatogramSolver, TestCase):
+    filter_mode = "golotvin"
+
+
+class TestChromatogramSolverSample01StdDistribution(TestChromatogramSolver, TestCase):
+    filter_mode = "std_distribution"
+
+
+class TestChromatogramSolverSample01Amormol(TestChromatogramSolver, TestCase):
+    filter_mode = "amormol"
+
+
+class TestChromatogramSolverSample01IMOR(TestChromatogramSolver, TestCase):
+    filter_mode = "imor"
+
+
+class TestChromatogramSolverSample01JBCD(TestChromatogramSolver, TestCase):
+    filter_mode = "jbcd"
+
+
+class TestChromatogramSolverSample01MOR(TestChromatogramSolver, TestCase):
+    filter_mode = "mor"
+
+
+class TestChromatogramSolverSample01MORMOL(TestChromatogramSolver, TestCase):
+    filter_mode = "mormol"
+
+
+class TestChromatogramSolverSample01MPLS(TestChromatogramSolver, TestCase):
+    filter_mode = "mpls"
+
+
+class TestChromatogramSolverSample01MPSpline(TestChromatogramSolver, TestCase):
+    filter_mode = "mpspline"
+
+
+class TestChromatogramSolverSample01MWMV(TestChromatogramSolver, TestCase):
+    filter_mode = "mwmv"
+
+
+class TestChromatogramSolverSample01RollingBall(TestChromatogramSolver, TestCase):
+    filter_mode = "rolling_ball"
+
+
+class TestChromatogramSolverSample01TopHat(TestChromatogramSolver, TestCase):
+    filter_mode = "tophat"
+
+
+class TestChromatogramSolverSample01Ipsa(TestChromatogramSolver, TestCase):
+    filter_mode = "ipsa"
+
+
+class TestChromatogramSolverSample01NoiseMedian(TestChromatogramSolver, TestCase):
+    filter_mode = "noise_median"
+
+
+class TestChromatogramSolverSample01RIA(TestChromatogramSolver, TestCase):
+    filter_mode = "ria"
+
+
+class TestChromatogramSolverSample01SNIP(TestChromatogramSolver, TestCase):
+    filter_mode = "snip"
+
+
+class TestChromatogramSolverSample01SWiMA(TestChromatogramSolver, TestCase):
+    filter_mode = "swima"

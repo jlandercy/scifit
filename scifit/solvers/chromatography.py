@@ -8,16 +8,16 @@ from scipy import integrate, signal
 class ChromatogramSolver:
     def __init__(
         self,
-        mode="modpoly",
-        poly_order=3,
+        mode="imodpoly",
         prominence=1.0,
         width=10.0,
         height=None,
         rel_height=0.5,
         distance=None,
+        **kwargs,
     ):
         self._mode = mode
-        self._poly_order = poly_order
+        self._configuration = kwargs
         self._prominence = prominence
         self._height = height
         self._rel_height = rel_height
@@ -212,11 +212,15 @@ class ChromatogramSolver:
             ydata = xdata["y"].values
             xdata = xdata["x0"].values
 
-        # Withdraw baseline:
+        # Select baseline filter:
         fitter = Baseline(xdata, check_finite=True)
         bfilter = getattr(fitter, self._mode)
-        background = bfilter(ydata, poly_order=self._poly_order)
+
+        # Configure baseline filter:
+        background = bfilter(ydata, **self._configuration)
         baseline = background[0]
+
+        # Withdraw baseline
         filtered = ydata - baseline
 
         # Detect peaks:
@@ -246,7 +250,7 @@ class ChromatogramSolver:
 
         return {"x0": xdata, "y": ydata, "b": baseline, "yb": filtered, "peaks": meta}
 
-    def plot_fit(self):
+    def plot_fit(self, title=""):
         fig, axe = plt.subplots()
 
         axe.plot(self._xdata, self._ydata, label="Data")
@@ -307,7 +311,7 @@ class ChromatogramSolver:
                 rotation=90,
             )
 
-        axe.set_title("Chromatogram Fit:")
+        axe.set_title("Chromatogram Fit:\n%s" % title)
         axe.set_xlabel(r"Time, $t$")
         axe.set_ylabel(r"Signal, $g(t)$")
 

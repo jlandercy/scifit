@@ -18,6 +18,10 @@
  - [ ] Implement SIR model and fit epidemic data (introduce bootstrap)
  - [ ] Add transformers (Log-Log, Lineweaver-Burk, Standardizer)
  - [ ] Add Pipeline object
+ - [ ] Chromatogram Solver:
+   - [ ] Solve why peak are still grouped in some conditions
+   - [ ] Create 10 datasets as use cases
+   - [ ] Create solver with different mode/settings
 
 ## v0.1.15
 
