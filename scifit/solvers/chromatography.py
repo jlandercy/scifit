@@ -255,8 +255,18 @@ class ChromatogramSolver:
 
         axe.plot(self._xdata, self._ydata, label="Data")
         axe.plot(self._xdata, self._baseline, label="Baseline")
-        axe.plot(self._xdata, self._baseline + self._noise["LOQ"], "--", label="LOQ = {:.2f}".format(self._noise["LOQ"]))
-        axe.plot(self._xdata, self._baseline + self._noise["LOD"], "--", label="LOD = {:.2f}".format(self._noise["LOD"]))
+        axe.plot(
+            self._xdata,
+            self._baseline + self._noise["LOQ"],
+            "--",
+            label="LOQ = {:.2f}".format(self._noise["LOQ"]),
+        )
+        axe.plot(
+            self._xdata,
+            self._baseline + self._noise["LOD"],
+            "--",
+            label="LOD = {:.2f}".format(self._noise["LOD"]),
+        )
 
         axe.plot(
             self._xdata[self._peaks["indices"]],

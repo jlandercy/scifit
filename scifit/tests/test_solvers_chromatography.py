@@ -8,7 +8,6 @@ from scifit.solvers.chromatography import ChromatogramSolver
 
 
 class TestChromatogramSolver:
-
     root_path = ".cache/media/tests/"
     format = "png"
 
@@ -34,7 +33,6 @@ class TestChromatogramSolver:
     distance = None
 
     def setUp(self):
-
         self.media_path = pathlib.Path(self.root_path) / format(
             self.factory.__module__.split(".")[-1]
         )
@@ -47,7 +45,7 @@ class TestChromatogramSolver:
             height=self.height,
             rel_height=self.rel_height,
             distance=self.distance,
-            **self.configuration
+            **self.configuration,
         )
         self.data = self.solver.synthetic_dataset(
             peaks=self.peaks,
