@@ -23,7 +23,8 @@
 
  - [x] Kinetic rates are now computed from model instead of deriving solutions 
  - [x] Refactored namespace to be more sensical
- - [x] Added Chromatogram Solver to detect peaks 
+ - [x] Added Chromatogram Solver to detect peaks
+ - [x] Added Baseline Noise, LOD and LOQ estimation
 
 ## v0.1.14
 

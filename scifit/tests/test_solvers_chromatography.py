@@ -21,6 +21,15 @@ class TestChromatogramSolver:
     peaks = None
     heights = None
     widths = None
+    b0 = 5.0
+    b1 = 15.0
+
+    poly_order = 3
+    prominence = 1.0
+    width = 10.0
+    height = None
+    rel_height = 0.5
+    distance = None
 
     def setUp(self):
         self.media_path = pathlib.Path(self.root_path) / format(
@@ -39,6 +48,8 @@ class TestChromatogramSolver:
             resolution=self.resolution,
             seed=self.seed,
             mode=self.mode,
+            b0=self.b0,
+            b1=self.b1,
         )
 
     def test_random_peaks(self):
@@ -77,3 +88,14 @@ class TestChromatogramSolverSample01(TestChromatogramSolver, TestCase):
 
 class TestChromatogramSolverSample02(TestChromatogramSolver, TestCase):
     mode = "lin"
+
+
+class TestChromatogramSolverSample03(TestChromatogramSolver, TestCase):
+    mode = "lin"
+    poly_order = 1
+    b0 = 0.0
+    b1 = 0.0
+
+
+class TestChromatogramSolverSample01(TestChromatogramSolver, TestCase):
+    pass

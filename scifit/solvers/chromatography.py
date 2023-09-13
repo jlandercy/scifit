@@ -2,14 +2,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from pybaselines import Baseline, utils
-from scipy import signal, integrate
+from scipy import integrate, signal
 
 
 class ChromatogramSolver:
-
-    def __init__(self, poly_order=3, prominence=1.0, width=1.0, distance=1.0):
+    def __init__(
+        self,
+        poly_order=3,
+        prominence=1.0,
+        width=10.0,
+        height=None,
+        rel_height=0.5,
+        distance=None,
+    ):
         self._poly_order = poly_order
         self._prominence = prominence
+        self._height = height
+        self._rel_height = rel_height
         self._width = width
         self._distance = distance
 
@@ -137,30 +146,61 @@ class ChromatogramSolver:
     @staticmethod
     def clean_base_indices(lefts, rights):
         """
-        Clean buggy peak base limits
+        Clean buggy peak base limits to make them strictly monotonically increasing
         :param lefts:
         :param rights:
         :return:
         """
-        lefts = np.copy(lefts)
-        rights = np.copy(rights)
-        for i in range(len(lefts)-1):
-            if lefts[i] == lefts[i+1]:
-                lefts[i+1] = rights[i]
-            if rights[i] == rights[i+1]:
-                rights[i] = lefts[i+1]
-        return lefts, rights
+        _lefts = np.copy(lefts)
+        _rights = np.copy(rights)
+        for i in range(len(lefts) - 1):
+            if lefts[i] == lefts[i + 1]:
+                _lefts[i + 1] = rights[i]
+            if rights[i] == rights[i + 1]:
+                _rights[i] = lefts[i + 1]
+        return _lefts, _rights
 
     def integrate_peaks(self):
+        """
+        Integrate each peak
+        :return:
+        """
         integrals = []
         for left, right in zip(self._peaks["lefts"], self._peaks["rights"]):
             x = self._xdata[left:right]
-            y = self._ydata[left:right]
+            y = self._filtered[left:right]
             integral = integrate.trapezoid(y, x)
             integrals.append(integral)
         return np.array(integrals)
 
+    def estimate_noise(self):
+        """
+        Statistically estimate baseline noise outside peaks bases
+        :return:
+        """
+        y = np.copy(self._filtered)
+        for left, right in zip(self._peaks["lefts"], self._peaks["rights"]):
+            y[left:right] = np.nan
+        valid = ~np.isnan(y)
+        data = {
+            "selected": np.sum(valid.astype(int)),
+            "size": y.size,
+            "mean": y[valid].mean(),
+            "std": y[valid].std(),
+        }
+        data["ratio"] = data["selected"] / data["size"]
+        data["LOD"] = 3.0 * data["std"]
+        data["LOQ"] = 10.0 * data["std"]
+        return data
+
     def fit(self, xdata, ydata=None):
+        """
+        Fit chromatogram
+
+        :param xdata:
+        :param ydata:
+        :return:
+        """
         if isinstance(xdata, pd.DataFrame):
             ydata = xdata["y"].values
             xdata = xdata["x0"].values
@@ -173,12 +213,19 @@ class ChromatogramSolver:
 
         # Detect peaks:
         peaks = signal.find_peaks(
-            filtered, prominence=self._prominence, width=self._width, distance=self._distance
+            filtered,
+            prominence=self._prominence,
+            width=self._width,
+            distance=self._distance,
+            height=self._height,
+            rel_height=self._rel_height,
         )
         meta = peaks[1]
         meta["indices"] = peaks[0]
         meta["times"] = xdata[peaks[0]]
-        meta["lefts"], meta["rights"] = self.clean_base_indices(meta["left_bases"], meta["right_bases"])
+        meta["lefts"], meta["rights"] = self.clean_base_indices(
+            meta["left_bases"], meta["right_bases"]
+        )
 
         self._xdata = xdata
         self._ydata = ydata
@@ -187,6 +234,7 @@ class ChromatogramSolver:
         self._peaks = meta
 
         self._peaks["surfaces"] = self.integrate_peaks()
+        self._noise = self.estimate_noise()
 
         return {"x0": xdata, "y": ydata, "b": baseline, "yb": filtered, "peaks": meta}
 
@@ -195,6 +243,8 @@ class ChromatogramSolver:
 
         axe.plot(self._xdata, self._ydata, label="Data")
         axe.plot(self._xdata, self._baseline, label="Baseline")
+        axe.plot(self._xdata, self._baseline + self._noise["LOQ"], "--", label="LOQ")
+        axe.plot(self._xdata, self._baseline + self._noise["LOD"], "--", label="LOD")
 
         axe.plot(
             self._xdata[self._peaks["indices"]],
@@ -218,17 +268,44 @@ class ChromatogramSolver:
             label="Right Bases",
         )
 
-        for left, right in zip(self._peaks["lefts"], self._peaks["rights"]):
+        for peak, time, surface, left, right in zip(
+            self._peaks["indices"],
+            self._peaks["times"],
+            self._peaks["surfaces"],
+            self._peaks["lefts"],
+            self._peaks["rights"],
+        ):
             axe.fill_between(
-                self._xdata[left:right], self._ydata[left:right], self._baseline[left:right],
-                color="blue", alpha=0.25
+                self._xdata[left:right],
+                self._ydata[left:right],
+                self._baseline[left:right],
+                color="blue",
+                alpha=0.25,
+            )
+            axe.text(
+                self._xdata[peak],
+                self._ydata[peak],
+                "{:.1f}".format(time),
+                fontsize=7,
+                horizontalalignment="center",
+            )
+            axe.text(
+                self._xdata[peak],
+                (self._baseline[peak] + 1.5 * self._noise["LOQ"]),
+                "{:.1f}".format(surface),
+                fontsize=7,
+                horizontalalignment="center",
+                verticalalignment="bottom",
+                rotation=90,
             )
 
         axe.set_title("Chromatogram Fit:")
         axe.set_xlabel(r"Time, $t$")
         axe.set_ylabel(r"Signal, $g(t)$")
 
-        axe.legend()
+        axe.legend(bbox_to_anchor=(1, 1), loc="upper left")
         axe.grid()
+
+        fig.subplots_adjust(right=0.75)
 
         return axe
