@@ -189,13 +189,18 @@ class ChromatogramSolver:
             "std": y[valid].std(),
         }
         data["ratio"] = data["selected"] / data["size"]
-        data["LOD"] = 3.0 * data["std"]
-        data["LOQ"] = 10.0 * data["std"]
+        data["LOD"] = data["mean"] + 3.0 * data["std"]
+        data["LOQ"] = data["mean"] + 10.0 * data["std"]
         return data
 
     def fit(self, xdata, ydata=None):
         """
-        Fit chromatogram
+        Fit chromatogram and describe peaks:
+
+          - Remove baseline
+          - Find peaks retention times and boundaries
+          - Integrate peaks over boundaries
+          - Assess baseline noise, LOD and LOQ
 
         :param xdata:
         :param ydata:
@@ -243,8 +248,8 @@ class ChromatogramSolver:
 
         axe.plot(self._xdata, self._ydata, label="Data")
         axe.plot(self._xdata, self._baseline, label="Baseline")
-        axe.plot(self._xdata, self._baseline + self._noise["LOQ"], "--", label="LOQ")
-        axe.plot(self._xdata, self._baseline + self._noise["LOD"], "--", label="LOD")
+        axe.plot(self._xdata, self._baseline + self._noise["LOQ"], "--", label="LOQ = {:.2f}".format(self._noise["LOQ"]))
+        axe.plot(self._xdata, self._baseline + self._noise["LOD"], "--", label="LOD = {:.2f}".format(self._noise["LOD"]))
 
         axe.plot(
             self._xdata[self._peaks["indices"]],
