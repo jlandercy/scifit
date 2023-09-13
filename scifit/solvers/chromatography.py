@@ -8,6 +8,7 @@ from scipy import integrate, signal
 class ChromatogramSolver:
     def __init__(
         self,
+        mode="modpoly",
         poly_order=3,
         prominence=1.0,
         width=10.0,
@@ -15,6 +16,7 @@ class ChromatogramSolver:
         rel_height=0.5,
         distance=None,
     ):
+        self._mode = mode
         self._poly_order = poly_order
         self._prominence = prominence
         self._height = height
@@ -212,7 +214,8 @@ class ChromatogramSolver:
 
         # Withdraw baseline:
         fitter = Baseline(xdata, check_finite=True)
-        background = fitter.modpoly(ydata, poly_order=self._poly_order)
+        bfilter = getattr(fitter, self._mode)
+        background = bfilter(ydata, poly_order=self._poly_order)
         baseline = background[0]
         filtered = ydata - baseline
 

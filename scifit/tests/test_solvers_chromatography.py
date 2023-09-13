@@ -14,7 +14,7 @@ class TestChromatogramSolver:
     factory = ChromatogramSolver
     seed = 12345
     n_peaks = 8
-    mode = "exp"
+    baseline_mode = "exp"
     xmin = 0.0
     xmax = 1000.0
     resolution = 5001
@@ -24,6 +24,7 @@ class TestChromatogramSolver:
     b0 = 5.0
     b1 = 15.0
 
+    filter_mode = "modpoly"
     poly_order = 3
     prominence = 1.0
     width = 10.0
@@ -37,7 +38,15 @@ class TestChromatogramSolver:
         )
         self.media_path.mkdir(parents=True, exist_ok=True)
 
-        self.solver = self.factory()
+        self.solver = self.factory(
+            mode=self.filter_mode,
+            poly_order=self.poly_order,
+            prominence=self.prominence,
+            width=self.width,
+            height=self.height,
+            rel_height=self.rel_height,
+            distance=self.distance,
+        )
         self.data = self.solver.synthetic_dataset(
             peaks=self.peaks,
             heights=self.heights,
@@ -47,7 +56,7 @@ class TestChromatogramSolver:
             n_peaks=self.n_peaks,
             resolution=self.resolution,
             seed=self.seed,
-            mode=self.mode,
+            mode=self.baseline_mode,
             b0=self.b0,
             b1=self.b1,
         )
@@ -87,11 +96,11 @@ class TestChromatogramSolverSample01(TestChromatogramSolver, TestCase):
 
 
 class TestChromatogramSolverSample02(TestChromatogramSolver, TestCase):
-    mode = "lin"
+    baseline_mode = "lin"
 
 
 class TestChromatogramSolverSample03(TestChromatogramSolver, TestCase):
-    mode = "lin"
+    baseline_mode = "lin"
     poly_order = 1
     b0 = 0.0
     b1 = 0.0
