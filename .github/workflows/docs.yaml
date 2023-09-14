@@ -40,7 +40,8 @@ jobs:
           TESTS_PRINT_LOSS_ITERATIONS: 1
           TESTS_PRINT_REPORT: 0
         run: |
-          nox --session tests
+          python -m unittest discover -v scifit.tests
+        #nox --session tests
 
       - name: Build package
         run: |
