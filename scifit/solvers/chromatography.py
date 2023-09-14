@@ -1,28 +1,36 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from pybaselines import Baseline, utils
+
+import matplotlib.pyplot as plt
+
 from scipy import integrate, signal
+
+from pybaselines import Baseline, utils
 
 
 class ChromatogramSolver:
+
     def __init__(
         self,
         mode="imodpoly",
+        configuration=None,
         prominence=1.0,
         width=10.0,
         height=None,
-        rel_height=0.5,
         distance=None,
-        **kwargs,
     ):
+
+        # Baseline Configuration:
         self._mode = mode
-        self._configuration = kwargs
+        self._configuration = configuration or {}
+
+        # Peak Detection:
         self._prominence = prominence
         self._height = height
-        self._rel_height = rel_height
         self._width = width
         self._distance = distance
+
+        # Peak Integration:
 
     @staticmethod
     def random_peaks(
@@ -156,6 +164,10 @@ class ChromatogramSolver:
         _lefts = np.copy(lefts)
         _rights = np.copy(rights)
         for i in range(len(lefts) - 1):
+            if lefts[i+1] < lefts[i]:
+                _lefts[i+1] = rights[i]
+            if rights[i+1] < rights[i]:
+                _rights[i] = lefts[i+1]
             if lefts[i] == lefts[i + 1]:
                 _lefts[i + 1] = rights[i]
             if rights[i] == rights[i + 1]:
@@ -195,7 +207,35 @@ class ChromatogramSolver:
         data["LOQ"] = data["mean"] + 10.0 * data["std"]
         return data
 
-    def fit(self, xdata, ydata=None):
+    def solve(self, xdata, ydata, rel_height=0.5):
+
+        # Solve peaks:
+        peaks = signal.find_peaks(
+            ydata,
+            prominence=self._prominence,
+            width=self._width,
+            distance=self._distance,
+            height=self._height,
+            rel_height=rel_height,
+        )
+        meta = peaks[1]
+        meta["indices"] = peaks[0]
+        meta["times"] = xdata[peaks[0]]
+
+        # Clean buggy base indices:
+        meta["lefts"], meta["rights"] = self.clean_base_indices(
+            meta["left_bases"], meta["right_bases"]
+        )
+
+        # Rescale widths:
+        factor = (xdata.max() - xdata.min())/xdata.size
+        meta["left_ips"] *= factor
+        meta["right_ips"] *= factor
+        meta["widths"] = meta["right_ips"] - meta["left_ips"]
+
+        return meta
+
+    def fit(self, xdata, ydata=None, dead_time=0.0):
         """
         Fit chromatogram and describe peaks:
 
@@ -224,33 +264,50 @@ class ChromatogramSolver:
         filtered = ydata - baseline
 
         # Detect peaks:
-        peaks = signal.find_peaks(
-            filtered,
-            prominence=self._prominence,
-            width=self._width,
-            distance=self._distance,
-            height=self._height,
-            rel_height=self._rel_height,
-        )
-        meta = peaks[1]
-        meta["indices"] = peaks[0]
-        meta["times"] = xdata[peaks[0]]
-        meta["lefts"], meta["rights"] = self.clean_base_indices(
-            meta["left_bases"], meta["right_bases"]
-        )
+        meta = self.solve(xdata=xdata, ydata=filtered, rel_height=0.5)
 
+        # Compute Chromatography Quantities:
+
+        # Plateau Numbers
+        meta["N"] = 5.54 * np.power(meta["times"]/meta["widths"], 2)
+
+        # Asymmetry:
+        meta_10H = self.solve(xdata=xdata, ydata=filtered, rel_height=0.1)
+        meta["a10"] = meta_10H["times"] - meta_10H["left_ips"]
+        meta["b10"] = meta_10H["right_ips"] - meta_10H["times"]
+        meta["As"] = meta["b10"] / meta["a10"]
+
+        # Tailing:
+        meta_20H = self.solve(xdata=xdata, ydata=filtered, rel_height=0.05)
+        meta["a20"] = meta_20H["times"] - meta_20H["left_ips"]
+        meta["T"] = meta_20H["widths"] / (2. * meta["a20"])
+
+        # Resolution:
+        meta["R"] = 2. * (meta["times"] - meta["times"][0])/(meta_20H["widths"] + meta_20H["widths"][0])
+
+        # Store:
         self._xdata = xdata
         self._ydata = ydata
         self._baseline = baseline
         self._filtered = filtered
         self._peaks = meta
 
+        # Integrate:
         self._peaks["surfaces"] = self.integrate_peaks()
+
+        # Estimate baseline noise:
         self._noise = self.estimate_noise()
 
         return {"x0": xdata, "y": ydata, "b": baseline, "yb": filtered, "peaks": meta}
 
-    def plot_fit(self, title=""):
+    def summary(self):
+        data = pd.DataFrame(self._peaks)
+        data = data.reindex([
+            "times", "prominences", "widths", "surfaces", "N", "R", "As", "T"
+        ], axis=1)
+        return data
+
+    def plot_fit(self, title="", surfaces=True, heights=False, widths=False):
         fig, axe = plt.subplots()
 
         axe.plot(self._xdata, self._ydata, label="Data")
@@ -297,13 +354,7 @@ class ChromatogramSolver:
             self._peaks["lefts"],
             self._peaks["rights"],
         ):
-            axe.fill_between(
-                self._xdata[left:right],
-                self._ydata[left:right],
-                self._baseline[left:right],
-                color="blue",
-                alpha=0.25,
-            )
+
             axe.text(
                 self._xdata[peak],
                 self._ydata[peak],
@@ -311,14 +362,39 @@ class ChromatogramSolver:
                 fontsize=7,
                 horizontalalignment="center",
             )
-            axe.text(
-                self._xdata[peak],
-                (self._baseline[peak] + 1.5 * self._noise["LOQ"]),
-                "{:.1f}".format(surface),
-                fontsize=7,
-                horizontalalignment="center",
-                verticalalignment="bottom",
-                rotation=90,
+
+            if surfaces:
+                axe.fill_between(
+                    self._xdata[left:right],
+                    self._ydata[left:right],
+                    self._baseline[left:right],
+                    color="blue",
+                    alpha=0.25,
+                )
+                axe.text(
+                    self._xdata[peak],
+                    (self._baseline[peak] + 1.5 * self._noise["LOQ"]),
+                    "{:.1f}".format(surface),
+                    fontsize=7,
+                    horizontalalignment="center",
+                    verticalalignment="bottom",
+                    rotation=90,
+                )
+
+        if widths:
+            axe.vlines(
+                x=self._xdata[self._peaks["indices"]],
+                ymin=self._ydata[self._peaks["indices"]] - self._peaks["prominences"],
+                ymax=self._ydata[self._peaks["indices"]],
+                color="yellow"
+            )
+
+        if heights:
+            axe.hlines(
+                y=self._baseline[self._peaks["indices"]] + self._peaks["width_heights"],
+                xmin=self._peaks["left_ips"],
+                xmax=self._peaks["right_ips"],
+                color="yellow"
             )
 
         axe.set_title("Chromatogram Fit:\n%s" % title)

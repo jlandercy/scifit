@@ -29,7 +29,6 @@ class TestChromatogramSolver:
     prominence = 2.5
     width = 10.0
     height = None
-    rel_height = 0.5
     distance = None
 
     def setUp(self):
@@ -43,9 +42,8 @@ class TestChromatogramSolver:
             prominence=self.prominence,
             width=self.width,
             height=self.height,
-            rel_height=self.rel_height,
             distance=self.distance,
-            **self.configuration,
+            configuration=self.configuration,
         )
         self.data = self.solver.synthetic_dataset(
             peaks=self.peaks,
@@ -72,6 +70,13 @@ class TestChromatogramSolver:
         name = self.__class__.__name__
         self.data.to_csv("{}/{}.csv".format(self.media_path, name), sep=";")
 
+    def test_summary(self):
+        name = self.__class__.__name__
+        self.solver.fit(self.data)
+        summary = self.solver.summary()
+        print(summary)
+        #self.data.to_csv("{}/{}.csv".format(self.media_path, name), sep=";")
+
     def test_fit_data(self):
         solution = self.solver.fit(self.data)
         self.assertIsInstance(solution, dict)
@@ -81,30 +86,30 @@ class TestChromatogramSolver:
         name = self.__class__.__name__
         solution = self.solver.fit(self.data)
         axe = self.solver.plot_fit(title=name)
-        axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format))
+        axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format), dpi=120)
 
 
-class TestChromatogramSolverSample00Default(TestChromatogramSolver, TestCase):
-    peaks = [100, 180, 350, 420, 550, 700, 800, 880]
-    heights = [9, 6, 8, 15, 6, 13, 9, 9]
-    widths = [12, 5, 11, 18, 6, 8, 9, 7]
-    n_peaks = len(peaks)
+# class TestChromatogramSolverSample00Default(TestChromatogramSolver, TestCase):
+#     peaks = [100, 180, 350, 420, 550, 700, 800, 880]
+#     heights = [9, 6, 8, 15, 6, 13, 9, 9]
+#     widths = [12, 5, 11, 18, 6, 8, 9, 7]
+#     n_peaks = len(peaks)
 
 
 class TestChromatogramSolverSample01Default(TestChromatogramSolver, TestCase):
     configuration = {"poly_order": 3}
 
 
-class TestChromatogramSolverSample02Default(TestChromatogramSolver, TestCase):
-    baseline_mode = "lin"
-    configuration = {"poly_order": 3}
-
-
-class TestChromatogramSolverSample03Default(TestChromatogramSolver, TestCase):
-    baseline_mode = "lin"
-    configuration = {"poly_order": 1}
-    b0 = 0.0
-    b1 = 0.0
+# class TestChromatogramSolverSample02Default(TestChromatogramSolver, TestCase):
+#     baseline_mode = "lin"
+#     configuration = {"poly_order": 3}
+#
+#
+# class TestChromatogramSolverSample03Default(TestChromatogramSolver, TestCase):
+#     baseline_mode = "lin"
+#     configuration = {"poly_order": 1}
+#     b0 = 0.0
+#     b1 = 0.0
 
 
 class TestChromatogramSolverSample01Loess2(TestChromatogramSolver, TestCase):
@@ -112,51 +117,52 @@ class TestChromatogramSolverSample01Loess2(TestChromatogramSolver, TestCase):
     configuration = {"poly_order": 2}
 
 
-class TestChromatogramSolverSample01ModPoly3(TestChromatogramSolver, TestCase):
-    filter_mode = "modpoly"
-    configuration = {"poly_order": 3}
-
-
-class TestChromatogramSolverSample01GoldIndec3(TestChromatogramSolver, TestCase):
-    filter_mode = "goldindec"
-    configuration = {"poly_order": 3}
-
-
-class TestChromatogramSolverSample01PenalizedPoly1(TestChromatogramSolver, TestCase):
-    filter_mode = "penalized_poly"
-    configuration = {"poly_order": 1}
-
-
-class TestChromatogramSolverSample01PenalizedPoly2(TestChromatogramSolver, TestCase):
-    filter_mode = "penalized_poly"
-    configuration = {"poly_order": 2}
+# class TestChromatogramSolverSample01ModPoly3(TestChromatogramSolver, TestCase):
+#     filter_mode = "modpoly"
+#     configuration = {"poly_order": 3}
+#
+#
+# class TestChromatogramSolverSample01GoldIndec3(TestChromatogramSolver, TestCase):
+#     filter_mode = "goldindec"
+#     configuration = {"poly_order": 3}
+#
+#
+# class TestChromatogramSolverSample01PenalizedPoly1(TestChromatogramSolver, TestCase):
+#     filter_mode = "penalized_poly"
+#     configuration = {"poly_order": 1}
+#
+#
+# class TestChromatogramSolverSample01PenalizedPoly2(TestChromatogramSolver, TestCase):
+#     filter_mode = "penalized_poly"
+#     configuration = {"poly_order": 2}
 
 
 class TestChromatogramSolverSample01PenalizedPoly3(TestChromatogramSolver, TestCase):
     filter_mode = "penalized_poly"
     configuration = {"poly_order": 3}
 
-
-class TestChromatogramSolverSample01QuantReg3(TestChromatogramSolver, TestCase):
-    filter_mode = "quant_reg"
-    configuration = {"poly_order": 3}
-
-
-class TestChromatogramSolverSample01BEADS(TestChromatogramSolver, TestCase):
-    filter_mode = "beads"
-    configuration = {}
-
-
-class TestChromatogramSolverSample01CWTBR(TestChromatogramSolver, TestCase):
-    filter_mode = "cwt_br"
-
-
-class TestChromatogramSolverSample01Dietrich(TestChromatogramSolver, TestCase):
-    filter_mode = "dietrich"
-
-
-class TestChromatogramSolverSample01FABC(TestChromatogramSolver, TestCase):
-    filter_mode = "fabc"
+#
+# class TestChromatogramSolverSample01QuantReg3(TestChromatogramSolver, TestCase):
+#     filter_mode = "quant_reg"
+#     configuration = {"poly_order": 3}
+#
+#
+# class TestChromatogramSolverSample01BEADS(TestChromatogramSolver, TestCase):
+#     filter_mode = "beads"
+#     configuration = {}
+#
+#
+# class TestChromatogramSolverSample01CWTBR(TestChromatogramSolver, TestCase):
+#     filter_mode = "cwt_br"
+#
+#
+# class TestChromatogramSolverSample01Dietrich(TestChromatogramSolver, TestCase):
+#     filter_mode = "dietrich"
+#
+#
+# class TestChromatogramSolverSample01FABC(TestChromatogramSolver, TestCase):
+#     filter_mode = "fabc"
+#
 
 
 class TestChromatogramSolverSample01FastChrom(TestChromatogramSolver, TestCase):

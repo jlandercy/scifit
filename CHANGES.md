@@ -19,7 +19,7 @@
  - [ ] Add transformers (Log-Log, Lineweaver-Burk, Standardizer)
  - [ ] Add Pipeline object
  - [ ] Chromatogram Solver:
-   - [ ] Solve why peak are still grouped in some conditions
+   - [x] Solve why peak are still grouped in some conditions
    - [ ] Create 10 datasets as use cases
    - [ ] Create solver with different mode/settings
 
@@ -29,6 +29,9 @@
  - [x] Refactored namespace to be more sensical
  - [x] Added Chromatogram Solver to detect peaks
  - [x] Added Baseline Noise, LOD and LOQ estimation
+ - [x] Fixed integration bug due to non monotonically increasing limits
+ - [x] Added peaks surfaces and scaled peak widths wrt time axis
+ - [x] Added Chromatography quantities of interests (R, H, As, T)
 
 ## v0.1.14
 
