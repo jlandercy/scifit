@@ -23,6 +23,8 @@
    - [ ] Create 10 datasets as use cases
    - [ ] Create solver with different mode/settings
 
+
+## v0.1.16
 ## v0.1.15
 
  - [x] Kinetic rates are now computed from model instead of deriving solutions 
