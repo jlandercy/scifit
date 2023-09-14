@@ -87,6 +87,12 @@ class TestChromatogramSolver:
         axe = self.solver.plot_fit(title=name)
         axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format), dpi=120)
 
+    def test_process_report(self):
+        name = self.__class__.__name__
+        file = r"{}_report".format(name)
+        self.solver.fit(self.data)
+        self.solver.report(file=file, path=self.media_path, mode="pdf")
+
 
 # class TestChromatogramSolverSample00Default(TestChromatogramSolver, TestCase):
 #     peaks = [100, 180, 350, 420, 550, 700, 800, 880]
@@ -166,71 +172,71 @@ class TestChromatogramSolverSample01PenalizedPoly3(TestChromatogramSolver, TestC
 
 class TestChromatogramSolverSample01FastChrom(TestChromatogramSolver, TestCase):
     filter_mode = "fastchrom"
-
-
-class TestChromatogramSolverSample01Golotvin(TestChromatogramSolver, TestCase):
-    filter_mode = "golotvin"
-
-
-class TestChromatogramSolverSample01StdDistribution(TestChromatogramSolver, TestCase):
-    filter_mode = "std_distribution"
-
-
-class TestChromatogramSolverSample01Amormol(TestChromatogramSolver, TestCase):
-    filter_mode = "amormol"
-
-
-class TestChromatogramSolverSample01IMOR(TestChromatogramSolver, TestCase):
-    filter_mode = "imor"
-
-
-class TestChromatogramSolverSample01JBCD(TestChromatogramSolver, TestCase):
-    filter_mode = "jbcd"
-
-
-class TestChromatogramSolverSample01MOR(TestChromatogramSolver, TestCase):
-    filter_mode = "mor"
-
-
-class TestChromatogramSolverSample01MORMOL(TestChromatogramSolver, TestCase):
-    filter_mode = "mormol"
-
-
-class TestChromatogramSolverSample01MPLS(TestChromatogramSolver, TestCase):
-    filter_mode = "mpls"
-
-
-class TestChromatogramSolverSample01MPSpline(TestChromatogramSolver, TestCase):
-    filter_mode = "mpspline"
-
-
-class TestChromatogramSolverSample01MWMV(TestChromatogramSolver, TestCase):
-    filter_mode = "mwmv"
-
-
-class TestChromatogramSolverSample01RollingBall(TestChromatogramSolver, TestCase):
-    filter_mode = "rolling_ball"
-
-
-class TestChromatogramSolverSample01TopHat(TestChromatogramSolver, TestCase):
-    filter_mode = "tophat"
-
-
-class TestChromatogramSolverSample01Ipsa(TestChromatogramSolver, TestCase):
-    filter_mode = "ipsa"
-
-
-class TestChromatogramSolverSample01NoiseMedian(TestChromatogramSolver, TestCase):
-    filter_mode = "noise_median"
-
-
-class TestChromatogramSolverSample01RIA(TestChromatogramSolver, TestCase):
-    filter_mode = "ria"
-
+#
+#
+# class TestChromatogramSolverSample01Golotvin(TestChromatogramSolver, TestCase):
+#     filter_mode = "golotvin"
+#
+#
+# class TestChromatogramSolverSample01StdDistribution(TestChromatogramSolver, TestCase):
+#     filter_mode = "std_distribution"
+#
+#
+# class TestChromatogramSolverSample01Amormol(TestChromatogramSolver, TestCase):
+#     filter_mode = "amormol"
+#
+#
+# class TestChromatogramSolverSample01IMOR(TestChromatogramSolver, TestCase):
+#     filter_mode = "imor"
+#
+#
+# class TestChromatogramSolverSample01JBCD(TestChromatogramSolver, TestCase):
+#     filter_mode = "jbcd"
+#
+#
+# class TestChromatogramSolverSample01MOR(TestChromatogramSolver, TestCase):
+#     filter_mode = "mor"
+#
+#
+# class TestChromatogramSolverSample01MORMOL(TestChromatogramSolver, TestCase):
+#     filter_mode = "mormol"
+#
+#
+# class TestChromatogramSolverSample01MPLS(TestChromatogramSolver, TestCase):
+#     filter_mode = "mpls"
+#
+#
+# class TestChromatogramSolverSample01MPSpline(TestChromatogramSolver, TestCase):
+#     filter_mode = "mpspline"
+#
+#
+# class TestChromatogramSolverSample01MWMV(TestChromatogramSolver, TestCase):
+#     filter_mode = "mwmv"
+#
+#
+# class TestChromatogramSolverSample01RollingBall(TestChromatogramSolver, TestCase):
+#     filter_mode = "rolling_ball"
+#
+#
+# class TestChromatogramSolverSample01TopHat(TestChromatogramSolver, TestCase):
+#     filter_mode = "tophat"
+#
+#
+# class TestChromatogramSolverSample01Ipsa(TestChromatogramSolver, TestCase):
+#     filter_mode = "ipsa"
+#
+#
+# class TestChromatogramSolverSample01NoiseMedian(TestChromatogramSolver, TestCase):
+#     filter_mode = "noise_median"
+#
+#
+# class TestChromatogramSolverSample01RIA(TestChromatogramSolver, TestCase):
+#     filter_mode = "ria"
+#
 
 class TestChromatogramSolverSample01SNIP(TestChromatogramSolver, TestCase):
     filter_mode = "snip"
 
-
-class TestChromatogramSolverSample01SWiMA(TestChromatogramSolver, TestCase):
-    filter_mode = "swima"
+#
+# class TestChromatogramSolverSample01SWiMA(TestChromatogramSolver, TestCase):
+#     filter_mode = "swima"

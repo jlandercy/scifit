@@ -326,3 +326,40 @@ class KineticSolverReportProcessor(ReportProcessor):
         context["data_quotients"] = table
 
         return context
+
+
+class ChromatogramSolverReportProcessor(ReportProcessor):
+    template = "chromatography.md"
+
+    @classmethod
+    def context(
+        cls,
+        solver,
+        context=None,
+        table_mode="latex",
+        figure_mode="svg",
+        substance_indices=None,
+    ):
+        if context is None:
+            context = {
+                "title": "Chromatography Report",
+                "author": "SciFit automatic report",
+                "supervisor": "Jean Landercy",
+            }
+
+        axe = solver.plot_fit()
+        figure = cls.serialize(axe)
+        plt.close(axe.figure)
+        context["chromatogram"] = figure
+
+        data = solver.summary()
+        # data = data.rename(
+        #     columns={
+        #         "k0": r"$k_{0}^{\rightarrow}$",
+        #         "k0inv": r"$k_{0}^{\leftarrow}$",
+        #     }
+        # )
+        table = cls.serialize(data, table_mode=table_mode)
+        context["summary"] = table
+
+        return context

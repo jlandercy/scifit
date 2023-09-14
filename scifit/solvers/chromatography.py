@@ -7,6 +7,8 @@ from scipy import integrate, signal
 
 from pybaselines import Baseline, utils
 
+from scifit.toolbox.report import ChromatogramSolverReportProcessor
+
 
 class ChromatogramSolver:
 
@@ -410,3 +412,7 @@ class ChromatogramSolver:
         fig.subplots_adjust(right=0.75)
 
         return axe
+
+    def report(self, file, path=".", mode="pdf", **kwargs):
+        processor = ChromatogramSolverReportProcessor()
+        processor.report(self, file=file, path=path, mode=mode, **kwargs)

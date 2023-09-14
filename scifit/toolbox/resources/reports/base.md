@@ -15,8 +15,9 @@ header-includes:
   - \usepackage{mathtools}
   - \usepackage{longtable}
   - \usepackage{booktabs}
+  - \usepackage[inline]{enumitem}
   - \usepackage{siunitx}
-  - \sisetup{tight-spacing=true,round-precision=4}
+  - \sisetup{tight-spacing=true,round-mode=figures,round-precision=4}
 ---
 # Summary
 
