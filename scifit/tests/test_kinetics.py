@@ -657,10 +657,10 @@ class MultipleKinetics08(GenericKineticTest, TestCase):
         return np.array(
             [
                 +self.k0[0] * x[0] * x[1]
-                - self.k0[0] * x[0] * x[2]
-                + self.k0[0] * x[0] * x[3],
-                -self.k0[0] * x[0] * x[1],
-                -self.k0[0] * x[0] * x[2],
-                +self.k0[0] * x[0] * x[2] - self.k0[0] * x[0] * x[3],
+                - self.k0[1] * x[0] * x[2]
+                - self.k0[2] * x[0] * x[3],
+                -self.k0[0] * x[0] * x[1] + self.k0[2] * x[0] * x[3],
+                -self.k0[1] * x[0] * x[2],
+                +self.k0[1] * x[0] * x[2] - self.k0[2] * x[0] * x[3],
             ]
         )

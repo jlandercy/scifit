@@ -1,17 +1,13 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-import matplotlib.pyplot as plt
-
-from scipy import integrate, signal
-
 from pybaselines import Baseline, utils
+from scipy import integrate, signal
 
 from scifit.toolbox.report import ChromatogramSolverReportProcessor
 
 
 class ChromatogramSolver:
-
     def __init__(
         self,
         mode="imodpoly",
@@ -21,7 +17,6 @@ class ChromatogramSolver:
         height=None,
         distance=None,
     ):
-
         # Baseline Configuration:
         self._mode = mode
         self._configuration = configuration or {}
@@ -166,10 +161,10 @@ class ChromatogramSolver:
         _lefts = np.copy(lefts)
         _rights = np.copy(rights)
         for i in range(len(lefts) - 1):
-            if lefts[i+1] < lefts[i]:
-                _lefts[i+1] = rights[i]
-            if rights[i+1] < rights[i]:
-                _rights[i] = lefts[i+1]
+            if lefts[i + 1] < lefts[i]:
+                _lefts[i + 1] = rights[i]
+            if rights[i + 1] < rights[i]:
+                _rights[i] = lefts[i + 1]
             if lefts[i] == lefts[i + 1]:
                 _lefts[i + 1] = rights[i]
             if rights[i] == rights[i + 1]:
@@ -210,7 +205,6 @@ class ChromatogramSolver:
         return data
 
     def solve(self, xdata, ydata, rel_height=0.5):
-
         # Solve peaks:
         peaks = signal.find_peaks(
             ydata,
@@ -230,7 +224,7 @@ class ChromatogramSolver:
         )
 
         # Rescale widths:
-        factor = (xdata.max() - xdata.min())/xdata.size
+        factor = (xdata.max() - xdata.min()) / xdata.size
         meta["left_ips"] *= factor
         meta["right_ips"] *= factor
         meta["widths"] = meta["right_ips"] - meta["left_ips"]
@@ -271,7 +265,7 @@ class ChromatogramSolver:
         # Compute Chromatography Quantities:
 
         # Plateau Numbers
-        meta["N"] = 5.54 * np.power(meta["times"]/meta["widths"], 2)
+        meta["N"] = 5.54 * np.power(meta["times"] / meta["widths"], 2)
 
         # Asymmetry:
         meta_10H = self.solve(xdata=xdata, ydata=filtered, rel_height=0.1)
@@ -282,10 +276,14 @@ class ChromatogramSolver:
         # Tailing:
         meta_20H = self.solve(xdata=xdata, ydata=filtered, rel_height=0.05)
         meta["a20"] = meta_20H["times"] - meta_20H["left_ips"]
-        meta["T"] = meta_20H["widths"] / (2. * meta["a20"])
+        meta["T"] = meta_20H["widths"] / (2.0 * meta["a20"])
 
         # Resolution:
-        meta["R"] = 2. * (meta["times"] - meta["times"][0])/(meta_20H["widths"] + meta_20H["widths"][0])
+        meta["R"] = (
+            2.0
+            * (meta["times"] - meta["times"][0])
+            / (meta_20H["widths"] + meta_20H["widths"][0])
+        )
 
         # Selectivity:
         meta["alpha"] = (meta["times"] - dead_time) / (meta["times"][0] - dead_time)
@@ -307,9 +305,20 @@ class ChromatogramSolver:
 
     def summary(self):
         data = pd.DataFrame(self._peaks)
-        data = data.reindex([
-            "times", "prominences", "widths", "surfaces", "N", "R", "alpha", "As", "T"
-        ], axis=1)
+        data = data.reindex(
+            [
+                "times",
+                "prominences",
+                "widths",
+                "surfaces",
+                "N",
+                "R",
+                "alpha",
+                "As",
+                "T",
+            ],
+            axis=1,
+        )
         return data
 
     def plot_fit(self, title="", surfaces=True, heights=False, widths=False):
@@ -359,7 +368,6 @@ class ChromatogramSolver:
             self._peaks["lefts"],
             self._peaks["rights"],
         ):
-
             axe.text(
                 self._xdata[peak],
                 self._ydata[peak],
@@ -391,7 +399,7 @@ class ChromatogramSolver:
                 x=self._xdata[self._peaks["indices"]],
                 ymin=self._ydata[self._peaks["indices"]] - self._peaks["prominences"],
                 ymax=self._ydata[self._peaks["indices"]],
-                color="yellow"
+                color="yellow",
             )
 
         if heights:
@@ -399,7 +407,7 @@ class ChromatogramSolver:
                 y=self._baseline[self._peaks["indices"]] + self._peaks["width_heights"],
                 xmin=self._peaks["left_ips"],
                 xmax=self._peaks["right_ips"],
-                color="yellow"
+                color="yellow",
             )
 
         axe.set_title("Chromatogram Fit:\n%s" % title)

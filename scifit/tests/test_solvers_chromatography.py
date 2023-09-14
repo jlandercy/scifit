@@ -85,7 +85,9 @@ class TestChromatogramSolver:
         name = self.__class__.__name__
         solution = self.solver.fit(self.data)
         axe = self.solver.plot_fit(title=name)
-        axe.figure.savefig("{}/{}_fit.{}".format(self.media_path, name, self.format), dpi=120)
+        axe.figure.savefig(
+            "{}/{}_fit.{}".format(self.media_path, name, self.format), dpi=120
+        )
 
     def test_process_report(self):
         name = self.__class__.__name__
@@ -146,6 +148,7 @@ class TestChromatogramSolverSample01PenalizedPoly3(TestChromatogramSolver, TestC
     filter_mode = "penalized_poly"
     configuration = {"poly_order": 3}
 
+
 #
 # class TestChromatogramSolverSample01QuantReg3(TestChromatogramSolver, TestCase):
 #     filter_mode = "quant_reg"
@@ -172,6 +175,8 @@ class TestChromatogramSolverSample01PenalizedPoly3(TestChromatogramSolver, TestC
 
 class TestChromatogramSolverSample01FastChrom(TestChromatogramSolver, TestCase):
     filter_mode = "fastchrom"
+
+
 #
 #
 # class TestChromatogramSolverSample01Golotvin(TestChromatogramSolver, TestCase):
@@ -234,8 +239,10 @@ class TestChromatogramSolverSample01FastChrom(TestChromatogramSolver, TestCase):
 #     filter_mode = "ria"
 #
 
+
 class TestChromatogramSolverSample01SNIP(TestChromatogramSolver, TestCase):
     filter_mode = "snip"
+
 
 #
 # class TestChromatogramSolverSample01SWiMA(TestChromatogramSolver, TestCase):
