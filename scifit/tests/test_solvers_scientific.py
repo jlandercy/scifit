@@ -20,21 +20,15 @@ class ExponentialRegression(GenericLinearRegression):
     xmax = 5.0
 
 
-class ExponentialRegressionNoiseL0(
-    ExponentialRegression, TestCase
-):
+class ExponentialRegressionNoiseL0(ExponentialRegression, TestCase):
     sigma = 1e-6
 
 
-class ExponentialRegressionNoiseL1(
-    ExponentialRegression, TestCase
-):
+class ExponentialRegressionNoiseL1(ExponentialRegression, TestCase):
     sigma = 2.5e-2
 
 
-class ExponentialRegressionNoiseL2(
-    ExponentialRegression, TestCase
-):
+class ExponentialRegressionNoiseL2(ExponentialRegression, TestCase):
     sigma = 1e-1
 
 
@@ -138,7 +132,8 @@ class MichaelisMentenKineticRegressionNoiseL5(
 class CooperativeHillEquationRegression(GenericKineticRegression):
     factory = scientific.HillEquationFitSolver
     parameters = np.array([2.12, 2.5e-1])
-    loss_domains = pd.DataFrame({"min": [0.1, 1e-2], "max": [5.0, 1.0]}).T
+    # loss_domains = pd.DataFrame({"min": [0.1, 1e-2], "max": [5.0, 1.0]}).T
+    log_loss = True
 
     def test_fit_from_synthetic_dataset(self):
         """All cooperative fails, but only noisy competitive. Does not converge (maxfev>800)"""
@@ -189,9 +184,10 @@ class CooperativeHillEquationRegressionNoiseL5(
 class CompetitiveHillEquationRegression(GenericKineticRegression):
     factory = scientific.HillEquationFitSolver
     parameters = np.array([0.32, 2.5e-1])
-    loss_ratio = 2.0
-    loss_factor = 3.0
-    loss_domains = pd.DataFrame({"min": [1e-2, 1e-2], "max": [5.0, 1.0]}).T
+    # loss_ratio = 2.0
+    # loss_factor = 3.0
+    # loss_domains = pd.DataFrame({"min": [1e-2, 1e-2], "max": [5.0, 1.0]}).T
+    log_loss = True
 
 
 class CompetitiveHillEquationRegressionNoiseL0(

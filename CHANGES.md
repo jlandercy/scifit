@@ -2,20 +2,61 @@
 
 ## To-do list
 
- - [ ] Implement ODE Solver (special case for Kinetics) make it FitSolvable as well
+ - [x] Implement ODE Solver (special case for Kinetics) make it FitSolvable as well
  - [ ] Implement complex models (see StackOverflow 10 years feed of fit and personal website)
-   - [ ] Kinetics
+   - [x] Kinetics
    - [ ] Mechanics
    - [ ] Gradient recovery
    - [ ] Distribution fit
  - [ ] Refactor all models to get parameters name:
    - [ ] Starting by 0 and get compliant with natural index
-   - [ ] Write all _model_equation
- - [ ] Give a try to Kivy in another package (userflow first)
- - [x] Find out why references are not all updated in report
+   - [x] Write all _model_equation
+ - [ ] Apply 10^log10 to model for Kinetic in order to reduce errors
+ - [ ] Find out why some conversion ratio are not shown in steady mode
+ - [ ] Solve issue when KineticFit Solver p0 is too far away from real give shape error
+   - Due to ODE Solver interruption (not converging stop before reaching full t_eval)
+ - [ ] Implement SIR model and fit epidemic data (introduce bootstrap)
+ - [ ] Add transformers (Log-Log, Lineweaver-Burk, Standardizer)
+ - [ ] Add Pipeline object
+ - [ ] Chromatogram Solver:
+   - [x] Solve why peak are still grouped in some conditions
+   - [ ] Create 10 datasets as use cases
+   - [ ] Create solver with different mode/settings
 
+## v0.1.15
 
+ - [x] Kinetic rates are now computed from model instead of deriving solutions 
+ - [x] Refactored namespace to be more sensical
+ - [x] Added Chromatogram Solver to detect peaks
+ - [x] Added Baseline Noise, LOD and LOQ estimation
+ - [x] Fixed integration bug due to non monotonically increasing limits
+ - [x] Added peaks surfaces and scaled peak widths wrt time axis
+ - [x] Added Chromatography quantities of interests (R, H, As, T)
+
+## v0.1.14
+
+ - [x] Validated ODE matrix system against manually writen ODE systems
+ - [x] Added Brusselator Kinetic and Fit Solver
+ - [x] Added steady state capability to Kinetic Solver
+ - [x] Added Quotient Rate figure
+ - [x] Corrected mislabeling when selecting substances (eg.: A, B instead of E, F)
+ - [x] Refactoring of solver namespace
+ - [x] Stabilized precision for derivatives
+ - [x] Creating report for Kinetic Solver
+ 
 ## v0.1.13
+
+ - [x] Added Activated State Model Kinetic solver:
+   - [x] Capable of direct, indirect and equilibrium reactions
+   - [x] Capable of multiple kinetics
+   - [x] Capable of auto-catalytic kinetics
+   - [x] Added Reaction Quotient
+   - [x] Added Conversion Ratio
+   - [x] Added Concentration velocities and accelerations
+   - [x] Added Instantaneous Selectivity
+   - [x] Succeeded to bind KineticSolver w/ FitSolver
+   - [x] Add reference index for substance
+   - [x] Levenspiel diagram
 
 ## v0.1.12
 

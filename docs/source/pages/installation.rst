@@ -1,11 +1,19 @@
 Installation
 ############
 
-SciFit package can be installed using the usual setup flow:
+SciFit Package is available on `PyPi repository <https://pypi.org/manage/project/scifit/releases/>`_:
+
+.. code-block:: bash
+
+   python -m pip --upgrade install scifit
+
+Or it can be installed using the usual package setup flow:
 
 .. code-block:: bash
 
    python setup.py install
+
+After downloading source code from `GitHub repository <https://github.com/jlandercy/scifit>`_.
 
 Suites
 ******

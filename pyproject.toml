@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scifit"
-version = "0.1.12"
+version = "0.1.14"
 description = "Scientific Fit for Python"
 authors = [{ name = "Jean Landercy", email = "jeanlandercy@live.com" }]
 license = { file = "LICENSE" }
@@ -32,6 +32,7 @@ dependencies = [
     "numpy>=1.25.2",
     "pandas>=2.0.3",
     "scipy>=1.11.1",
+    "pybaselines>=1.0.0",
     # Rendering:
     "Jinja2==3.1.2",
     "pypandoc>=1.11",
@@ -163,7 +164,7 @@ dev = [
 Homepage = "https://github.com/jlandercy/scifit"
 
 [tool.bumpver]
-current_version = "0.1.12"
+current_version = "0.1.14"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "Version change {old_version} -> {new_version}"
 tag_message = "{new_version}"

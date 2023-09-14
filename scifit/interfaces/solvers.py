@@ -1,18 +1,14 @@
-import inspect
 import itertools
-import numbers
-from collections.abc import Iterable
+import warnings
 
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 from scipy import optimize, stats
 
 from scifit import logger
 from scifit.errors.base import *
 from scifit.interfaces.mixins import *
-from scifit.toolbox.report import ReportProcessor
+from scifit.toolbox.report import FitSolverReportProcessor
 
 
 class FitSolverInterface(FitSolverMixin):
@@ -255,9 +251,12 @@ class FitSolverInterface(FitSolverMixin):
         if wdata is None:
             wdata = 1.0
 
-        return np.sum(
-            wdata * np.power((ydata - self.predict(xdata, parameters=parameters)), 2)
-        )
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            return np.sum(
+                wdata
+                * np.power((ydata - self.predict(xdata, parameters=parameters)), 2)
+            )
 
     def RSS(self, xdata, ydata, parameters=None):
         """
@@ -568,7 +567,7 @@ class FitSolverInterface(FitSolverMixin):
         errors=False,
         squared_errors=False,
         aspect="auto",
-        resolution=100,
+        resolution=250,
         mode="lin",
         log_x=False,
         log_y=False,
@@ -581,7 +580,7 @@ class FitSolverInterface(FitSolverMixin):
             :alt: Fit Plot
         """
 
-        if not title and self._model_equation:
+        if not title and self._model_equation and not self._equation_array:
             title = "$%s$" % self._model_equation
 
         if log_x:
@@ -695,7 +694,7 @@ class FitSolverInterface(FitSolverMixin):
             else:
                 pass
 
-    def plot_chi_square(self, title="", resolution=120):
+    def plot_chi_square(self, title="", resolution=250):
         """
         Plot Chi Square Goodness of Fit figure, summarizes all critical thresholds and p-value
 
@@ -708,7 +707,7 @@ class FitSolverInterface(FitSolverMixin):
         :return:
         """
 
-        if not title and self._model_equation:
+        if not title and self._model_equation and not self._equation_array:
             title = "$%s$" % self._model_equation
 
         if self.fitted(error=True):
@@ -787,7 +786,7 @@ class FitSolverInterface(FitSolverMixin):
         :return:
         """
 
-        if not title and self._model_equation:
+        if not title and self._model_equation and not self._equation_array:
             title = "$%s$" % self._model_equation
 
         if self.fitted(error=True):
@@ -841,7 +840,7 @@ class FitSolverInterface(FitSolverMixin):
         xmax=None,
         title="",
         levels=None,
-        resolution=75,
+        resolution=100,
         surface=False,
         iterations=False,
         include_origin=False,
@@ -866,7 +865,7 @@ class FitSolverInterface(FitSolverMixin):
         See :meth:`FitSolverInterface.plot_loss` for full loss landscape.
         """
 
-        if not title and self._model_equation:
+        if not title and self._model_equation and not self._equation_array:
             title = "$%s$" % self._model_equation
 
         if self.fitted(error=True):
@@ -1065,7 +1064,7 @@ class FitSolverInterface(FitSolverMixin):
         xmax=None,
         title="",
         levels=None,
-        resolution=75,
+        resolution=100,
         iterations=False,
         include_origin=False,
         include_unit=False,
@@ -1092,7 +1091,7 @@ class FitSolverInterface(FitSolverMixin):
         :return:
         """
 
-        if not title and self._model_equation:
+        if not title and self._model_equation and not self._equation_array:
             title = "$%s$" % self._model_equation
 
         if self.k <= 2:
@@ -1198,12 +1197,14 @@ class FitSolverInterface(FitSolverMixin):
         if self.fitted(error=True):
             frames = []
             for key in ["left-sided", "two-sided", "right-sided"]:
-                frames.append(pd.DataFrame(self._gof["significance"][key]).assign(key=key))
+                frames.append(
+                    pd.DataFrame(self._gof["significance"][key]).assign(key=key)
+                )
             frame = pd.concat(frames, axis=0)
             return frame
 
     def report(self, file, path=".", mode="pdf"):
-        processor = ReportProcessor()
+        processor = FitSolverReportProcessor()
         processor.report(self, file=file, path=path, mode=mode)
 
 

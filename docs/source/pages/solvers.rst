@@ -30,6 +30,16 @@ solving system of equations, and so on).
    :members:
 
 
+Kinetic models
+**************
+
+Kinetic models are all models based on generic chemical kinetics
+described as a ODE system that is solved conjointly with the fit.
+
+.. automodule:: scifit.solvers.kinetics
+   :members:
+
+
 Special models
 **************
 

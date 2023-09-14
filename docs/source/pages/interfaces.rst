@@ -39,3 +39,13 @@ Fit Solver Interface
    :members:
 
    .. automethod:: __init__
+
+
+Kinetic Solver Interface
+========================
+
+
+.. autoclass:: scifit.interfaces.kinetics.KineticSolverInterface
+   :members:
+
+   .. automethod:: __init__

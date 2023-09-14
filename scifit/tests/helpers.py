@@ -11,8 +11,8 @@ from scifit.interfaces.solvers import FitSolverInterface
 
 # Tests setup:
 print_fit = bool(int(os.getenv("TESTS_PRINT_FIT", 1)))
-print_chi2 = bool(int(os.getenv("TESTS_PRINT_CHI2", 0)))
-print_k2s = bool(int(os.getenv("TESTS_PRINT_K2S", 0)))
+print_chi2 = bool(int(os.getenv("TESTS_PRINT_CHI2", 1)))
+print_k2s = bool(int(os.getenv("TESTS_PRINT_K2S", 1)))
 print_loss_contour = bool(int(os.getenv("TESTS_PRINT_LOSS_CONTOUR", 1)))
 print_loss_surface = bool(int(os.getenv("TESTS_PRINT_LOSS_SURFACE", 0)))
 print_loss_iterations = bool(int(os.getenv("TESTS_PRINT_LOSS_ITERATIONS", 0)))
@@ -79,6 +79,7 @@ class GenericTestFitSolverInterface:
             self.assertEqual(spaces[i].ndim, self.solver.m)
             for k in range(self.solver.m):
                 self.assertEqual(spaces[i].shape[k], 10)
+
     #
     # def test_feature_dataset_1D(self):
     #     dataset = self.solver.feature_dataset(resolution=10)
@@ -124,7 +125,7 @@ class GenericTestFitSolverInterface:
         self.assertEqual(set(data.index).intersection({"min", "max"}), {"min", "max"})
 
 
-class GenericTestFitSolver:
+class GenericSetupTestFitSolver:
     root_path = ".cache/media/tests/"
     data_path = None
 
@@ -227,6 +228,8 @@ class GenericTestFitSolver:
         #     self.configuration["p0"] = domains.loc["min", :] + 0.25 * (domains.loc["max", :] - domains.loc["min", :])
         # print(self.configuration)
 
+
+class GenericBaseTestFitSolver:
     def test_signature(self):
         s = self.solver.signature
         n = self.solver.parameter_space_size
@@ -258,7 +261,7 @@ class GenericTestFitSolver:
         self.assertEqual(self.solver.k, domains.loc["max", :].size)
 
     def test_model_solve_signature_no_sigma(self):
-        solution = self.solver.solve(self.xdata, self.ydata, sigma=None)
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=None)
         self.assertIsInstance(solution, dict)
         self.assertSetEqual(
             {"success", "parameters", "covariance", "info", "message", "status"},
@@ -266,7 +269,7 @@ class GenericTestFitSolver:
         )
 
     def test_model_solve_signature_sigma(self):
-        solution = self.solver.solve(self.xdata, self.ydata, sigma=self.sigma)
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigma)
         self.assertIsInstance(solution, dict)
         self.assertSetEqual(
             {"success", "parameters", "covariance", "info", "message", "status"},
@@ -274,7 +277,7 @@ class GenericTestFitSolver:
         )
 
     def test_model_solve_signature_sigmas(self):
-        solution = self.solver.solve(self.xdata, self.ydata, sigma=self.sigmas)
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         self.assertIsInstance(solution, dict)
         self.assertSetEqual(
             {"success", "parameters", "covariance", "info", "message", "status"},
@@ -514,6 +517,8 @@ class GenericTestFitSolver:
             "{}/{}_summary.csv".format(self.media_path, name), summary=True
         )
 
+
+class GenericPlotTestFitSolver:
     def test_plot_fit(self):
         if print_fit:
             name = self.__class__.__name__
@@ -526,6 +531,7 @@ class GenericTestFitSolver:
                 mode=self.mode,
                 log_x=self.log_x,
                 log_y=self.log_y,
+                resolution=self.resolution * 10,
             )
             axe.figure.savefig(
                 "{}/{}_fit.{}".format(self.media_path, name, self.format)
@@ -554,7 +560,7 @@ class GenericTestFitSolver:
             )
             plt.close(axe.figure)
 
-    def test_plot_loss_automatic(self):
+    def test_plot_loss(self):
         if print_loss_contour:
             name = self.__class__.__name__
             title = r"{} (seed={:d})".format(name, self.seed)
@@ -583,7 +589,7 @@ class GenericTestFitSolver:
             )
             plt.close(axe.figure)
 
-    def test_plot_loss_surface_automatic(self):
+    def test_plot_loss_surface(self):
         if print_loss_surface:
             name = self.__class__.__name__
             title = r"{} (seed={:d})".format(name, self.seed)
@@ -638,3 +644,8 @@ class GenericTestFitSolver:
             self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
             self.solver.report(file=file, path=self.media_path, mode="pdf")
 
+
+class GenericTestFitSolver(
+    GenericSetupTestFitSolver, GenericBaseTestFitSolver, GenericPlotTestFitSolver
+):
+    pass

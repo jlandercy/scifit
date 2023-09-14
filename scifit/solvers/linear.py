@@ -4,7 +4,6 @@ from scifit.interfaces.solvers import FitSolver1D, FitSolver2D
 
 
 class ConstantFitSolver(FitSolver1D):
-
     _model_equation = r"y = \beta_0"
 
     @staticmethod
@@ -20,7 +19,6 @@ class ConstantFitSolver(FitSolver1D):
 
 
 class ProportionalFitSolver(FitSolver1D):
-
     _model_equation = r"y = \beta_0 x"
 
     @staticmethod
@@ -36,7 +34,6 @@ class ProportionalFitSolver(FitSolver1D):
 
 
 class LinearFitSolver(FitSolver1D):
-
     _model_equation = r"y = \beta_1 x + \beta_0"
 
     @staticmethod
@@ -52,7 +49,6 @@ class LinearFitSolver(FitSolver1D):
 
 
 class ParabolicFitSolver(FitSolver1D):
-
     _model_equation = r"y = \beta_2 \cdot x^2 + \beta_1 \cdot x + \beta_0"
 
     @staticmethod
@@ -68,8 +64,9 @@ class ParabolicFitSolver(FitSolver1D):
 
 
 class CubicFitSolver(FitSolver1D):
-
-    _model_equation = r"y = \beta_3 \cdot x^3 + \beta_2 \cdot x^2 + \beta_1 \cdot x + \beta_0"
+    _model_equation = (
+        r"y = \beta_3 \cdot x^3 + \beta_2 \cdot x^2 + \beta_1 \cdot x + \beta_0"
+    )
 
     @staticmethod
     def model(x, b0, b1, b2, b3):
@@ -84,19 +81,23 @@ class CubicFitSolver(FitSolver1D):
 
 
 class LinearRootFitSolver(FitSolver1D):
+    _model_equation = r"y = \beta_2 \cdot x + \beta_1 \cdot \sqrt{|x| + 1} + \beta_0"
+
     @staticmethod
-    def model(x, a, b, c):
+    def model(x, b0, b1, b2):
         """
         Linear Root model defined as follows:
 
         .. math::
 
-            y = a \\cdot x + b \\cdot \\sqrt{|x| + 1} + c
+            y = \\beta_2 \\cdot x + \\beta_1 \\cdot \\sqrt{|x| + 1} + \\beta_0
         """
-        return a * x[:, 0] + b * np.sqrt(np.abs(x[:, 0]) + 1.0) + c
+        return b2 * x[:, 0] + b1 * np.sqrt(np.abs(x[:, 0]) + 1.0) + b0
 
 
 class PlaneFitSolver(FitSolver2D):
+    _model_equation = "y = a \cdot x_0 + b \cdot x_1 + c"
+
     @staticmethod
     def model(x, a, b, c):
         """
@@ -110,6 +111,8 @@ class PlaneFitSolver(FitSolver2D):
 
 
 class QuadricFitSolver(FitSolver2D):
+    _model_equation = r"y = a \cdot x^2_0 + b \cdot x^2_1 + c"
+
     @staticmethod
     def model(x, a, b, c):
         """
@@ -123,6 +126,8 @@ class QuadricFitSolver(FitSolver2D):
 
 
 class FullQuadricFitSolver(FitSolver2D):
+    _model_equation = r"y = a \cdot x^2_0 + b \cdot x^2_1 + c \cdot x_0x_1 + d \cdot x_0 + e \cdot x_1 + f"
+
     @staticmethod
     def model(x, a, b, c, d, e, f):
         """
