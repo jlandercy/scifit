@@ -68,14 +68,13 @@ class TestChromatogramSolver:
 
     def test_dump_data(self):
         name = self.__class__.__name__
-        self.data.to_csv("{}/{}.csv".format(self.media_path, name), sep=";")
+        self.data.to_csv("{}/{}_data.csv".format(self.media_path, name), sep=";")
 
     def test_summary(self):
         name = self.__class__.__name__
         self.solver.fit(self.data)
         summary = self.solver.summary()
-        print(summary)
-        #self.data.to_csv("{}/{}.csv".format(self.media_path, name), sep=";")
+        summary.to_csv("{}/{}_summary.csv".format(self.media_path, name), sep=";")
 
     def test_fit_data(self):
         solution = self.solver.fit(self.data)

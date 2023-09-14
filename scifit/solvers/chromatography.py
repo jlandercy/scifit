@@ -285,6 +285,9 @@ class ChromatogramSolver:
         # Resolution:
         meta["R"] = 2. * (meta["times"] - meta["times"][0])/(meta_20H["widths"] + meta_20H["widths"][0])
 
+        # Selectivity:
+        meta["alpha"] = (meta["times"] - dead_time) / (meta["times"][0] - dead_time)
+
         # Store:
         self._xdata = xdata
         self._ydata = ydata
@@ -303,7 +306,7 @@ class ChromatogramSolver:
     def summary(self):
         data = pd.DataFrame(self._peaks)
         data = data.reindex([
-            "times", "prominences", "widths", "surfaces", "N", "R", "As", "T"
+            "times", "prominences", "widths", "surfaces", "N", "R", "alpha", "As", "T"
         ], axis=1)
         return data
 
