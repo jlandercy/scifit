@@ -1,3 +1,4 @@
+import os
 import functools
 import pathlib
 from unittest import TestCase
@@ -8,6 +9,9 @@ import pandas as pd
 from scipy import integrate
 
 from scifit.interfaces.kinetics import KineticSolverInterface
+
+
+print_report = bool(int(os.getenv("TESTS_PRINT_REPORT", 0)))
 
 
 class GenericKineticTest:
@@ -231,15 +235,16 @@ class GenericKineticTest:
         plt.close(axe.figure)
 
     def test_process_report(self):
-        name = self.__class__.__name__
-        file = r"{}_report".format(name)
-        self.solver.integrate(self.t)
-        self.solver.report(
-            file=file,
-            path=self.media_path,
-            mode="pdf",
-            substance_indices=self.substance_indices,
-        )
+        if print_report:
+            name = self.__class__.__name__
+            file = r"{}_report".format(name)
+            self.solver.integrate(self.t)
+            self.solver.report(
+                file=file,
+                path=self.media_path,
+                mode="pdf",
+                substance_indices=self.substance_indices,
+            )
 
 
 resolution = 5001

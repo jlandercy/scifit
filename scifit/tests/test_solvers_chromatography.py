@@ -1,3 +1,4 @@
+import os
 import pathlib
 from unittest import TestCase
 
@@ -5,6 +6,9 @@ import numpy as np
 import pandas as pd
 
 from scifit.solvers.chromatography import ChromatogramSolver
+
+
+print_report = bool(int(os.getenv("TESTS_PRINT_REPORT", 0)))
 
 
 class TestChromatogramSolver:
@@ -90,10 +94,11 @@ class TestChromatogramSolver:
         )
 
     def test_process_report(self):
-        name = self.__class__.__name__
-        file = r"{}_report".format(name)
-        self.solver.fit(self.data)
-        self.solver.report(file=file, path=self.media_path, mode="pdf")
+        if print_report:
+            name = self.__class__.__name__
+            file = r"{}_report".format(name)
+            self.solver.fit(self.data)
+            self.solver.report(file=file, path=self.media_path, mode="pdf")
 
 
 # class TestChromatogramSolverSample00Default(TestChromatogramSolver, TestCase):
