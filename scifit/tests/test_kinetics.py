@@ -1,5 +1,5 @@
-import os
 import functools
+import os
 import pathlib
 from unittest import TestCase
 
@@ -9,7 +9,6 @@ import pandas as pd
 from scipy import integrate
 
 from scifit.interfaces.kinetics import KineticSolverInterface
-
 
 print_report = bool(int(os.getenv("TESTS_PRINT_REPORT", 0)))
 

@@ -98,4 +98,4 @@ suppress_warnings = [
     'nbsphinx',
 ]
 
-github_url = "https://github.com"
+github_url = "https://github.com/jlandercy/scifit"
