@@ -356,3 +356,29 @@ class EMGPeakFitSolver(FitSolver1D):
             * np.exp(-0.5 * np.power(sigma / x0, 2) - (x[:, 0] - xG) / x0)
             * EMGPeakFitSolver.cdf(z)
         )
+
+
+class LaserPowerFitSolver(FitSolver1D):
+    """
+    Laser Power Model found on `Stack Overflow <https://stackoverflow.com/questions/77137301/curve-fit-seems-to-overestimate-error-of-estimated-parameters/77143084#77143084>`_
+    """
+
+    _model_equation = r"A \cdot \frac{x/s}{1 + k + x/s} + b"
+
+    @staticmethod
+    def model(x, A, s, b):
+        """
+        Laser Power Model
+
+        .. math::
+
+            A \\cdot \\frac{x/s}{1 + k + x/s} + b
+
+        :param x:
+        :param A:
+        :param s:
+        :param b:
+        :return:
+        """
+        return A * (x[:, 0] / s) / (1 + (20./19.6)**2 + x[:, 0] / s) + b
+

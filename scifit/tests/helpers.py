@@ -141,6 +141,7 @@ class GenericSetupTestFitSolver:
     dimension = 1
     xdata = None
     ydata = None
+    sigmas = None
 
     seed = 789
     sigma = None
@@ -201,7 +202,8 @@ class GenericSetupTestFitSolver:
 
             else:
 
-                self.sigmas = self.sigma
+                if self.sigmas is None:
+                    self.sigmas = self.sigma
 
         else:
 
