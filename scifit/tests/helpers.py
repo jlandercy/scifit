@@ -126,6 +126,7 @@ class GenericTestFitSolverInterface:
 
 
 class GenericSetupTestFitSolver:
+
     root_path = ".cache/media/tests/"
     data_path = None
 
@@ -139,6 +140,7 @@ class GenericSetupTestFitSolver:
     resolution = 30
     dimension = 1
     xdata = None
+    ydata = None
 
     seed = 789
     sigma = None
@@ -166,6 +168,7 @@ class GenericSetupTestFitSolver:
     # sigma_factor = 10.
 
     def setUp(self) -> None:
+
         self.media_path = pathlib.Path(self.root_path) / format(
             self.factory.__module__.split(".")[-1]
         )
@@ -174,26 +177,34 @@ class GenericSetupTestFitSolver:
         self.solver = self.factory(**self.configuration)
 
         if self.data_path is None:
-            data = self.solver.synthetic_dataset(
-                xdata=self.xdata,
-                parameters=self.parameters,
-                xmin=self.xmin,
-                xmax=self.xmax,
-                resolution=self.resolution,
-                sigma=self.sigma,
-                scale_mode=self.scale_mode,
-                generator=self.generator,
-                seed=self.seed,
-                **self.target_kwargs,
-            )
 
-            self.xdata = data.filter(regex="^x").values
-            self.ydata = data["y"].values
-            self.sigmas = data["sy"].values
-            self.yref = data["yref"].values
-            self.ynoise = data["ynoise"].values
+            if self.ydata is None:
+
+                data = self.solver.synthetic_dataset(
+                    xdata=self.xdata,
+                    parameters=self.parameters,
+                    xmin=self.xmin,
+                    xmax=self.xmax,
+                    resolution=self.resolution,
+                    sigma=self.sigma,
+                    scale_mode=self.scale_mode,
+                    generator=self.generator,
+                    seed=self.seed,
+                    **self.target_kwargs,
+                )
+
+                self.xdata = data.filter(regex="^x").values
+                self.ydata = data["y"].values
+                self.sigmas = data["sy"].values
+                self.yref = data["yref"].values
+                self.ynoise = data["ynoise"].values
+
+            else:
+
+                self.sigmas = self.sigma
 
         else:
+
             data = self.solver.load(self.data_path)
             self.xdata = data.filter(regex="^x").values
             self.ydata = data["y"]
