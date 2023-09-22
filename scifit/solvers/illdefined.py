@@ -12,10 +12,18 @@ class LinearSquaredSlopeSolver(FitSolver1D):
 class StrangeSOExpCosSolver(FitSolver1D):
     @staticmethod
     def model(x, i0, a, w1, ph):
-        return i0 + (1-i0)*np.exp(-x[:, 0]/w1) + a*np.cos((2*np.pi/w1)*x[:, 0] - ph)
+        return (
+            i0
+            + (1 - i0) * np.exp(-x[:, 0] / w1)
+            + a * np.cos((2 * np.pi / w1) * x[:, 0] - ph)
+        )
 
 
 class SOExpCosSolver(FitSolver1D):
     @staticmethod
     def model(x, a, b, c, d, e, f):
-        return a*x[:, 0] + b + c*np.exp(d*x[:, 0])*np.cos(2*np.pi*e*x[:, 0] + f)
+        return (
+            a * x[:, 0]
+            + b
+            + c * np.exp(d * x[:, 0]) * np.cos(2 * np.pi * e * x[:, 0] + f)
+        )

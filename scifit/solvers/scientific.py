@@ -380,5 +380,4 @@ class LaserPowerFitSolver(FitSolver1D):
         :param b:
         :return:
         """
-        return A * (x[:, 0] / s) / (1 + (20./19.6)**2 + x[:, 0] / s) + b
-
+        return A * (x[:, 0] / s) / (1 + (20.0 / 19.6) ** 2 + x[:, 0] / s) + b

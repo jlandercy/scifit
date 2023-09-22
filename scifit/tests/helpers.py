@@ -126,7 +126,6 @@ class GenericTestFitSolverInterface:
 
 
 class GenericSetupTestFitSolver:
-
     root_path = ".cache/media/tests/"
     data_path = None
 
@@ -169,7 +168,6 @@ class GenericSetupTestFitSolver:
     # sigma_factor = 10.
 
     def setUp(self) -> None:
-
         self.media_path = pathlib.Path(self.root_path) / format(
             self.factory.__module__.split(".")[-1]
         )
@@ -178,9 +176,7 @@ class GenericSetupTestFitSolver:
         self.solver = self.factory(**self.configuration)
 
         if self.data_path is None:
-
             if self.ydata is None:
-
                 data = self.solver.synthetic_dataset(
                     xdata=self.xdata,
                     parameters=self.parameters,
@@ -201,12 +197,10 @@ class GenericSetupTestFitSolver:
                 self.ynoise = data["ynoise"].values
 
             else:
-
                 if self.sigmas is None:
                     self.sigmas = self.sigma
 
         else:
-
             data = self.solver.load(self.data_path)
             self.xdata = data.filter(regex="^x").values
             self.ydata = data["y"]

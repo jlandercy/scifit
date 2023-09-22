@@ -491,33 +491,25 @@ class EMGPeakRegression(GenericLinearRegression):
 class LaserPowerRegression(GenericLinearRegression):
     factory = scientific.LaserPowerFitSolver
     parameters = np.array([21, 27.1, 8.11])
-    #configuration = {"p0": np.array([20., 20., 10.])}
+    # configuration = {"p0": np.array([20., 20., 10.])}
     xmin = 0.1
     xmax = 55.5
     resolution = 50
 
 
-class LaserPowerRegressionNoiseL0(
-    LaserPowerRegression, TestCase
-):
+class LaserPowerRegressionNoiseL0(LaserPowerRegression, TestCase):
     sigma = 1e-6
 
 
-class LaserPowerRegressionNoiseL1(
-    LaserPowerRegression, TestCase
-):
+class LaserPowerRegressionNoiseL1(LaserPowerRegression, TestCase):
     sigma = 2.5e-2
 
 
-class LaserPowerRegressionNoiseL2(
-    LaserPowerRegression, TestCase
-):
+class LaserPowerRegressionNoiseL2(LaserPowerRegression, TestCase):
     sigma = 1e-1
 
 
-class LaserPowerRegressionDataset(
-    LaserPowerRegression, TestCase
-):
+class LaserPowerRegressionDataset(LaserPowerRegression, TestCase):
     xdata = np.array([[4.3, 8.1, 15.2, 28.5, 53.4]]).T
     ydata = np.array([9.5, 10.6, 12.6, 15.5, 18.3])
     sigmas = np.array([0.242, 0.231, 0.282, 0.31, 0.373])
