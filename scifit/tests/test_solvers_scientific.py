@@ -468,24 +468,26 @@ class EMGPeakRegression(GenericLinearRegression):
     def test_fit_from_synthetic_dataset(self):
         pass
 
+    def test_plot_loss(self):
+        """to heavy"""
 
-#
-# class EMGPeakRegressionNoiseL0(
-#     EMGPeakRegression, TestCase
-# ):
-#     sigma = 1e-6
-#
-#
-# class EMGPeakRegressionNoiseL1(
-#     EMGPeakRegression, TestCase
-# ):
-#     sigma = 2.5e-2
-#
-#
-# class EMGPeakRegressionNoiseL2(
-#     EMGPeakRegression, TestCase
-# ):
-#     sigma = 1e-1
+
+class EMGPeakRegressionNoiseL0(
+    EMGPeakRegression, TestCase
+):
+    sigma = 1e-6
+
+
+class EMGPeakRegressionNoiseL1(
+    EMGPeakRegression, TestCase
+):
+    sigma = 2.5e-2
+
+
+class EMGPeakRegressionNoiseL2(
+    EMGPeakRegression, TestCase
+):
+    sigma = 1e-1
 
 
 class LaserPowerRegression(GenericLinearRegression):
