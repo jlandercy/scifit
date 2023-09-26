@@ -475,7 +475,7 @@ class FitSolverInterface(FitSolverMixin):
 
         for i in range(self.k):
             mask = np.full((self.k,), 0.0)
-            mask[i] = ratio
+            mask[i] = 1.0
             grad[i] = (
                 self.model(x, *(parameters + mask * dp))
                 - self.model(x, *(parameters - mask * dp))
@@ -505,6 +505,19 @@ class FitSolverInterface(FitSolverMixin):
         )
 
     def confidence_bands(self, x, parameters=None, alpha=0.05, ratio=0.0001):
+        """
+        Generate confidence bands w.r.t. parameters for a given alpha
+
+        .. math ::
+
+            \\hat{y} \\pm z_\\alpha \\cdot \\sigma_y \\,,\\quad \\sigma_y = \\sqrt{\\boldsymbol{J}\\boldsymbol{C}\\boldsymbol{J}^T}
+
+        :param x:
+        :param parameters:
+        :param alpha:
+        :param ratio:
+        :return:
+        """
         if parameters is None:
             parameters = self._solution["parameters"]
 
@@ -710,10 +723,10 @@ class FitSolverInterface(FitSolverMixin):
 
                 if bands:
                     ci_bands = self.confidence_bands(
-                        self._xdata, alpha=alpha, ratio=1.0
+                        xscale, alpha=alpha, ratio=0.0001
                     )
                     axe.fill_between(
-                        self._xdata[:, 0],
+                        xscale[:, 0],
                         ci_bands["upper_band"],
                         ci_bands["lower_band"],
                         color="blue",
