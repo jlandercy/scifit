@@ -506,11 +506,25 @@ class FitSolverInterface(FitSolverMixin):
 
     def confidence_bands(self, x, parameters=None, alpha=0.05, ratio=0.0001):
         """
-        Generate confidence bands w.r.t. parameters for a given alpha
+        Generate confidence bands w.r.t. parameters for a given alpha.
+
+        Confidence bands are computed as follow:
 
         .. math ::
 
-            \\hat{y} \\pm z_\\alpha \\cdot \\sigma_y \\,,\\quad \\sigma_y = \\sqrt{\\boldsymbol{J}\\boldsymbol{C}\\boldsymbol{J}^T}
+            \\hat{y} \\pm z_\\alpha \\cdot \\sigma_y
+
+        Where :math:`\\sigma_y` is evaluated by first order error propagation:
+
+        .. math ::
+
+            \\sigma_y^2 = C_y = \\boldsymbol{J}_f\\boldsymbol{C}_\\beta\\boldsymbol{J}_f^T
+
+        And z-score :math:`z_\\alpha` is defined:
+
+        .. math ::
+
+            \\frac{1}{\\sqrt{\\pi}}\\int\\limits_{-z_\\alpha}^{-z_\\alpha}\\exp(-z^2) \\cdot \\mathrm{d}z = 1 - \\alpha
 
         :param x:
         :param parameters:
