@@ -371,6 +371,24 @@ class GenericBaseTestFitSolver:
         if self.sigma is not None and self.sigma > 0.0:
             self.assertTrue(test["pvalue"] >= 0.10)
 
+    def test_gradient(self):
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        grad = self.solver.gradient(self.xdata, ratio=0.001)
+
+    def test_confidence_bands(self):
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        bands = self.solver.confidence_bands(self.xdata, ratio=0.001)
+
+    def test_confidence_bands_precision(self):
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        bands1 = self.solver.confidence_bands(self.xdata, ratio=0.001)
+        bands2 = self.solver.confidence_bands(self.xdata, ratio=0.0001)
+        self.assertTrue(
+            np.allclose(
+                bands1["covariance"], bands2["covariance"], atol=1e-3, rtol=1e-3
+            )
+        )
+
     def test_feature_dataset_auto(self):
         self.solver._store(self.xdata, self.ydata)
         dataset = self.solver.feature_dataset(

@@ -464,6 +464,64 @@ class FitSolverInterface(FitSolverMixin):
                 "test": test,
             }
 
+    def _gradient(self, x, parameters=None, ratio=0.0001):
+        x = x.reshape(-1, 1).T
+
+        if parameters is None:
+            parameters = self._solution["parameters"]
+
+        grad = np.full((self.k,), np.nan)
+        dp = ratio * np.abs(parameters)
+
+        for i in range(self.k):
+            mask = np.full((self.k,), 0.0)
+            mask[i] = ratio
+            grad[i] = (
+                self.model(x, *(parameters + mask * dp))
+                - self.model(x, *(parameters - mask * dp))
+            ) / (2 * dp[i])
+
+        return grad
+
+    def gradient(self, x, parameters=None, ratio=0.0001):
+        """
+        Compute gradient with respect to parameters:
+
+        :param x:
+        :param parameters:
+        :param ratio:
+        :return:
+        """
+        return np.apply_along_axis(
+            self._gradient, 1, x, parameters=parameters, ratio=ratio
+        )
+
+    def confidence_bands(self, x, parameters=None, alpha=0.05, ratio=0.0001):
+        if parameters is None:
+            parameters = self._solution["parameters"]
+
+        Cb = self._solution["covariance"]
+
+        def estimate(J):
+            return J @ Cb @ J.T
+
+        Jb = self.gradient(x, parameters=parameters, ratio=ratio)
+        Cy = np.apply_along_axis(estimate, 1, Jb)
+        f = self.model(x, *parameters)
+
+        zscore = stats.norm(loc=0, scale=1).ppf(1 - alpha / 2)
+        band_width = zscore * np.sqrt(Cy)
+
+        return {
+            "gradient": Jb,
+            "covariance": Cy,
+            "alpha": alpha,
+            "zscore": zscore,
+            "band_width": band_width,
+            "upper_band": f + band_width,
+            "lower_band": f - band_width,
+        }
+
     def parametrized_loss(self, xdata=None, ydata=None, sigma=None):
         """
         **Wrapper:** Loss function decorated with experimental data and vectorized for parameters.
@@ -566,6 +624,8 @@ class FitSolverInterface(FitSolverMixin):
         title="",
         errors=False,
         squared_errors=False,
+        bands=True,
+        alpha=0.01,
         aspect="auto",
         resolution=250,
         mode="lin",
@@ -639,6 +699,20 @@ class FitSolverInterface(FitSolverMixin):
                             alpha=0.5,
                         )
                         axe.add_patch(square)
+
+                if bands:
+                    ci_bands = self.confidence_bands(
+                        self._xdata, alpha=alpha, ratio=1.0
+                    )
+                    axe.fill_between(
+                        self._xdata[:, 0],
+                        ci_bands["upper_band"],
+                        ci_bands["lower_band"],
+                        color="blue",
+                        linestyle="--",
+                        alpha=0.15,
+                        label="CI Band (%.1f%%)" % (alpha * 100.0),
+                    )
 
                 axe.set_title(full_title, fontdict={"fontsize": 10})
                 axe.set_xlabel(r"Feature, $x_1$")
