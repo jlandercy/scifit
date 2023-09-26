@@ -472,21 +472,15 @@ class EMGPeakRegression(GenericLinearRegression):
         """to heavy"""
 
 
-class EMGPeakRegressionNoiseL0(
-    EMGPeakRegression, TestCase
-):
+class EMGPeakRegressionNoiseL0(EMGPeakRegression, TestCase):
     sigma = 1e-6
 
 
-class EMGPeakRegressionNoiseL1(
-    EMGPeakRegression, TestCase
-):
+class EMGPeakRegressionNoiseL1(EMGPeakRegression, TestCase):
     sigma = 2.5e-2
 
 
-class EMGPeakRegressionNoiseL2(
-    EMGPeakRegression, TestCase
-):
+class EMGPeakRegressionNoiseL2(EMGPeakRegression, TestCase):
     sigma = 1e-1
 
 
