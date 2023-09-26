@@ -485,7 +485,15 @@ class FitSolverInterface(FitSolverMixin):
 
     def gradient(self, x, parameters=None, ratio=0.0001):
         """
-        Compute gradient with respect to parameters:
+        Estimate gradient with respect to parameters using centered finite difference quotient
+
+        .. math ::
+
+            \\boldsymbol{J}_f({\\beta_i}) = \\left.\\frac{\\partial f}{\\partial \\beta_i}\\right|_\\boldsymbol{x}
+            \\simeq \\frac{
+            f(\\boldsymbol{x}, \\beta_0, \\dots, \\beta_i + \\Delta \\beta_i, \\dots, \\beta_{k-1}) -
+            f(\\boldsymbol{x}, \\beta_0, \\dots, \\beta_i - \\Delta \\beta_i, \\dots, \\beta_{k-1})
+            }{2 \\Delta \\beta_i}
 
         :param x:
         :param parameters:

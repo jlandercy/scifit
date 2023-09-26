@@ -203,4 +203,3 @@ class FullSaddleRegressionNoiseL1(FullSaddleRegression, TestCase):
 
 class FullSaddleRegressionNoiseL2(FullSaddleRegression, TestCase):
     sigma = 1.0e-1
-
