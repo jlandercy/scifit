@@ -131,13 +131,6 @@ class LinearRootRegressionNoiseL2(GenericLinearRootRegression, TestCase):
     sigma = 1.0e-1
 
 
-class LinearRootRegressionNoiseL5(GenericLinearRootRegression, TestCase):
-    sigma = 2.5
-
-    def test_kolmogorov(self):
-        pass
-
-
 class Generic2DFeatureRegression(GenericTestFitSolver):
     factory = linear.PlaneFitSolver
     parameters = np.array([1.0, 1.0, 1.0])

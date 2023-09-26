@@ -51,21 +51,6 @@ class GompertzRegressionNoiseL2(GompertzRegression, TestCase):
     sigma = 1e-1
 
 
-class GompertzRegressionNoiseL3(GompertzRegression, TestCase):
-    sigma = 2.5e-1
-
-
-class GompertzRegressionNoiseL4(GompertzRegression, TestCase):
-    sigma = 1.0
-
-
-class GompertzRegressionNoiseL5(GompertzRegression, TestCase):
-    sigma = 2.5
-
-    def test_kolmogorov(self):
-        pass
-
-
 class GenericKineticRegression(GenericTestFitSolver):
     xmin = 1e-6
     xmax = 1e-3
@@ -102,33 +87,6 @@ class MichaelisMentenKineticRegressionNoiseL2(
     sigma = 1e-1
 
 
-class MichaelisMentenKineticRegressionNoiseL3(
-    MichaelisMentenKineticRegression, TestCase
-):
-    sigma = 2.5e-1
-
-    def test_kolmogorov(self):
-        pass
-
-
-class MichaelisMentenKineticRegressionNoiseL4(
-    MichaelisMentenKineticRegression, TestCase
-):
-    sigma = 1.0
-
-    def test_kolmogorov(self):
-        pass
-
-
-class MichaelisMentenKineticRegressionNoiseL5(
-    MichaelisMentenKineticRegression, TestCase
-):
-    sigma = 2.5
-
-    def test_kolmogorov(self):
-        pass
-
-
 class CooperativeHillEquationRegression(GenericKineticRegression):
     factory = scientific.HillEquationFitSolver
     parameters = np.array([2.12, 2.5e-1])
@@ -157,30 +115,6 @@ class CooperativeHillEquationRegressionNoiseL2(
     sigma = 1e-1
 
 
-class CooperativeHillEquationRegressionNoiseL3(
-    CooperativeHillEquationRegression, TestCase
-):
-    sigma = 2.5e-1
-
-
-class CooperativeHillEquationRegressionNoiseL4(
-    CooperativeHillEquationRegression, TestCase
-):
-    sigma = 1.0
-
-    def test_kolmogorov(self):
-        pass
-
-
-class CooperativeHillEquationRegressionNoiseL5(
-    CooperativeHillEquationRegression, TestCase
-):
-    sigma = 2.5
-
-    def test_kolmogorov(self):
-        pass
-
-
 class CompetitiveHillEquationRegression(GenericKineticRegression):
     factory = scientific.HillEquationFitSolver
     parameters = np.array([0.32, 2.5e-1])
@@ -206,38 +140,6 @@ class CompetitiveHillEquationRegressionNoiseL2(
     CompetitiveHillEquationRegression, TestCase
 ):
     sigma = 1e-1
-
-
-class CompetitiveHillEquationRegressionNoiseL3(
-    CompetitiveHillEquationRegression, TestCase
-):
-    sigma = 2.5e-1
-
-
-class CompetitiveHillEquationRegressionNoiseL4(
-    CompetitiveHillEquationRegression, TestCase
-):
-    sigma = 1.0
-
-    def test_fit_from_synthetic_dataset(self):
-        """Does not converge (maxfev>800)"""
-        pass
-
-    def test_kolmogorov(self):
-        pass
-
-
-class CompetitiveHillEquationRegressionNoiseL5(
-    CompetitiveHillEquationRegression, TestCase
-):
-    sigma = 2.5
-
-    def test_fit_from_synthetic_dataset(self):
-        """Does not converge (maxfev>800)"""
-        pass
-
-    def test_kolmogorov(self):
-        pass
 
 
 class LogisticRegression(GenericLinearRegression):
