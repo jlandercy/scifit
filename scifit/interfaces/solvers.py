@@ -660,7 +660,7 @@ class FitSolverInterface(FitSolverMixin):
         errors=False,
         squared_errors=False,
         bands=True,
-        alpha=0.01,
+        alpha=0.001,
         aspect="auto",
         resolution=250,
         mode="lin",
