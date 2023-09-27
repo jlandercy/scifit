@@ -477,9 +477,12 @@ class FitSolverInterface(FitSolverMixin):
             mask = np.full((self.k,), 0.0)
             mask[i] = 1.0
             grad[i] = (
-                self.model(x, *(parameters + mask * dp))
-                - self.model(x, *(parameters - mask * dp))
-            ) / (2 * dp[i])
+                (
+                    self.model(x, *(parameters + mask * dp))
+                    - self.model(x, *(parameters - mask * dp))
+                )
+                / (2 * dp[i])
+            )[0]
 
         return grad
 
@@ -542,7 +545,8 @@ class FitSolverInterface(FitSolverMixin):
 
         Jb = self.gradient(x, parameters=parameters, ratio=ratio)
         Cy = np.apply_along_axis(estimate, 1, Jb)
-        f = self.model(x, *parameters)
+
+        f = self.predict(x, parameters=parameters)
 
         zscore = stats.norm(loc=0, scale=1).ppf(1 - alpha / 2)
         band_width = zscore * np.sqrt(Cy)
@@ -659,7 +663,7 @@ class FitSolverInterface(FitSolverMixin):
         title="",
         errors=False,
         squared_errors=False,
-        bands=True,
+        bands=False,
         alpha=0.001,
         aspect="auto",
         resolution=250,
@@ -736,9 +740,7 @@ class FitSolverInterface(FitSolverMixin):
                         axe.add_patch(square)
 
                 if bands:
-                    ci_bands = self.confidence_bands(
-                        xscale, alpha=alpha, ratio=0.0001
-                    )
+                    ci_bands = self.confidence_bands(xscale, alpha=alpha, ratio=0.0001)
                     axe.fill_between(
                         xscale[:, 0],
                         ci_bands["upper_band"],

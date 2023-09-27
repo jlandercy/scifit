@@ -215,7 +215,7 @@ class RichardGeneralizedSigmoidRegressionNoiseL1(
 ):
     sigma = 2.5e-2
 
-    configuration = {"p0": np.array([10., 10., 5., 10., 5., 5.])}
+    configuration = {"p0": np.array([10.0, 10.0, 5.0, 10.0, 5.0, 5.0])}
 
 
 class RichardGeneralizedSigmoidRegressionNoiseL2(

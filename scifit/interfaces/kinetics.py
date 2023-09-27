@@ -410,6 +410,7 @@ class KineticSolverInterface:
         substance_index = substance_index or self._substance_index or 0
 
         self._solution = self.integrate_system(t, k0=k0, k0inv=k0inv, x0=x0)
+
         self._quotients = np.apply_along_axis(self.quotient, 0, self._solution.y)
         self._rates = self.rates()
         self._accelerations = self.accelerations()
