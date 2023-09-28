@@ -134,6 +134,13 @@ class GenericKineticTest:
         axe.figure.savefig("{}/{}_solve.{}".format(self.media_path, name, self.format))
         plt.close(axe.figure)
 
+    # def test_plot_phase(self):
+    #     name = self.__class__.__name__
+    #     self.solver.integrate(t=self.t)
+    #     axe = self.solver.plot_phase(substance_indices=self.substance_indices)
+    #     axe.figure.savefig("{}/{}_phase.{}".format(self.media_path, name, self.format))
+    #     plt.close(axe.figure)
+
     def test_plot_solve_ratio(self):
         name = self.__class__.__name__
         self.solver.integrate(t=self.t)
