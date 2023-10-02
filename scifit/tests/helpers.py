@@ -151,6 +151,7 @@ class GenericSetupTestFitSolver:
 
     log_x = False
     log_y = False
+    bands = True
 
     loss_domains = None
     loss_ratio = 10.0
@@ -556,6 +557,7 @@ class GenericPlotTestFitSolver:
                 mode=self.mode,
                 log_x=self.log_x,
                 log_y=self.log_y,
+                bands=self.bands,
                 resolution=self.resolution * 10,
             )
             axe.figure.savefig(

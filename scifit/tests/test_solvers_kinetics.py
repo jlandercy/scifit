@@ -8,7 +8,7 @@ from scifit.tests.helpers import GenericPlotTestFitSolver, GenericSetupTestFitSo
 
 
 class GenericKineticRegression(GenericSetupTestFitSolver, GenericPlotTestFitSolver):
-    pass
+    bands = False
 
 
 class SimpleKineticRegression(GenericKineticRegression):
