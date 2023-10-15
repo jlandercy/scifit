@@ -618,6 +618,7 @@ class FitSolverInterface(FitSolverMixin):
         # Statistical tests:
         self._gof = self.goodness_of_fit()
         self._k2s = self.kolmogorov()
+        self._zscore = stats.zscore(self._ydata - self._yhat)
 
         return self._solution
 

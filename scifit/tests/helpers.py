@@ -372,6 +372,10 @@ class GenericBaseTestFitSolver:
         if self.sigma is not None and self.sigma > 0.0:
             self.assertTrue(test["pvalue"] >= 0.10)
 
+    def test_zscore(self):
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        self.assertTrue(np.all(np.abs(self.solver._zscore) <= 4.))
+
     def test_gradient(self):
         solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         grad = self.solver.gradient(self.xdata, ratio=0.001)
