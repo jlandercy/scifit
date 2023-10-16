@@ -586,6 +586,14 @@ class FitSolverInterface(FitSolverMixin):
 
         return wrapped
 
+    def outlier_mask(self, factor=3.):
+        if self.fitted(error=True):
+            return np.abs(self._zscore) > factor
+
+    def outlier_indices(self, factor=3.):
+        if self.fitted(error=True):
+            return np.where(self.outlier_mask(factor=factor))[0]
+
     def _fit(self, xdata=None, ydata=None, sigma=None, **kwargs):
         """
         Fully solve the fitting problem for the given model and input data.

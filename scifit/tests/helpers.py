@@ -376,6 +376,13 @@ class GenericBaseTestFitSolver:
         solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         self.assertTrue(np.all(np.abs(self.solver._zscore) <= 4.))
 
+    # def test_detect_outliers(self):
+    #     i = np.random.randint(low=0, high=self.ydata.size - 1)
+    #     self.ydata[i] = (np.abs(self.ydata[i]) + 1.) * 2.
+    #     solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+    #     indices = self.solver.outlier_indices()
+    #     print(i, indices)
+
     def test_gradient(self):
         solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         grad = self.solver.gradient(self.xdata, ratio=0.001)
