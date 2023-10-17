@@ -512,7 +512,7 @@ class FitSolverInterface(FitSolverMixin):
             self._gradient, 1, x, parameters=parameters, ratio=ratio
         )
 
-    def confidence_bands(self, x, parameters=None, mode="gpr", alpha=0.05, ratio=0.0001):
+    def confidence_bands(self, x, parameters=None, mode="taylor", alpha=0.05, ratio=0.0001):
         """
         Generate confidence bands w.r.t. parameters for a given alpha.
 
@@ -578,7 +578,7 @@ class FitSolverInterface(FitSolverMixin):
 
             factor = self._sigma
             if factor is not None:
-                factor = self._sigma ** 2
+                factor = np.power(self._sigma, 2)
 
             kernel = ConstantKernel(1.) * RBF(length_scale=1.0)
             gpr = GaussianProcessRegressor(kernel=kernel, alpha=factor, n_restarts_optimizer=25)
