@@ -151,7 +151,7 @@ class GenericSetupTestFitSolver:
 
     log_x = False
     log_y = False
-    bands = True
+    bands = "gpr"
 
     loss_domains = None
     loss_ratio = 10.0

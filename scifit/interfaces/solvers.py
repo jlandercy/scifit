@@ -3,7 +3,12 @@ import warnings
 
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
+
 from scipy import optimize, stats
+
+from sklearn.model_selection import train_test_split
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel
 
 from scifit import logger
 from scifit.errors.base import *
@@ -507,7 +512,7 @@ class FitSolverInterface(FitSolverMixin):
             self._gradient, 1, x, parameters=parameters, ratio=ratio
         )
 
-    def confidence_bands(self, x, parameters=None, alpha=0.05, ratio=0.0001):
+    def confidence_bands(self, x, parameters=None, mode="gpr", alpha=0.05, ratio=0.0001):
         """
         Generate confidence bands w.r.t. parameters for a given alpha.
 
@@ -535,31 +540,61 @@ class FitSolverInterface(FitSolverMixin):
         :param ratio:
         :return:
         """
+
+        modes = {"taylor", "gpr"}
+        if mode not in modes:
+            raise ConfigurationError("Mode must be in %s, got '%s' instead" % (modes, mode))
+
         if parameters is None:
             parameters = self._solution["parameters"]
-
-        Cb = self._solution["covariance"]
-
-        def estimate(J):
-            return J @ Cb @ J.T
-
-        Jb = self.gradient(x, parameters=parameters, ratio=ratio)
-        Cy = np.apply_along_axis(estimate, 1, Jb)
 
         f = self.predict(x, parameters=parameters)
 
         zscore = stats.norm(loc=0, scale=1).ppf(1 - alpha / 2)
-        band_width = zscore * np.sqrt(Cy)
 
-        return {
-            "gradient": Jb,
-            "covariance": Cy,
-            "alpha": alpha,
-            "zscore": zscore,
-            "band_width": band_width,
-            "upper_band": f + band_width,
-            "lower_band": f - band_width,
-        }
+        if mode == "taylor":
+
+            Cb = self._solution["covariance"]
+
+            def estimate(J):
+                return J @ Cb @ J.T
+
+            Jb = self.gradient(x, parameters=parameters, ratio=ratio)
+            Cy = np.apply_along_axis(estimate, 1, Jb)
+
+            band_width = zscore * np.sqrt(Cy)
+
+            return {
+                "gradient": Jb,
+                "covariance": Cy,
+                "alpha": alpha,
+                "zscore": zscore,
+                "band_width": band_width,
+                "upper_band": f + band_width,
+                "lower_band": f - band_width,
+            }
+
+        elif mode == "gpr":
+
+            factor = self._sigma
+            if factor is not None:
+                factor = self._sigma ** 2
+
+            kernel = ConstantKernel(1.) * RBF(length_scale=1.0)
+            gpr = GaussianProcessRegressor(kernel=kernel, alpha=factor, n_restarts_optimizer=25)
+            gpr.fit(self._xdata, self._ydata)
+
+            f_hat, f_std = gpr.predict(x, return_std=True)
+            band_width = zscore * f_std
+
+            return {
+                "alpha": alpha,
+                "zscore": zscore,
+                "band_width": band_width,
+                "upper_band": f_hat + band_width,
+                "lower_band": f_hat - band_width,
+                "f_hat": f_hat,
+            }
 
     def parametrized_loss(self, xdata=None, ydata=None, sigma=None):
         """
@@ -672,7 +707,7 @@ class FitSolverInterface(FitSolverMixin):
         title="",
         errors=False,
         squared_errors=False,
-        bands=False,
+        bands="gpr",
         alpha=0.001,
         aspect="auto",
         resolution=250,
@@ -749,7 +784,9 @@ class FitSolverInterface(FitSolverMixin):
                         axe.add_patch(square)
 
                 if bands:
-                    ci_bands = self.confidence_bands(xscale, alpha=alpha, ratio=0.0001)
+
+                    ci_bands = self.confidence_bands(xscale, mode=bands, alpha=alpha, ratio=0.0001)
+
                     axe.fill_between(
                         xscale[:, 0],
                         ci_bands["upper_band"],
@@ -759,6 +796,16 @@ class FitSolverInterface(FitSolverMixin):
                         alpha=0.15,
                         label="CI Band (%.1f%%)" % (alpha * 100.0),
                     )
+
+                    if "f_hat" in ci_bands:
+                        axe.plot(
+                            xscale[:, 0],
+                            ci_bands["f_hat"],
+                            color="blue",
+                            linestyle="--",
+                            alpha=0.25,
+                            label="GPR"
+                        )
 
                 axe.set_title(full_title, fontdict={"fontsize": 10})
                 axe.set_xlabel(r"Feature, $x_1$")
