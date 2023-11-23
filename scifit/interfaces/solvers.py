@@ -172,7 +172,7 @@ class FitSolverInterface(FitSolverMixin):
         self._iterations = np.array(self._iterations)
 
         # # From scipy: https://github.com/scipy/scipy/blob/main/scipy/optimize/_minpack_py.py#L1000C1-L1004C39
-        # _, s, VT = np.linalg.svd(solution.jac, full_matrices=False)
+        # _, s, VT = np.linalg.svd(solution.jac.reshape(-1, 1).T, full_matrices=False)
         # threshold = np.finfo(float).eps * max(solution.jac.shape) * s[0]
         # s = s[s > threshold]
         # VT = VT[:s.size]

@@ -293,11 +293,12 @@ class GenericBaseTestFitSolver:
         )
 
     def test_model_minimize_signature(self):
-        solution = self.solver.minimize(self.xdata, self.ydata, sigma=self.sigmas)
-        self.assertIsInstance(solution, dict)
+        #solution1 = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        solution2 = self.solver.minimize(self.xdata, self.ydata, sigma=self.sigmas)
+        self.assertIsInstance(solution2, dict)
         self.assertSetEqual(
             {"success", "parameters", "covariance", "info", "message", "status"},
-            set(solution.keys()),
+            set(solution2.keys()),
         )
 
     def test_model_fit_parameters(self):
