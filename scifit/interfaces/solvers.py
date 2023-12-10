@@ -153,7 +153,7 @@ class FitSolverInterface(FitSolverMixin):
 
         # Adapt loss function signature:
         def loss(p):
-            return self.parametrized_loss(xdata, ydata, sigma=sigma)(*p) / self.dof
+            return 0.5 * self.parametrized_loss(xdata, ydata, sigma=sigma)(*p)
 
         def callback(result):
             self._iterations.append(result)
@@ -163,8 +163,8 @@ class FitSolverInterface(FitSolverMixin):
         solution = optimize.minimize(
             loss,
             x0=p0,
-            method="L-BFGS-B",
-            jac="3-point",
+            #method="L-BFGS-B",
+            #jac="3-point",
             callback=callback,
             bounds=bounds,
             **kwargs,
@@ -177,7 +177,7 @@ class FitSolverInterface(FitSolverMixin):
         return {
             "success": solution.success,
             "parameters": solution.x,
-            "covariance": solution.hess_inv.todense(),
+            "covariance": solution.hess_inv,#.todense(),
             "info": {
                 "jac": solution.jac,
                 "nit": solution.nit,
