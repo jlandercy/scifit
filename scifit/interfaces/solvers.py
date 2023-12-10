@@ -153,7 +153,7 @@ class FitSolverInterface(FitSolverMixin):
 
         # Adapt loss function signature:
         def loss(p):
-            return self.parametrized_loss(xdata, ydata, sigma=sigma)(*p)
+            return self.parametrized_loss(xdata, ydata, sigma=sigma)(*p) / self.dof
 
         def callback(result):
             self._iterations.append(result)
@@ -171,17 +171,13 @@ class FitSolverInterface(FitSolverMixin):
         )
         self._iterations = np.array(self._iterations)
 
-        # # From scipy: https://github.com/scipy/scipy/blob/main/scipy/optimize/_minpack_py.py#L1000C1-L1004C39
-        # _, s, VT = np.linalg.svd(solution.jac.reshape(-1, 1).T, full_matrices=False)
-        # threshold = np.finfo(float).eps * max(solution.jac.shape) * s[0]
-        # s = s[s > threshold]
-        # VT = VT[:s.size]
-        # covariance = np.dot(VT.T / s**2, VT)
+        # https://github.com/scipy/scipy/blob/main/scipy/optimize/_minpack_py.py#L1000C1-L1004C39
+        # https://stackoverflow.com/a/70754826/3067485
 
         return {
             "success": solution.success,
             "parameters": solution.x,
-            "covariance": None,
+            "covariance": solution.hess_inv.todense(),
             "info": {
                 "jac": solution.jac,
                 "nit": solution.nit,
