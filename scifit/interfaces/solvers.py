@@ -164,6 +164,7 @@ class FitSolverInterface(FitSolverMixin):
             loss,
             x0=p0,
             #method="L-BFGS-B",
+            #method="BFGS",
             #jac="3-point",
             callback=callback,
             bounds=bounds,

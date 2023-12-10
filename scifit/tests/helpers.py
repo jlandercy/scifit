@@ -293,11 +293,8 @@ class GenericBaseTestFitSolver:
         )
 
     def test_model_minimize_signature(self):
-        solution1 = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        #solution1 = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         solution2 = self.solver.minimize(self.xdata, self.ydata, sigma=self.sigmas)
-        print(solution1["covariance"])
-        print(solution2["covariance"])
-        print(solution1["covariance"]/solution2["covariance"])
         self.assertIsInstance(solution2, dict)
         self.assertSetEqual(
             {"success", "parameters", "covariance", "info", "message", "status"},
@@ -322,33 +319,33 @@ class GenericBaseTestFitSolver:
                     )
                 )
 
-    def _test_model_minimize_against_solve(self):
+    def test_model_minimize_against_solve(self):
+
         if self.parameters is not None:
+
             np.random.seed(self.seed)
             solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
 
             np.random.seed(self.seed)
-            minimized = self.solver.minimize(self.xdata, self.ydata, sigma=None)
+            minimized = self.solver.minimize(self.xdata, self.ydata, sigma=self.sigmas)
 
             # Assert both solve and minimize are alike at percent level
-            for i in range(self.parameters.shape[0]):
-                self.assertTrue(
-                    np.allclose(
-                        solution["parameters"][i],
-                        minimized["parameters"][i],
-                        rtol=5e-3,
-                    )
+            self.assertTrue(
+                np.allclose(
+                    solution["parameters"], minimized["parameters"],
+                    atol=1e-6, rtol=5e-3,
                 )
+            )
 
             # Assert covariance
-            # for i in range(self.parameters.shape[0]):
-            #     self.assertTrue(
-            #         np.allclose(
-            #             solution["covariance"][i][i],
-            #             minimized["covariance"][i][i],
-            #             rtol=5e-3,
-            #         )
-            #     )
+            if minimized["covariance"] is not None:
+                print(solution["covariance"] - minimized["covariance"])
+                self.assertTrue(
+                    np.allclose(
+                        solution["covariance"], minimized["covariance"],
+                        atol=1e-6, rtol=5e-3,
+                    )
+                )
 
     def test_goodness_of_fit(self):
         """
