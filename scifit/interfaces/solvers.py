@@ -4,9 +4,11 @@ import warnings
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 
+import numpy as np
+import numdifftools as nd
+
 from scipy import optimize, stats
 
-from sklearn.model_selection import train_test_split
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel
 
@@ -163,9 +165,7 @@ class FitSolverInterface(FitSolverMixin):
         solution = optimize.minimize(
             loss,
             x0=p0,
-            #method="L-BFGS-B",
-            #method="BFGS",
-            #jac="3-point",
+            method="L-BFGS-B",
             callback=callback,
             bounds=bounds,
             **kwargs,
@@ -174,11 +174,20 @@ class FitSolverInterface(FitSolverMixin):
 
         # https://github.com/scipy/scipy/blob/main/scipy/optimize/_minpack_py.py#L1000C1-L1004C39
         # https://stackoverflow.com/a/70754826/3067485
+        # https://stackoverflow.com/questions/77633726/covariance-deviation-when-using-method-l-bfgs-b-of-scipy-optimize-minimize/77644314#77644314
+
+        # Autograd works well for simple function but miserably fails for scientific
+        #H = hessian(loss)(solution.x)
+        #C = np.linalg.inv(H)
+
+        # Numdifftools:
+        # H = nd.Hessian(loss)(solution.x)
+        # C = np.linalg.inv(H)
 
         return {
             "success": solution.success,
             "parameters": solution.x,
-            "covariance": solution.hess_inv,#.todense(),
+            "covariance": None,
             "info": {
                 "jac": solution.jac,
                 "nit": solution.nit,
@@ -186,6 +195,7 @@ class FitSolverInterface(FitSolverMixin):
                 "nfev": solution.nfev,
                 "njev": solution.njev,
                 "hess_inv": solution.hess_inv,
+                "hess_inv_dense": solution.hess_inv.todense(),
                 "iterations": self._iterations,
             },
             "message": solution.message,
