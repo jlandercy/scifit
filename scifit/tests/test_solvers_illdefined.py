@@ -36,6 +36,23 @@ class LinearSquaredSlopeRegressionNoiseL2(LinearSquaredSlopeRegression, TestCase
     sigma = 1e-1
 
 
+class SumDiffSquareRegression(GenericLinearRegression):
+    factory = illdefined.SumDiffSquareSolver
+    parameters = np.array([3.0, 2.0])
+
+
+class SumDiffSquareRegressionNoiseL0(SumDiffSquareRegression, TestCase):
+    sigma = 1e-6
+
+
+class SumDiffSquareRegressionNoiseL1(SumDiffSquareRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class SumDiffSquareRegressionNoiseL2(SumDiffSquareRegression, TestCase):
+    sigma = 1e-1
+
+
 class StrangeSOExpCosSolverRegression(GenericLinearRegression):
     factory = illdefined.StrangeSOExpCosSolver
     parameters = np.array([1.0, 1.0, 1.0, 1.0])

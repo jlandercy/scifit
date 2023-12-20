@@ -9,6 +9,12 @@ class LinearSquaredSlopeSolver(FitSolver1D):
         return np.power(a, 2) * x[:, 0] + b
 
 
+class SumDiffSquareSolver(FitSolver1D):
+    @staticmethod
+    def model(x, a, b):
+        return (a + b) * np.power(x[:, 0], 2) + (a - b) * x[:, 0] - 1.
+
+
 class StrangeSOExpCosSolver(FitSolver1D):
     @staticmethod
     def model(x, i0, a, w1, ph):
