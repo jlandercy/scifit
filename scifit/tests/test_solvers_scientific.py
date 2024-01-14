@@ -428,8 +428,8 @@ class VoigtRegression(GenericLinearRegression):
 
     factory = scientific.VoigtFitSolver
     parameters = np.array([1, 1, 2., 100.])
-    xmin = -10.
-    xmax = 10.
+    xmin = -2.5
+    xmax = 7.5
     resolution = 50
 
 
@@ -449,8 +449,8 @@ class PseudoVoigtRegression(GenericLinearRegression):
 
     factory = scientific.PseudoVoigtFitSolver
     parameters = np.array([0.5, 1., 2., 100.])
-    xmin = -10.
-    xmax = 10.
+    xmin = -2.5
+    xmax = 7.5
     resolution = 50
 
 
