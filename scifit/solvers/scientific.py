@@ -2,6 +2,7 @@ import numpy as np
 from scipy import stats
 
 from scifit.interfaces.solvers import FitSolver1D
+from scifit.interfaces import specials
 
 
 class ExponentialFitSolver(FitSolver1D):
@@ -381,3 +382,17 @@ class LaserPowerFitSolver(FitSolver1D):
         :return:
         """
         return A * (x[:, 0] / s) / (1 + (20.0 / 19.6) ** 2 + x[:, 0] / s) + b
+
+
+class VoigtFitSolver(FitSolver1D):
+
+    @staticmethod
+    def model(x, sigma, gamma, x0, A):
+        return specials.voigt(x[:, 0], sigma, gamma, x0, A)
+
+
+class PseudoVoigtFitSolver(FitSolver1D):
+
+    @staticmethod
+    def model(x, eta, sigma, x0, A):
+        return specials.pseudo_voigt(x[:, 0], eta, sigma, sigma, x0, A)

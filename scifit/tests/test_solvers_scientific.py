@@ -422,3 +422,45 @@ class LaserPowerRegressionDataset(LaserPowerRegression, TestCase):
 
     def test_dataset(self):
         pass
+
+
+class VoigtRegression(GenericLinearRegression):
+
+    factory = scientific.VoigtFitSolver
+    parameters = np.array([1, 1, 2., 100.])
+    xmin = -10.
+    xmax = 10.
+    resolution = 50
+
+
+class VoigtRegressionNoiseL0(VoigtRegression, TestCase):
+    sigma = 1e-6
+
+
+class VoigtRegressionNoiseL1(VoigtRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class VoigtRegressionNoiseL2(VoigtRegression, TestCase):
+    sigma = 1e-1
+
+
+class PseudoVoigtRegression(GenericLinearRegression):
+
+    factory = scientific.PseudoVoigtFitSolver
+    parameters = np.array([0.5, 1., 2., 100.])
+    xmin = -10.
+    xmax = 10.
+    resolution = 50
+
+
+class PseudoVoigtRegressionNoiseL0(PseudoVoigtRegression, TestCase):
+    sigma = 1e-6
+
+
+class PseudoVoigtRegressionNoiseL1(PseudoVoigtRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class PseudoVoigtRegressionNoiseL2(PseudoVoigtRegression, TestCase):
+    sigma = 1e-1
