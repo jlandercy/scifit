@@ -4,6 +4,7 @@ import pathlib
 
 import matplotlib.pyplot as plt
 import numpy as np
+import numdifftools as nd
 import pandas as pd
 
 from scifit.errors.base import *
@@ -387,6 +388,15 @@ class GenericBaseTestFitSolver:
     def test_gradient(self):
         solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
         grad = self.solver.gradient(self.xdata, ratio=0.001)
+
+        def jacobian(x):
+            def function(p):
+                return self.solver.model(x, *p)
+            return nd.Gradient(function)
+
+        J = jacobian(self.xdata)(self.solver._solution["parameters"])
+
+        #self.assertTrue(np.allclose(grad, J, rtol=1e-4, atol=1e-6))
 
     def test_confidence_bands(self):
         solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
