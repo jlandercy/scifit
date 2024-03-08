@@ -557,7 +557,7 @@ class FitSolverInterface(FitSolverMixin):
 
         f = self.predict(x, parameters=parameters)
 
-        zscore = stats.norm(loc=0, scale=1).ppf(1 - alpha / 2)
+        zscore = stats.norm(loc=0., scale=1.).ppf(1. - alpha / 2.)
 
         if mode == "taylor":
 

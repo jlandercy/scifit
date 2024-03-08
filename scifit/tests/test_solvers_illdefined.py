@@ -165,3 +165,24 @@ class SOExpCosSolverRegressionSynthetic(StrangeSOExpCosSolverRegression, TestCas
     xmax = 1.2
     resolution = 75
     sigma = 0.05
+
+
+class SODoubleExpSolverRegression(GenericLinearRegression):
+    factory = illdefined.SODoubleExpSolver
+    parameters = np.array([10.0, 11.5, 5.6, 5.2, 10.8])
+    sigma = 1e-4
+
+
+class SODoubleExpSolverRegressionSynthetic(
+    SODoubleExpSolverRegression, TestCase
+):
+    configuration = {
+        "p0": [10.0, 10.0, 5.0, 5.0, 10.0],
+        "bounds": [
+            (1e-1, 1e-1, 1e-1, 1e-1, 1e-1),
+            (2e+1, 2e+1, 2e+1, 2e+1, 2e+1)
+        ]
+    }
+    xdata = np.logspace(-2, np.log10(40), 50).reshape(-1, 1)
+
+

@@ -33,3 +33,19 @@ class SOExpCosSolver(FitSolver1D):
             + b
             + c * np.exp(d * x[:, 0]) * np.cos(2 * np.pi * e * x[:, 0] + f)
         )
+
+
+class SODoubleExpSolver(FitSolver1D):
+
+    @staticmethod
+    def func1(x, n, xe, ye):
+        b = 1.9992 * n - 0.3271
+        return (ye * 1e-10) * np.exp(-b * np.power(x / xe, 1. / n) - 1.)
+
+    @staticmethod
+    def func2(x, y0, h):
+        return (y0 * 1e-12) * np.exp(-x / h)
+
+    @staticmethod
+    def model(x, n, xe, ye, y0, h):
+        return SODoubleExpSolver.func1(x[:, 0], n, xe, ye) + SODoubleExpSolver.func2(x[:, 0], y0, h)
