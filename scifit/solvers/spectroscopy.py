@@ -14,7 +14,7 @@ class SpectroscopySolver:
     @staticmethod
     def peak_model(x, loc, scale, height):
         law = stats.cauchy(loc=loc, scale=scale)
-        return - height * law.pdf(x) / law.pdf(loc)
+        return height * law.pdf(x) / law.pdf(loc)
 
     @classmethod
     def m(cls):
@@ -56,22 +56,31 @@ class SpectroscopySolver:
         return data
 
     @classmethod
-    def loss_factory(cls, xdata, ydata, sigma):
+    def loss_factory(cls, xdata, ydata, sigma=None):
+
+        if sigma is None:
+            sigma = 1.
+
         def wrapped(p):
             return np.sum(np.power((ydata - cls.model(xdata, *p)) / sigma, 2)) / (xdata.size - len(p))
+
         return wrapped
 
-    def solve(self, xdata, ydata, sigma, prominence=0.25, sign=-1.):
+    def solve(self, xdata, ydata, sigma=None, prominence=400.):
 
-        peaks, bases = signal.find_peaks(np.sign(sign) * ydata, prominence=prominence)
+        baseline_fitter = Baseline(x_data=xdata)
+        baseline, params = baseline_fitter.asls(ydata)
+        yb = ydata - baseline
+
+        peaks, bases = signal.find_peaks(yb, prominence=prominence)
         lefts, rights = ChromatogramSolver.clean_base_indices(bases["left_bases"], bases["right_bases"])
 
-        x0 = list(itertools.chain(*[[xdata[i], 0.1, 0.1] for i in peaks]))
+        x0 = list(itertools.chain(*[[xdata[i], 1., p] for i, p in zip(peaks, bases["prominences"])]))
         bounds = list(itertools.chain(*[
             [(xdata[lefts[i]], xdata[rights[i]])] + [(0., np.inf)] * (self.m() - 1) for i in range(len(peaks))
         ]))
 
-        loss = self.loss_factory(xdata, ydata, sigma)
+        loss = self.loss_factory(xdata, yb, sigma)
         solution = optimize.minimize(loss, x0=x0, bounds=bounds)
 
         return {
@@ -84,23 +93,27 @@ class SpectroscopySolver:
                 "bounds": bounds,
             },
             "solution": solution,
-            "yhat": self.model(xdata, *solution.x)
+            "baseline": baseline,
+            "yhat": self.model(xdata, *solution.x),
         }
 
-    def fit(self, xdata, ydata=None, sigma=None):
+    def fit(self, xdata, ydata=None, sigma=None, prominence=1.):
 
         if isinstance(xdata, pd.DataFrame):
             ydata = xdata["y"].values
-            sigma = xdata["sy"].values
+            if "sy" in xdata:
+                sigma = xdata["sy"].values
             xdata = xdata["x0"].values
 
-        solution = self.solve(xdata, ydata, sigma)
+        solution = self.solve(xdata, ydata, sigma, prominence=prominence)
 
         self._xdata = xdata
         self._ydata = ydata
         self._sigma = sigma
         self._solution = solution
         self._yhat = solution["yhat"]
+
+        return solution
 
     def plot_fit(self, title=None):
         fig, axe = plt.subplots()
