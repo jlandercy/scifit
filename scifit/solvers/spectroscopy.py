@@ -76,18 +76,16 @@ class SpectroscopySolver:
         peaks, bases = signal.find_peaks(yb, prominence=prominence, distance=distance, width=width)
         #lefts, rights = ChromatogramSolver.clean_base_indices(bases["left_bases"], bases["right_bases"])
         lefts, rights = bases["left_bases"], bases["right_bases"]
-        print("Found %d peak(s): %s" % (len(peaks), peaks))
 
         x0 = list(itertools.chain(*[[xdata[i], w / 2., p] for i, w, p in zip(peaks, bases["widths"], bases["prominences"])]))
         bounds = list(itertools.chain(*[
             [(xdata[lefts[i]], xdata[rights[i]])] + [(0., np.inf)] * (self.m() - 1) for i in range(len(peaks))
+            #[(xdata[lefts[i]], xdata[rights[i]]), (0.1 * w, 5.0 * w), (0.5 * p, 1.5 * p)] for i, w, p in zip(range(len(peaks)), bases["widths"], bases["prominences"])
         ]))
 
         loss = self.loss_factory(xdata, yb, sigma)
         solution = optimize.minimize(loss, x0=x0, bounds=bounds)
-
-        print(x0)
-        print(solution.x)
+        print(solution.message)
 
         return {
             "indices": peaks,
@@ -121,9 +119,19 @@ class SpectroscopySolver:
 
         return solution
 
-    def plot_fit(self, title=None):
+    def plot_fit(self, title=""):
+
         fig, axe = plt.subplots()
-        axe.plot(self._xdata, self._ydata)
-        axe.plot(self._xdata, self._yhat)
+
+        axe.plot(self._xdata, self._ydata, label="Data")
+        axe.scatter(self._xdata[self._solution["indices"]], self._ydata[self._solution["indices"]], color="red", label="Peak")
+        axe.plot(self._xdata, self._solution["yhat"] + self._solution["baseline"], label="Fit")
+        axe.plot(self._xdata, self._solution["baseline"], "--", label="Baseline")
+
+        axe.set_title("Spectrogram: %s" % title)
+        axe.set_xlabel("Variable, $x$")
+        axe.set_ylabel("Signal, $g(x)$")
+        axe.legend()
         axe.grid()
+
         return axe

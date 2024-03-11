@@ -67,16 +67,10 @@ class TestRamanSpectrum(TestCase):
             solver = SpectroscopySolver()
             solution = solver.fit(data, prominence=350., distance=1., width=(0.5, 50.0))
 
-            fig, axe = plt.subplots()
-            axe.plot(data.x0, data.y, label="Data")
-            axe.scatter(data.x0.values[solution["indices"]], data.y.values[solution["indices"]], color="red", label="Peak")
-            axe.plot(data.x0, solution["yhat"] + solution["baseline"], label="Fit")
-            axe.plot(data.x0, solution["baseline"], "--", label="Baseline")
-            axe.legend()
-            axe.grid()
+            axe = solver.plot_fit()
 
-            fig.savefig(
+            axe.figure.savefig(
                 "{}/{}_fit.{}".format(self.media_path, file.name, self.format), dpi=120
             )
-            plt.close(fig)
+            plt.close(axe.figure)
 
