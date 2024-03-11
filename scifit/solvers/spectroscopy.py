@@ -66,24 +66,28 @@ class SpectroscopySolver:
 
         return wrapped
 
-    def solve(self, xdata, ydata, sigma=None, baseline_mode="loess", prominence=400., distance=2.):
+    def solve(self, xdata, ydata, sigma=None, baseline_mode="loess", prominence=1., distance=1., width=1.):
 
         baseline_fitter = getattr(Baseline(x_data=xdata), baseline_mode)
 
         baseline, params = baseline_fitter(ydata)
         yb = ydata - baseline
 
-        peaks, bases = signal.find_peaks(yb, prominence=prominence, distance=distance)
+        peaks, bases = signal.find_peaks(yb, prominence=prominence, distance=distance, width=width)
         #lefts, rights = ChromatogramSolver.clean_base_indices(bases["left_bases"], bases["right_bases"])
         lefts, rights = bases["left_bases"], bases["right_bases"]
+        print("Found %d peak(s): %s" % (len(peaks), peaks))
 
-        x0 = list(itertools.chain(*[[xdata[i], 1., p] for i, p in zip(peaks, bases["prominences"])]))
+        x0 = list(itertools.chain(*[[xdata[i], w / 2., p] for i, w, p in zip(peaks, bases["widths"], bases["prominences"])]))
         bounds = list(itertools.chain(*[
             [(xdata[lefts[i]], xdata[rights[i]])] + [(0., np.inf)] * (self.m() - 1) for i in range(len(peaks))
         ]))
 
         loss = self.loss_factory(xdata, yb, sigma)
         solution = optimize.minimize(loss, x0=x0, bounds=bounds)
+
+        print(x0)
+        print(solution.x)
 
         return {
             "indices": peaks,
@@ -99,7 +103,7 @@ class SpectroscopySolver:
             "yhat": self.model(xdata, *solution.x),
         }
 
-    def fit(self, xdata, ydata=None, sigma=None, prominence=1.):
+    def fit(self, xdata, ydata=None, sigma=None, prominence=1., distance=1., width=1.):
 
         if isinstance(xdata, pd.DataFrame):
             ydata = xdata["y"].values
@@ -107,7 +111,7 @@ class SpectroscopySolver:
                 sigma = xdata["sy"].values
             xdata = xdata["x0"].values
 
-        solution = self.solve(xdata, ydata, sigma, prominence=prominence)
+        solution = self.solve(xdata, ydata, sigma, prominence=prominence, distance=distance, width=width)
 
         self._xdata = xdata
         self._ydata = ydata

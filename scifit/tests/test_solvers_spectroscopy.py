@@ -62,12 +62,10 @@ class TestRamanSpectrum(TestCase):
 
         for file in self.files:
 
-            data = pd.read_csv(file, sep="\t", header=None, names=["x0", "y"])
-            #data = data.set_index("x").apply(lambda x: (x.max() - x) / (x.max() - x.min())).reset_index()
-            data = data.iloc[100:, :]
+            data = pd.read_csv(file, sep="\t", header=None, skiprows=100, names=["x0", "y"])
 
             solver = SpectroscopySolver()
-            solution = solver.fit(data, prominence=250.)
+            solution = solver.fit(data, prominence=350., distance=1., width=(0.5, 50.0))
 
             fig, axe = plt.subplots()
             axe.plot(data.x0, data.y, label="Data")
