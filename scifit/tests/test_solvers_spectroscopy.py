@@ -67,7 +67,7 @@ class TestRamanSpectrum(TestCase):
             data = data.iloc[100:, :]
 
             solver = SpectroscopySolver()
-            solution = solver.fit(data, prominence=400.)
+            solution = solver.fit(data, prominence=250.)
 
             fig, axe = plt.subplots()
             axe.plot(data.x0, data.y, label="Data")

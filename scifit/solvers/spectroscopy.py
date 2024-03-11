@@ -66,14 +66,16 @@ class SpectroscopySolver:
 
         return wrapped
 
-    def solve(self, xdata, ydata, sigma=None, prominence=400.):
+    def solve(self, xdata, ydata, sigma=None, baseline_mode="loess", prominence=400., distance=2.):
 
-        baseline_fitter = Baseline(x_data=xdata)
-        baseline, params = baseline_fitter.asls(ydata)
+        baseline_fitter = getattr(Baseline(x_data=xdata), baseline_mode)
+
+        baseline, params = baseline_fitter(ydata)
         yb = ydata - baseline
 
-        peaks, bases = signal.find_peaks(yb, prominence=prominence)
-        lefts, rights = ChromatogramSolver.clean_base_indices(bases["left_bases"], bases["right_bases"])
+        peaks, bases = signal.find_peaks(yb, prominence=prominence, distance=distance)
+        #lefts, rights = ChromatogramSolver.clean_base_indices(bases["left_bases"], bases["right_bases"])
+        lefts, rights = bases["left_bases"], bases["right_bases"]
 
         x0 = list(itertools.chain(*[[xdata[i], 1., p] for i, p in zip(peaks, bases["prominences"])]))
         bounds = list(itertools.chain(*[
