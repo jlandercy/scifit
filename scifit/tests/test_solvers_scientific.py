@@ -464,3 +464,67 @@ class PseudoVoigtRegressionNoiseL1(PseudoVoigtRegression, TestCase):
 
 class PseudoVoigtRegressionNoiseL2(PseudoVoigtRegression, TestCase):
     sigma = 1e-1
+
+
+class LennardJonesRegression(GenericLinearRegression):
+
+    factory = scientific.LennardJonesFitSolver
+    parameters = np.array([2.9, 1.2])
+    configuration = {
+        "maxfev": 3000
+    }
+    xmin = 1.
+    xmax = 2.5
+    resolution = 50
+    log_loss = True
+
+    def test_kolmogorov(self):
+        pass
+
+    def test_fit_from_synthetic_dataset(self):
+        pass
+
+
+class LennardJonesRegressionNoiseL0(LennardJonesRegression, TestCase):
+    sigma = 1e-6
+
+
+class LennardJonesRegressionNoiseL1(LennardJonesRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class LennardJonesRegressionNoiseL2(LennardJonesRegression, TestCase):
+    sigma = 1e-1
+
+
+class MieLennardJonesRegression(GenericLinearRegression):
+
+    factory = scientific.MieLennardJonesFitSolver
+    parameters = np.array([2.9, 1.2, 8.5])
+    configuration = {
+        "p0": [1., 1., 10.],
+        "maxfev": 5000,
+        "bounds": [(0., 0., 8.), (np.inf, np.inf, 14.)]
+    }
+    xmin = 1.
+    xmax = 2.5
+    resolution = 50
+    log_loss = True
+
+    def test_kolmogorov(self):
+        pass
+
+    def test_fit_from_synthetic_dataset(self):
+        pass
+
+
+class MieLennardJonesRegressionNoiseL0(MieLennardJonesRegression, TestCase):
+    sigma = 1e-6
+
+
+class MieLennardJonesRegressionNoiseL1(MieLennardJonesRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class MieLennardJonesRegressionNoiseL2(MieLennardJonesRegression, TestCase):
+    sigma = 1e-1

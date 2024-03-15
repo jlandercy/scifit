@@ -168,7 +168,6 @@ class FitSolverInterface(FitSolverMixin):
             method="L-BFGS-B",
             callback=callback,
             bounds=bounds,
-            **kwargs,
         )
         self._iterations = np.array(self._iterations)
 

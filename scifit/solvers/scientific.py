@@ -396,3 +396,17 @@ class PseudoVoigtFitSolver(FitSolver1D):
     @staticmethod
     def model(x, eta, sigma, x0, A):
         return specials.pseudo_voigt(x[:, 0], eta, sigma, sigma, x0, A)
+
+
+class LennardJonesFitSolver(FitSolver1D):
+
+    @staticmethod
+    def model(x, epsilon, sigma):
+        return 4 * epsilon * (np.power(sigma / x[:, 0], 12.) - np.power(sigma / x[:, 0], 6.))
+
+
+class MieLennardJonesFitSolver(FitSolver1D):
+
+    @staticmethod
+    def model(x, epsilon, sigma, n):
+        return 4 * epsilon * (np.power(sigma / x[:, 0], n) - np.power(sigma / x[:, 0], 6.))
