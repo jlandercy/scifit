@@ -415,5 +415,7 @@ class MiePotentialFitSolver(FitSolver1D):
 
     @staticmethod
     def model(x, epsilon, sigma, n, m):
-        return 4 * epsilon * (np.power(sigma / x[:, 0], n) - np.power(sigma / x[:, 0], m))
+        f = m/(n-m)
+        C = f * np.power((n / m), f)
+        return C * epsilon * (np.power(sigma / x[:, 0], n) - np.power(sigma / x[:, 0], m))
 

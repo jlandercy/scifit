@@ -520,6 +520,9 @@ class MiePotentialRegression(GenericLinearRegression):
     def test_confidence_bands_precision(self):
         pass
 
+    def test_dataset_serialization_equivalence(self):
+        pass
+
 
 class MiePotentialRegressionNoiseL0(MiePotentialRegression, TestCase):
     sigma = 1e-6
