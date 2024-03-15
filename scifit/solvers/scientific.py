@@ -398,15 +398,22 @@ class PseudoVoigtFitSolver(FitSolver1D):
         return specials.pseudo_voigt(x[:, 0], eta, sigma, sigma, x0, A)
 
 
-class LennardJonesFitSolver(FitSolver1D):
+class LennardJonesPotentialFitSolver(FitSolver1D):
+    """
+    Lennard-Jones Potential Model (`Wikipedia <https://en.wikipedia.org/wiki/Lennard-Jones_potential>`_
+    """
 
     @staticmethod
     def model(x, epsilon, sigma):
         return 4 * epsilon * (np.power(sigma / x[:, 0], 12.) - np.power(sigma / x[:, 0], 6.))
 
 
-class MieLennardJonesFitSolver(FitSolver1D):
+class MiePotentialFitSolver(FitSolver1D):
+    """
+    Mie Potential Model (`Wikipedia <https://en.wikipedia.org/wiki/Mie_potential>`_
+    """
 
     @staticmethod
-    def model(x, epsilon, sigma, n):
-        return 4 * epsilon * (np.power(sigma / x[:, 0], n) - np.power(sigma / x[:, 0], 6.))
+    def model(x, epsilon, sigma, n, m):
+        return 4 * epsilon * (np.power(sigma / x[:, 0], n) - np.power(sigma / x[:, 0], m))
+
