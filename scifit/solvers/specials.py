@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy import integrate, optimize
 
 from scifit.interfaces.solvers import FitSolver1D
@@ -177,6 +178,13 @@ class RaneyKetonDehydrogenationFitSolver(FitSolver1D):
 
 
 class AcidBasePartition:
+    """
+
+    .. math::
+
+        \\alpha_i = \\frac{M_i(H)}{P(H)} = \\frac{H^{n-i} \\prod\\limits_{j=0}^{i} Ka_i}{\\sum\\limits_{i=0}^n H^{n-i} \\prod\\limits_{j=0}^{i} Ka_i}
+
+    """
 
     def __init__(self, pKa):
         self.pKa = np.array(pKa)
@@ -293,11 +301,11 @@ class AcidBasePartition:
     def plot_monoms(self, pHmin=0, pHmax=14, resolution=500):
 
         pH = np.linspace(pHmin, pHmax, resolution)
-        D = solver.polynom(pH)
+        D = self.polynom(pH)
 
         fig, axe = plt.subplots()
-        for i in reversed(range(solver.n + 1)):
-            axe.semilogy(pH, solver.monom(i, pH), label=r"$N_{%d}$" % i)
+        for i in reversed(range(self.n + 1)):
+            axe.semilogy(pH, self.monom(i, pH), label=r"$N_{%d}$" % i)
         axe.semilogy(pH, D, "--", color="black", linewidth=3, label="$D = \sum N_i$")
 
         axe.set_title("Partition monoms")
@@ -313,11 +321,11 @@ class AcidBasePartition:
         pH = np.linspace(pHmin, pHmax, resolution)
         C0 = []
         for x in pH:
-            a0 = solver.alphas(x)
+            a0 = self.alphas(x)
             try:
-                C0.append(solver.equilibrium(list(a0) + [1e-7]))
+                C0.append(self.equilibrium(list(a0) + [1e-7]))
             except:
-                C0.append([np.nan] * (solver.n + 2))
+                C0.append([np.nan] * (self.n + 2))
         C0 = np.array(C0)
 
         fig, axe = plt.subplots()
@@ -328,6 +336,63 @@ class AcidBasePartition:
         axe.set_xlabel("Proton concentration, $pH$ [-]")
         axe.set_ylabel("Proton concentration, $pH$ [-]")
         axe.legend()
+        axe.grid()
+
+        return axe
+
+
+class ComplexPartition:
+    """
+
+    .. math::
+
+        \\alpha_i = \\frac{M_i(L)}{P(L)} = \\frac{L^{i} \\prod\\limits_{j=0}^{i} k_i}{\\sum\\limits_{i=0}^n L^{i} \\prod\\limits_{j=0}^{i} k_i}
+
+    """
+
+    def __init__(self, pK):
+        self.pK = np.array(pK)
+
+    @property
+    def K(self):
+        return np.power(10., self.pK)
+
+    @property
+    def n(self):
+        return len(self.pK)
+
+    def monom(self, i, L):
+        return np.power(L, i) * np.prod(self.K[:i])
+
+    def polynom(self, L):
+        return np.sum([self.monom(i, L) for i in range(self.n + 1)], axis=0)
+
+    def alpha(self, i, L):
+        return self.monom(i, L) / self.polynom(L)
+
+    def alphas(self, L):
+
+        a = np.array([
+            self.alpha(i, L)
+            for i in range(self.n + 1)
+        ]).T
+
+        if not np.allclose(np.sum(a.T, axis=0), 1.):
+            raise ValueError("Partition functions does not sum up to unity")
+
+        return a
+
+    def plot(self, pLmin=-5, pLmax=2, resolution=500):
+
+        L = np.logspace(pLmin, pLmax, resolution)
+        As = self.alphas(L)
+
+        fig, axe = plt.subplots()
+        axe.semilogx(L, As)
+        axe.set_title("Complex Partition Functions")
+        axe.set_xlabel("Ligand Concentration, L [mol/L]")
+        axe.set_ylabel(r"Partition Function, $\alpha_i$ [-]")
+        axe.legend([r"$\alpha_{%d}$" % i for i in range(self.n + 1)])
         axe.grid()
 
         return axe
