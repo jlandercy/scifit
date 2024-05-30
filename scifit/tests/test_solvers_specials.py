@@ -107,15 +107,15 @@ class TestAcidBasePartition:
     solver = None
 
     def setUp(self):
-        self.pH = np.linspace(0, 14, 201)
+        self.pH = np.linspace(0, 14, 501)
 
     def test_solution_equivalence(self):
-        alphas = self.solver.alphas(self.pH)
-        for pH, alpha in zip(self.pH, alphas):
-            C0 = np.array(list(alpha) + [1.])
+        for pH in self.pH:
+            alphas = self.solver.alphas(pH)
+            C0 = np.array(list(alphas) + [1e-7])
             C = self.solver.equilibrium(C0)
-            self.assertTrue(np.isclose(pH + np.log10(C[-1]), 0., atol=1e-2, rtol=1e-4))
-            self.assertTrue(np.allclose(alpha - C[:-1], 0.))
+            self.assertTrue(np.isclose(pH + np.log10(C[-1]), 0., atol=1e-4, rtol=1e-4))
+            self.assertTrue(np.allclose(alphas - C[:-1], 0.))
 
 
 class TestAcidBasePartitionEDTA(TestAcidBasePartition, TestCase):

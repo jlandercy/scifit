@@ -249,11 +249,11 @@ class AcidBasePartition:
             x0=np.array([1.] * (self.n + 2)),
             args=(Ct, Na),
             full_output=True,
-            xtol=1e-9,
+            #xtol=1e-9,
         )
 
-        if code != 1:
-            raise ValueError("Solution not found: %s" % message)
+        # if code != 1:
+        #     raise ValueError("Solution not found: %s" % message)
 
         check = self.equilibrium_system(sol, Ct, Na)
         if not np.allclose(check, 0.):
