@@ -1,7 +1,7 @@
 [![Pypi Workflow](https://github.com/jlandercy/scifit/actions/workflows/pypi.yaml/badge.svg?branch=main)](https://github.com/jlandercy/scifit/actions/workflows/pypi.yaml)
 [![Documentations Workflow](https://github.com/jlandercy/scifit/actions/workflows/docs.yaml/badge.svg?branch=main)](https://github.com/jlandercy/scifit/actions/workflows/docs.yaml)
 
-![SciFit Banner](./docs/source/media/branding/Banner.png)
+![SciFit Banner](./docs/source/media/branding/banner.png)
 
 # SciFit
 
@@ -34,35 +34,36 @@ Let's fit some data:
 from scifit.solvers.scientific import *
 
 # Select a specific solver:
-solver = HillEquationFitSolver()
+solver = GaussianPeakFitSolver()
 
 # Create some synthetic dataset:
 data = solver.synthetic_dataset(
-    xmin=0.0, xmax=5.0, resolution=50,
-    parameters=[3.75, 0.21],
-    sigma=0.1, scale_mode="auto", seed=1234,
+    xmin=0.0, xmax=30.0, resolution=120,
+    parameters=[450.3, 1.23, 15.7],
+    sigma=2.5e-2, scale_mode="auto", seed=12345,
 )
 
 # Perform regression:
-solution = solver.fit(data)
+solution = solver.fit(data, p0=(500, 5, 20))
 
 # Render results:
 axe = solver.plot_fit()
 ```
 
-We have a nice adjustments for such noisy data:
+Which return the following adjustment:
 
-![Fit figure](./docs/source/media/branding/FitFigure.png)
+![Fit figure](./docs/source/media/branding/GaussianPeakRegressionNoiseL1_fit.png)
 
-Or even better a full fit report to check each key points at once:
+And the following Goodness of Fit test:
 
 ```python
-solver.report("hill_report")
+# Render Chi Square Test:
+axe = solver.plot_chi_square()
 ```
 
-![Report page](./docs/source/media/branding/ReportPage.png)
 
-Which produces a PDF file called `hill_report.pdf`.
+![Fit figure](./docs/source/media/branding/GaussianPeakRegressionNoiseL1_chi2.png)
+
 
 ## Resources
 
