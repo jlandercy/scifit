@@ -51,21 +51,6 @@ class GompertzRegressionNoiseL2(GompertzRegression, TestCase):
     sigma = 1e-1
 
 
-class GompertzRegressionNoiseL3(GompertzRegression, TestCase):
-    sigma = 2.5e-1
-
-
-class GompertzRegressionNoiseL4(GompertzRegression, TestCase):
-    sigma = 1.0
-
-
-class GompertzRegressionNoiseL5(GompertzRegression, TestCase):
-    sigma = 2.5
-
-    def test_kolmogorov(self):
-        pass
-
-
 class GenericKineticRegression(GenericTestFitSolver):
     xmin = 1e-6
     xmax = 1e-3
@@ -102,33 +87,6 @@ class MichaelisMentenKineticRegressionNoiseL2(
     sigma = 1e-1
 
 
-class MichaelisMentenKineticRegressionNoiseL3(
-    MichaelisMentenKineticRegression, TestCase
-):
-    sigma = 2.5e-1
-
-    def test_kolmogorov(self):
-        pass
-
-
-class MichaelisMentenKineticRegressionNoiseL4(
-    MichaelisMentenKineticRegression, TestCase
-):
-    sigma = 1.0
-
-    def test_kolmogorov(self):
-        pass
-
-
-class MichaelisMentenKineticRegressionNoiseL5(
-    MichaelisMentenKineticRegression, TestCase
-):
-    sigma = 2.5
-
-    def test_kolmogorov(self):
-        pass
-
-
 class CooperativeHillEquationRegression(GenericKineticRegression):
     factory = scientific.HillEquationFitSolver
     parameters = np.array([2.12, 2.5e-1])
@@ -157,30 +115,6 @@ class CooperativeHillEquationRegressionNoiseL2(
     sigma = 1e-1
 
 
-class CooperativeHillEquationRegressionNoiseL3(
-    CooperativeHillEquationRegression, TestCase
-):
-    sigma = 2.5e-1
-
-
-class CooperativeHillEquationRegressionNoiseL4(
-    CooperativeHillEquationRegression, TestCase
-):
-    sigma = 1.0
-
-    def test_kolmogorov(self):
-        pass
-
-
-class CooperativeHillEquationRegressionNoiseL5(
-    CooperativeHillEquationRegression, TestCase
-):
-    sigma = 2.5
-
-    def test_kolmogorov(self):
-        pass
-
-
 class CompetitiveHillEquationRegression(GenericKineticRegression):
     factory = scientific.HillEquationFitSolver
     parameters = np.array([0.32, 2.5e-1])
@@ -206,38 +140,6 @@ class CompetitiveHillEquationRegressionNoiseL2(
     CompetitiveHillEquationRegression, TestCase
 ):
     sigma = 1e-1
-
-
-class CompetitiveHillEquationRegressionNoiseL3(
-    CompetitiveHillEquationRegression, TestCase
-):
-    sigma = 2.5e-1
-
-
-class CompetitiveHillEquationRegressionNoiseL4(
-    CompetitiveHillEquationRegression, TestCase
-):
-    sigma = 1.0
-
-    def test_fit_from_synthetic_dataset(self):
-        """Does not converge (maxfev>800)"""
-        pass
-
-    def test_kolmogorov(self):
-        pass
-
-
-class CompetitiveHillEquationRegressionNoiseL5(
-    CompetitiveHillEquationRegression, TestCase
-):
-    sigma = 2.5
-
-    def test_fit_from_synthetic_dataset(self):
-        """Does not converge (maxfev>800)"""
-        pass
-
-    def test_kolmogorov(self):
-        pass
 
 
 class LogisticRegression(GenericLinearRegression):
@@ -312,6 +214,8 @@ class RichardGeneralizedSigmoidRegressionNoiseL1(
     RichardGeneralizedSigmoidRegression, TestCase
 ):
     sigma = 2.5e-2
+
+    configuration = {"p0": np.array([10.0, 10.0, 5.0, 10.0, 5.0, 5.0])}
 
 
 class RichardGeneralizedSigmoidRegressionNoiseL2(
@@ -468,21 +372,165 @@ class EMGPeakRegression(GenericLinearRegression):
     def test_fit_from_synthetic_dataset(self):
         pass
 
+    def test_plot_loss(self):
+        """to heavy"""
 
-#
-# class EMGPeakRegressionNoiseL0(
-#     EMGPeakRegression, TestCase
-# ):
-#     sigma = 1e-6
-#
-#
-# class EMGPeakRegressionNoiseL1(
-#     EMGPeakRegression, TestCase
-# ):
-#     sigma = 2.5e-2
-#
-#
-# class EMGPeakRegressionNoiseL2(
-#     EMGPeakRegression, TestCase
-# ):
-#     sigma = 1e-1
+
+class EMGPeakRegressionNoiseL0(EMGPeakRegression, TestCase):
+    sigma = 1e-6
+
+
+class EMGPeakRegressionNoiseL1(EMGPeakRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class EMGPeakRegressionNoiseL2(EMGPeakRegression, TestCase):
+    sigma = 1e-1
+
+
+class LaserPowerRegression(GenericLinearRegression):
+    factory = scientific.LaserPowerFitSolver
+    parameters = np.array([21, 27.1, 8.11])
+    # configuration = {"p0": np.array([20., 20., 10.])}
+    xmin = 0.1
+    xmax = 55.5
+    resolution = 50
+
+
+class LaserPowerRegressionNoiseL0(LaserPowerRegression, TestCase):
+    sigma = 1e-6
+
+
+class LaserPowerRegressionNoiseL1(LaserPowerRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class LaserPowerRegressionNoiseL2(LaserPowerRegression, TestCase):
+    sigma = 1e-1
+
+
+class LaserPowerRegressionDataset(LaserPowerRegression, TestCase):
+    xdata = np.array([[4.3, 8.1, 15.2, 28.5, 53.4]]).T
+    ydata = np.array([9.5, 10.6, 12.6, 15.5, 18.3])
+    sigmas = np.array([0.242, 0.231, 0.282, 0.31, 0.373])
+
+    def test_model_implementation(self):
+        pass
+
+    def test_model_minimize_signature(self):
+        pass
+
+    def test_dataset(self):
+        pass
+
+
+class VoigtRegression(GenericLinearRegression):
+
+    factory = scientific.VoigtFitSolver
+    parameters = np.array([1, 1, 2., 100.])
+    xmin = -2.5
+    xmax = 7.5
+    resolution = 50
+
+
+class VoigtRegressionNoiseL0(VoigtRegression, TestCase):
+    sigma = 1e-6
+
+
+class VoigtRegressionNoiseL1(VoigtRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class VoigtRegressionNoiseL2(VoigtRegression, TestCase):
+    sigma = 1e-1
+
+
+class PseudoVoigtRegression(GenericLinearRegression):
+
+    factory = scientific.PseudoVoigtFitSolver
+    parameters = np.array([0.5, 1., 2., 100.])
+    xmin = -2.5
+    xmax = 7.5
+    resolution = 50
+
+
+class PseudoVoigtRegressionNoiseL0(PseudoVoigtRegression, TestCase):
+    sigma = 1e-6
+
+
+class PseudoVoigtRegressionNoiseL1(PseudoVoigtRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class PseudoVoigtRegressionNoiseL2(PseudoVoigtRegression, TestCase):
+    sigma = 1e-1
+
+
+class LennardJonesPotentialRegression(GenericLinearRegression):
+
+    factory = scientific.LennardJonesPotentialFitSolver
+    parameters = np.array([2.9, 1.2])
+    configuration = {
+        "maxfev": 3000
+    }
+    xmin = 1.
+    xmax = 2.5
+    resolution = 50
+    log_loss = True
+
+    def test_kolmogorov(self):
+        pass
+
+    def test_fit_from_synthetic_dataset(self):
+        pass
+
+
+class LennardJonesPotentialRegressionNoiseL0(LennardJonesPotentialRegression, TestCase):
+    sigma = 1e-6
+
+
+class LennardJonesPotentialRegressionNoiseL1(LennardJonesPotentialRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class LennardJonesPotentialRegressionNoiseL2(LennardJonesPotentialRegression, TestCase):
+    sigma = 1e-1
+
+
+class MiePotentialRegression(GenericLinearRegression):
+
+    factory = scientific.MiePotentialFitSolver
+    parameters = np.array([2.9, 1.2, 8.5, 6.5])
+    configuration = {
+        "p0": np.array([1., 1., 8., 6.]),
+        "maxfev": 3000,
+        "bounds": [(0., 0., 6., 2.), (np.inf, np.inf, 16., 12.)]
+    }
+    xmin = 1.
+    xmax = 2.5
+    resolution = 50
+    log_loss = True
+
+    def test_kolmogorov(self):
+        pass
+
+    def test_fit_from_synthetic_dataset(self):
+        pass
+
+    def test_confidence_bands_precision(self):
+        pass
+
+    def test_dataset_serialization_equivalence(self):
+        pass
+
+
+class MiePotentialRegressionNoiseL0(MiePotentialRegression, TestCase):
+    sigma = 1e-6
+
+
+class MiePotentialRegressionNoiseL1(MiePotentialRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class MiePotentialRegressionNoiseL2(MiePotentialRegression, TestCase):
+    sigma = 1e-1

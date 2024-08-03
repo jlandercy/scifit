@@ -3,7 +3,14 @@ import warnings
 
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
+
+import numpy as np
+import numdifftools as nd
+
 from scipy import optimize, stats
+
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel
 
 from scifit import logger
 from scifit.errors.base import *
@@ -148,7 +155,7 @@ class FitSolverInterface(FitSolverMixin):
 
         # Adapt loss function signature:
         def loss(p):
-            return self.parametrized_loss(xdata, ydata, sigma=sigma)(*p)
+            return 0.5 * self.parametrized_loss(xdata, ydata, sigma=sigma)(*p)
 
         def callback(result):
             self._iterations.append(result)
@@ -159,19 +166,22 @@ class FitSolverInterface(FitSolverMixin):
             loss,
             x0=p0,
             method="L-BFGS-B",
-            jac="3-point",
             callback=callback,
             bounds=bounds,
-            **kwargs,
         )
         self._iterations = np.array(self._iterations)
 
-        # # From scipy: https://github.com/scipy/scipy/blob/main/scipy/optimize/_minpack_py.py#L1000C1-L1004C39
-        # _, s, VT = np.linalg.svd(solution.jac, full_matrices=False)
-        # threshold = np.finfo(float).eps * max(solution.jac.shape) * s[0]
-        # s = s[s > threshold]
-        # VT = VT[:s.size]
-        # covariance = np.dot(VT.T / s**2, VT)
+        # https://github.com/scipy/scipy/blob/main/scipy/optimize/_minpack_py.py#L1000C1-L1004C39
+        # https://stackoverflow.com/a/70754826/3067485
+        # https://stackoverflow.com/questions/77633726/covariance-deviation-when-using-method-l-bfgs-b-of-scipy-optimize-minimize/77644314#77644314
+
+        # Autograd works well for simple function but miserably fails for scientific
+        #H = hessian(loss)(solution.x)
+        #C = np.linalg.inv(H)
+
+        # Numdifftools:
+        # H = nd.Hessian(loss)(solution.x)
+        # C = np.linalg.inv(H)
 
         return {
             "success": solution.success,
@@ -184,6 +194,7 @@ class FitSolverInterface(FitSolverMixin):
                 "nfev": solution.nfev,
                 "njev": solution.njev,
                 "hess_inv": solution.hess_inv,
+                "hess_inv_dense": solution.hess_inv.todense(),
                 "iterations": self._iterations,
             },
             "message": solution.message,
@@ -464,6 +475,133 @@ class FitSolverInterface(FitSolverMixin):
                 "test": test,
             }
 
+    def _gradient(self, x, parameters=None, ratio=0.0001):
+        x = x.reshape(-1, 1).T
+
+        if parameters is None:
+            parameters = self._solution["parameters"]
+
+        grad = np.full((self.k,), np.nan)
+        dp = ratio * np.abs(parameters)
+
+        for i in range(self.k):
+            mask = np.full((self.k,), 0.0)
+            mask[i] = 1.0
+            grad[i] = (
+                (
+                    self.model(x, *(parameters + mask * dp))
+                    - self.model(x, *(parameters - mask * dp))
+                )
+                / (2 * dp[i])
+            )[0]
+
+        return grad
+
+    def gradient(self, x, parameters=None, ratio=0.0001):
+        """
+        Estimate gradient with respect to parameters using centered finite difference quotient
+
+        .. math ::
+
+            \\boldsymbol{J}_f({\\beta_i}) = \\left.\\frac{\\partial f}{\\partial \\beta_i}\\right|_\\boldsymbol{x}
+            \\simeq \\frac{
+            f(\\boldsymbol{x}, \\beta_0, \\dots, \\beta_i + \\Delta \\beta_i, \\dots, \\beta_{k-1}) -
+            f(\\boldsymbol{x}, \\beta_0, \\dots, \\beta_i - \\Delta \\beta_i, \\dots, \\beta_{k-1})
+            }{2 \\Delta \\beta_i}
+
+        :param x:
+        :param parameters:
+        :param ratio:
+        :return:
+        """
+        return np.apply_along_axis(
+            self._gradient, 1, x, parameters=parameters, ratio=ratio
+        )
+
+    def confidence_bands(self, x, parameters=None, mode="taylor", alpha=0.05, ratio=0.0001):
+        """
+        Generate confidence bands w.r.t. parameters for a given alpha.
+
+        Confidence bands are computed as follow:
+
+        .. math ::
+
+            \\hat{y} \\pm z_\\alpha \\cdot \\sigma_y
+
+        Where :math:`\\sigma_y` is evaluated by first order error propagation:
+
+        .. math ::
+
+            \\sigma_y^2 = C_y = \\boldsymbol{J}_f\\boldsymbol{C}_\\beta\\boldsymbol{J}_f^T
+
+        And z-score :math:`z_\\alpha` is defined:
+
+        .. math ::
+
+            \\frac{1}{\\sqrt{\\pi}}\\int\\limits_{-z_\\alpha}^{-z_\\alpha}\\exp(-z^2) \\cdot \\mathrm{d}z = 1 - \\alpha
+
+        :param x:
+        :param parameters:
+        :param alpha:
+        :param ratio:
+        :return:
+        """
+
+        modes = {"taylor", "gpr"}
+        if mode not in modes:
+            raise ConfigurationError("Mode must be in %s, got '%s' instead" % (modes, mode))
+
+        if parameters is None:
+            parameters = self._solution["parameters"]
+
+        f = self.predict(x, parameters=parameters)
+
+        zscore = stats.norm(loc=0., scale=1.).ppf(1. - alpha / 2.)
+
+        if mode == "taylor":
+
+            Cb = self._solution["covariance"]
+
+            def estimate(J):
+                return J @ Cb @ J.T
+
+            Jb = self.gradient(x, parameters=parameters, ratio=ratio)
+            Cy = np.apply_along_axis(estimate, 1, Jb)
+
+            band_width = zscore * np.sqrt(Cy)
+
+            return {
+                "gradient": Jb,
+                "covariance": Cy,
+                "alpha": alpha,
+                "zscore": zscore,
+                "band_width": band_width,
+                "upper_band": f + band_width,
+                "lower_band": f - band_width,
+            }
+
+        elif mode == "gpr":
+
+            factor = self._sigma
+            if factor is not None:
+                factor = np.power(self._sigma, 2)
+
+            kernel = ConstantKernel(1.) * RBF(length_scale=1.0)
+            gpr = GaussianProcessRegressor(kernel=kernel, alpha=factor, n_restarts_optimizer=25)
+            gpr.fit(self._xdata, self._ydata)
+
+            f_hat, f_std = gpr.predict(x, return_std=True)
+            band_width = zscore * f_std
+
+            return {
+                "alpha": alpha,
+                "zscore": zscore,
+                "band_width": band_width,
+                "upper_band": f_hat + band_width,
+                "lower_band": f_hat - band_width,
+                "f_hat": f_hat,
+            }
+
     def parametrized_loss(self, xdata=None, ydata=None, sigma=None):
         """
         **Wrapper:** Loss function decorated with experimental data and vectorized for parameters.
@@ -488,6 +626,14 @@ class FitSolverInterface(FitSolverMixin):
             return self.loss(xdata, ydata, sigma=sigma, parameters=parameters)
 
         return wrapped
+
+    def outlier_mask(self, factor=3.):
+        if self.fitted(error=True):
+            return np.abs(self._zscore) > factor
+
+    def outlier_indices(self, factor=3.):
+        if self.fitted(error=True):
+            return np.where(self.outlier_mask(factor=factor))[0]
 
     def _fit(self, xdata=None, ydata=None, sigma=None, **kwargs):
         """
@@ -521,6 +667,7 @@ class FitSolverInterface(FitSolverMixin):
         # Statistical tests:
         self._gof = self.goodness_of_fit()
         self._k2s = self.kolmogorov()
+        self._zscore = stats.zscore(self._ydata - self._yhat)
 
         return self._solution
 
@@ -566,6 +713,8 @@ class FitSolverInterface(FitSolverMixin):
         title="",
         errors=False,
         squared_errors=False,
+        bands="gpr",
+        alpha=0.001,
         aspect="auto",
         resolution=250,
         mode="lin",
@@ -639,6 +788,30 @@ class FitSolverInterface(FitSolverMixin):
                             alpha=0.5,
                         )
                         axe.add_patch(square)
+
+                if bands:
+
+                    ci_bands = self.confidence_bands(xscale, mode=bands, alpha=alpha, ratio=0.0001)
+
+                    axe.fill_between(
+                        xscale[:, 0],
+                        ci_bands["upper_band"],
+                        ci_bands["lower_band"],
+                        color="blue",
+                        linestyle="--",
+                        alpha=0.15,
+                        label="CI Band (%.1f%%)" % (alpha * 100.0),
+                    )
+
+                    if "f_hat" in ci_bands:
+                        axe.plot(
+                            xscale[:, 0],
+                            ci_bands["f_hat"],
+                            color="blue",
+                            linestyle="--",
+                            alpha=0.25,
+                            label="GPR"
+                        )
 
                 axe.set_title(full_title, fontdict={"fontsize": 10})
                 axe.set_xlabel(r"Feature, $x_1$")

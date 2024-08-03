@@ -42,7 +42,7 @@ class ReportProcessor:
             mode,
             format="md",
             outputfile="%s.%s" % (filename, mode),
-            extra_args=["--pdf-engine=pdflatex", "--biblatex"],
+            extra_args=["--pdf-engine=pdflatex", "--citeproc"],
         )
 
     @staticmethod

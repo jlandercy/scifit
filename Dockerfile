@@ -59,6 +59,6 @@ RUN apt-get update && \
 COPY ./requirements_ci.txt ./requirements_ci.txt
 RUN python3 -m pip install -r ./requirements_ci.txt
 
-USER 1000:1000
+#USER 1000:1000
 
 CMD python3

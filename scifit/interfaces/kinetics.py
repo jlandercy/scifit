@@ -329,6 +329,20 @@ class KineticSolverInterface:
 
         return wrapped
 
+    # def parametered_system_phase(self, t, k0, k0inv, x0):
+    #     """
+    #     Wrapper: System parametered exposing only time and concentrations
+    #     :param k0:
+    #     :param k0inv:
+    #     :return:
+    #     """
+    #
+    #     @np.vectorize
+    #     def wrapped(*x):
+    #         return self.system(t, x, k0=k0, k0inv=k0inv, x0=x0)
+    #
+    #     return wrapped
+
     def time_parametered_system(self, t, k0, k0inv):
         """
         Wrapper: System parametered exposing only time
@@ -410,6 +424,7 @@ class KineticSolverInterface:
         substance_index = substance_index or self._substance_index or 0
 
         self._solution = self.integrate_system(t, k0=k0, k0inv=k0inv, x0=x0)
+
         self._quotients = np.apply_along_axis(self.quotient, 0, self._solution.y)
         self._rates = self.rates()
         self._accelerations = self.accelerations()
@@ -721,6 +736,23 @@ class KineticSolverInterface:
         fig.subplots_adjust(top=0.85, left=0.2)
 
         return axe
+
+    # def plot_phase(self, first_index=0, second_index=1, resolution=200, substance_indices=None):
+    #
+    #     fig, axe = plt.subplots()
+    #
+    #     xmin = self._solution.y.T.min(axis=0)
+    #     xmax = self._solution.y.T.max(axis=0)
+    #
+    #     xlin = np.linspace(xmin[first_index], xmax[first_index], resolution)
+    #     ylin = np.linspace(xmin[second_index], xmax[second_index], resolution)
+    #
+    #     X, Y = np.meshgrid(xlin, ylin)
+    #
+    #     model = self.parametered_system_phase(None, self._k0, self._k0inv, self._x0)
+    #     U = model([X, Y])
+    #
+    #     return axe
 
     def plot_solve_ratio(self, substance_indices=None):
         """

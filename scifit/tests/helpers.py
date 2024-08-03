@@ -4,6 +4,7 @@ import pathlib
 
 import matplotlib.pyplot as plt
 import numpy as np
+import numdifftools as nd
 import pandas as pd
 
 from scifit.errors.base import *
@@ -139,6 +140,8 @@ class GenericSetupTestFitSolver:
     resolution = 30
     dimension = 1
     xdata = None
+    ydata = None
+    sigmas = None
 
     seed = 789
     sigma = None
@@ -149,6 +152,7 @@ class GenericSetupTestFitSolver:
 
     log_x = False
     log_y = False
+    bands = "taylor"
 
     loss_domains = None
     loss_ratio = 10.0
@@ -174,24 +178,29 @@ class GenericSetupTestFitSolver:
         self.solver = self.factory(**self.configuration)
 
         if self.data_path is None:
-            data = self.solver.synthetic_dataset(
-                xdata=self.xdata,
-                parameters=self.parameters,
-                xmin=self.xmin,
-                xmax=self.xmax,
-                resolution=self.resolution,
-                sigma=self.sigma,
-                scale_mode=self.scale_mode,
-                generator=self.generator,
-                seed=self.seed,
-                **self.target_kwargs,
-            )
+            if self.ydata is None:
+                data = self.solver.synthetic_dataset(
+                    xdata=self.xdata,
+                    parameters=self.parameters,
+                    xmin=self.xmin,
+                    xmax=self.xmax,
+                    resolution=self.resolution,
+                    sigma=self.sigma,
+                    scale_mode=self.scale_mode,
+                    generator=self.generator,
+                    seed=self.seed,
+                    **self.target_kwargs,
+                )
 
-            self.xdata = data.filter(regex="^x").values
-            self.ydata = data["y"].values
-            self.sigmas = data["sy"].values
-            self.yref = data["yref"].values
-            self.ynoise = data["ynoise"].values
+                self.xdata = data.filter(regex="^x").values
+                self.ydata = data["y"].values
+                self.sigmas = data["sy"].values
+                self.yref = data["yref"].values
+                self.ynoise = data["ynoise"].values
+
+            else:
+                if self.sigmas is None:
+                    self.sigmas = self.sigma
 
         else:
             data = self.solver.load(self.data_path)
@@ -285,11 +294,12 @@ class GenericBaseTestFitSolver:
         )
 
     def test_model_minimize_signature(self):
-        solution = self.solver.minimize(self.xdata, self.ydata, sigma=self.sigmas)
-        self.assertIsInstance(solution, dict)
+        #solution1 = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        solution2 = self.solver.minimize(self.xdata, self.ydata, sigma=self.sigmas)
+        self.assertIsInstance(solution2, dict)
         self.assertSetEqual(
             {"success", "parameters", "covariance", "info", "message", "status"},
-            set(solution.keys()),
+            set(solution2.keys()),
         )
 
     def test_model_fit_parameters(self):
@@ -310,31 +320,31 @@ class GenericBaseTestFitSolver:
                     )
                 )
 
-    def _test_model_minimize_against_solve(self):
+    def test_model_minimize_against_solve(self):
+
         if self.parameters is not None:
+
             np.random.seed(self.seed)
             solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
 
             np.random.seed(self.seed)
-            minimized = self.solver.minimize(self.xdata, self.ydata, sigma=None)
+            minimized = self.solver.minimize(self.xdata, self.ydata, sigma=self.sigmas, p0=solution["parameters"])
 
-            # Assert both solve and minimize are alike at percent level
-            for i in range(self.parameters.shape[0]):
-                self.assertTrue(
-                    np.allclose(
-                        solution["parameters"][i],
-                        minimized["parameters"][i],
-                        rtol=5e-3,
-                    )
+            # Assert parameters:
+            self.assertTrue(
+                np.allclose(
+                    solution["parameters"], minimized["parameters"],
+                    atol=1e-6, rtol=5e-3,
                 )
+            )
 
-            # Assert covariance
-            # for i in range(self.parameters.shape[0]):
+            # Assert covariance:
+            # if minimized["covariance"] is not None:
+            #     print(solution["covariance"] - minimized["covariance"])
             #     self.assertTrue(
             #         np.allclose(
-            #             solution["covariance"][i][i],
-            #             minimized["covariance"][i][i],
-            #             rtol=5e-3,
+            #             solution["covariance"], minimized["covariance"],
+            #             atol=1e-6, rtol=5e-3,
             #         )
             #     )
 
@@ -363,6 +373,44 @@ class GenericBaseTestFitSolver:
         )
         if self.sigma is not None and self.sigma > 0.0:
             self.assertTrue(test["pvalue"] >= 0.10)
+
+    def test_zscore(self):
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        self.assertTrue(np.all(np.abs(self.solver._zscore) <= 4.))
+
+    # def test_detect_outliers(self):
+    #     i = np.random.randint(low=0, high=self.ydata.size - 1)
+    #     self.ydata[i] = (np.abs(self.ydata[i]) + 1.) * 2.
+    #     solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+    #     indices = self.solver.outlier_indices()
+    #     print(i, indices)
+
+    def test_gradient(self):
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        grad = self.solver.gradient(self.xdata, ratio=0.001)
+
+        def jacobian(x):
+            def function(p):
+                return self.solver.model(x, *p)
+            return nd.Gradient(function)
+
+        J = jacobian(self.xdata)(self.solver._solution["parameters"])
+
+        #self.assertTrue(np.allclose(grad, J, rtol=1e-4, atol=1e-6))
+
+    def test_confidence_bands(self):
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        bands = self.solver.confidence_bands(self.xdata, ratio=0.001)
+
+    def test_confidence_bands_precision(self):
+        solution = self.solver.fit(self.xdata, self.ydata, sigma=self.sigmas)
+        bands1 = self.solver.confidence_bands(self.xdata, ratio=0.001)
+        bands2 = self.solver.confidence_bands(self.xdata, ratio=0.0001)
+        self.assertTrue(
+            np.allclose(
+                bands1["covariance"], bands2["covariance"], atol=1e-3, rtol=1e-3
+            )
+        )
 
     def test_feature_dataset_auto(self):
         self.solver._store(self.xdata, self.ydata)
@@ -531,6 +579,7 @@ class GenericPlotTestFitSolver:
                 mode=self.mode,
                 log_x=self.log_x,
                 log_y=self.log_y,
+                bands=self.bands,
                 resolution=self.resolution * 10,
             )
             axe.figure.savefig(

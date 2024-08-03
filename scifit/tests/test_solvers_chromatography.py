@@ -7,7 +7,6 @@ import pandas as pd
 
 from scifit.solvers.chromatography import ChromatogramSolver
 
-
 print_report = bool(int(os.getenv("TESTS_PRINT_REPORT", 0)))
 
 

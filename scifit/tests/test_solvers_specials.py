@@ -101,3 +101,30 @@ class RaneyKetonDehydrogenationRealDataRegressionNoiseL2(
     RaneyKetonDehydrogenationRealDataRegression, TestCase
 ):
     sigma = 35.0
+
+
+class TestAcidBasePartition:
+    solver = None
+
+    def setUp(self):
+        self.pH = np.linspace(0, 14, 501)
+
+    def test_solution_equivalence(self):
+        for pH in self.pH:
+            alphas = self.solver.alphas(pH)
+            C0 = np.array(list(alphas) + [1e-7])
+            C = self.solver.equilibrium(C0)
+            self.assertTrue(np.isclose(pH + np.log10(C[-1]), 0., atol=1e-4, rtol=1e-4))
+            self.assertTrue(np.allclose(alphas - C[:-1], 0.))
+
+
+class TestAcidBasePartitionEDTA(TestAcidBasePartition, TestCase):
+    solver = specials.AcidBasePartition([2.0, 2.7, 6.16, 10.26])
+
+
+class TestAcidBasePartitionAcetic(TestAcidBasePartition, TestCase):
+    solver = specials.AcidBasePartition([4.75])
+
+
+class TestAcidBasePartitionH2CO3(TestAcidBasePartition, TestCase):
+    solver = specials.AcidBasePartition([6.35, 10.33])

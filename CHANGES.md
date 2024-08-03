@@ -22,7 +22,10 @@
    - [x] Solve why peak are still grouped in some conditions
    - [ ] Create 10 datasets as use cases
    - [ ] Create solver with different mode/settings
+ - [ ] Add confidence interval on fit using gradient and covariance
+ - [ ] Deeply refactor the whole thing in order to get a 99.99% compliant interface
 
+## v0.1.16
 ## v0.1.15
 
  - [x] Kinetic rates are now computed from model instead of deriving solutions 

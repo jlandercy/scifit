@@ -2,6 +2,7 @@ import numpy as np
 from scipy import stats
 
 from scifit.interfaces.solvers import FitSolver1D
+from scifit.interfaces import specials
 
 
 class ExponentialFitSolver(FitSolver1D):
@@ -356,3 +357,65 @@ class EMGPeakFitSolver(FitSolver1D):
             * np.exp(-0.5 * np.power(sigma / x0, 2) - (x[:, 0] - xG) / x0)
             * EMGPeakFitSolver.cdf(z)
         )
+
+
+class LaserPowerFitSolver(FitSolver1D):
+    """
+    Laser Power Model found on `Stack Overflow <https://stackoverflow.com/questions/77137301/curve-fit-seems-to-overestimate-error-of-estimated-parameters/77143084#77143084>`_
+    """
+
+    _model_equation = r"A \cdot \frac{x/s}{1 + k + x/s} + b"
+
+    @staticmethod
+    def model(x, A, s, b):
+        """
+        Laser Power Model
+
+        .. math::
+
+            A \\cdot \\frac{x/s}{1 + k + x/s} + b
+
+        :param x:
+        :param A:
+        :param s:
+        :param b:
+        :return:
+        """
+        return A * (x[:, 0] / s) / (1 + (20.0 / 19.6) ** 2 + x[:, 0] / s) + b
+
+
+class VoigtFitSolver(FitSolver1D):
+
+    @staticmethod
+    def model(x, sigma, gamma, x0, A):
+        return specials.voigt(x[:, 0], sigma, gamma, x0, A)
+
+
+class PseudoVoigtFitSolver(FitSolver1D):
+
+    @staticmethod
+    def model(x, eta, sigma, x0, A):
+        return specials.pseudo_voigt(x[:, 0], eta, sigma, sigma, x0, A)
+
+
+class LennardJonesPotentialFitSolver(FitSolver1D):
+    """
+    Lennard-Jones Potential Model (`Wikipedia <https://en.wikipedia.org/wiki/Lennard-Jones_potential>`_
+    """
+
+    @staticmethod
+    def model(x, epsilon, sigma):
+        return 4 * epsilon * (np.power(sigma / x[:, 0], 12.) - np.power(sigma / x[:, 0], 6.))
+
+
+class MiePotentialFitSolver(FitSolver1D):
+    """
+    Mie Potential Model (`Wikipedia <https://en.wikipedia.org/wiki/Mie_potential>`_
+    """
+
+    @staticmethod
+    def model(x, epsilon, sigma, n, m):
+        f = m/(n-m)
+        C = f * np.power((n / m), f)
+        return C * epsilon * (np.power(sigma / x[:, 0], n) - np.power(sigma / x[:, 0], m))
+
