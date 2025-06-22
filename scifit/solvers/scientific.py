@@ -419,3 +419,16 @@ class MiePotentialFitSolver(FitSolver1D):
         C = f * np.power((n / m), f)
         return C * epsilon * (np.power(sigma / x[:, 0], n) - np.power(sigma / x[:, 0], m))
 
+
+class ExoticBoltzmannFitSolver(FitSolver1D):
+    """
+    Exotic Boltzmann Distribution
+    https://en.wikipedia.org/wiki/Boltzmann_distribution
+    https://stackoverflow.com/questions/79674833/scipy-optimizewarning-covariance-of-the-parameters-could-not-be-estimated-when
+    """
+
+    @staticmethod
+    def model(x, T):
+        kb = 8.617333262e-5  # eV/K
+        B = 0.3808           # eV
+        return B * (2 * x[:, 0] + 1) / (kb * T) * np.exp(- B * x[:, 0] * (x[:, 0] + 1) / (kb * T))

@@ -545,7 +545,7 @@ traitlets>=5.9.0
     #   nbformat
     #   nbsphinx
     #   scifit (pyproject.toml)
-typed-ast>=1.5.5
+#typed-ast==1.4.2
     # via scifit (pyproject.toml)
 typing-extensions>=4.7.1
     # via

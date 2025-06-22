@@ -534,3 +534,27 @@ class MiePotentialRegressionNoiseL1(MiePotentialRegression, TestCase):
 
 class MiePotentialRegressionNoiseL2(MiePotentialRegression, TestCase):
     sigma = 1e-1
+
+
+class ExoticBoltzmannRegression(GenericLinearRegression):
+
+    factory = scientific.ExoticBoltzmannFitSolver
+    parameters = np.array([1e5])
+    configuration = {
+        "p0": np.array([2.6e6]),
+    }
+    xmin = 0.
+    xmax = 20.
+    resolution = 50
+
+
+class ExoticBoltzmannRegressionNoiseL0(ExoticBoltzmannRegression, TestCase):
+    sigma = 1e-6
+
+
+class ExoticBoltzmannRegressionNoiseL1(ExoticBoltzmannRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class ExoticBoltzmannRegressionNoiseL2(ExoticBoltzmannRegression, TestCase):
+    sigma = 1e-1
