@@ -224,6 +224,27 @@ class RichardGeneralizedSigmoidRegressionNoiseL2(
     sigma = 1e-1
 
 
+class NaiveGeneralSigmoidRegression(GenericLinearRegression):
+    factory = scientific.NaiveGeneralSigmoidFitSolver
+    parameters = np.array([0.25, -0.1, 10, 0.5])
+
+
+class NaiveGeneralSigmoidRegressionNoiseL0(NaiveGeneralSigmoidRegression, TestCase):
+    sigma = 1e-6
+
+
+class NaiveGeneralSigmoidRegressionNoiseL1(NaiveGeneralSigmoidRegression, TestCase):
+    sigma = 2.5e-2
+
+
+class NaiveGeneralSigmoidRegressionNoiseL2(NaiveGeneralSigmoidRegression, TestCase):
+    sigma = 1e-1
+
+
+class NaiveGeneralSigmoidRegressionNoiseL3(NaiveGeneralSigmoidRegression, TestCase):
+    sigma = 5e-1
+
+
 class SmoothstepSigmoidRegression(GenericLinearRegression):
     factory = scientific.SmoothstepSigmoidFitSolver
     parameters = np.array([3.0, 2.0])

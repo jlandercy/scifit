@@ -162,6 +162,13 @@ class SmoothstepSigmoidFitSolver(FitSolver1D):
         return y
 
 
+class NaiveGeneralSigmoidFitSolver(FitSolver1D):
+
+    @staticmethod
+    def model(x, a, b, c, d):
+        return a / (1. + np.exp(-c * (x[:, 0] - d))) + b
+
+
 class InverseBoxCoxFitSolver(FitSolver1D):
     """
     `Inverse Box-Cox model (calculus) <https://en.wikipedia.org/wiki/Power_transform#Box%E2%80%93Cox_transformation>`_
